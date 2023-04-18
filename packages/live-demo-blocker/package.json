@@ -1,0 +1,16 @@
+{
+  "name": "@forestadmin/woodshop-live-demo-blocker",
+  "version": "0.0.1",
+  "license": "GPL-3.0",
+  "main": "dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@forestadmin/datasource-customizer": "^1.6.1"
+  }
+}

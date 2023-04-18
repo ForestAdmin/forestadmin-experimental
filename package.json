@@ -4,9 +4,9 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
   "devDependencies": {
-    "nx": "15.9.2"
+    "nx": "15.9.2",
+    "typescript": "^5.0.4"
   },
   "workspaces": [
     "packages/*"
