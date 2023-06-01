@@ -1,5 +1,5 @@
 {
-  "name": "@forestadmin/datasource-dynamoose",
+  "name": "@forestadmin/datasource-dynamoose-experimental",
   "version": "0.0.0-development",
   "main": "dist/index.js",
   "license": "GPL-3.0",
