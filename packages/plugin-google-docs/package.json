@@ -1,5 +1,5 @@
 {
-  "name": "@forestadmin/plugin-google-docs",
+  "name": "@forestadmin/plugin-google-docs-experimental",
   "version": "1.0.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",
