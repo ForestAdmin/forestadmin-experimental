@@ -13,7 +13,7 @@ yarn add @forestadmin/operational-database
 
 ## Limits
 
-For now this only works when:
+For now, this only works when:
 - the collection being customized primary key is called `id`
 - the `id` is an integer
 

@@ -1,5 +1,5 @@
 {
-  "name": "@forestadmin/operational-database",
+  "name": "@forestadmin/plugin-operational-database",
   "version": "0.0.1",
   "license": "GPL-3.0",
   "main": "dist/index.js",
