@@ -1,6 +1,6 @@
 The elastic search data source allows importing collections from an elastic search instance.
 
-To make everything work as expected, you need to install the package `@forestadmin/datasource-elasticsearch`.
+To make everything work as expected, you need to install the package `@forestadmin-experimental/datasource-elasticsearch`.
 
 Note that:
 
@@ -14,7 +14,7 @@ Note that:
 ```javascript
 const { createAgent } = require('@forestadmin/agent');
 
-const { createElasticsearchDataSource } = require('@forestadmin/datasource-elasticsearch');
+const { createElasticsearchDataSource } = require('@forestadmin-experimental/datasource-elasticsearch');
 
 // Create agent and import collections from elastic search
 const agent = createAgent(options).addDataSource(
