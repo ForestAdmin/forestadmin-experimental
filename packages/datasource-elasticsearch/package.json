@@ -1,5 +1,5 @@
 {
-  "name": "@forestadmin/datasource-elasticsearch-experimental",
+  "name": "@forestadmin-experimental/datasource-elasticsearch",
   "version": "1.0.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@forestadmin/woodshop-live-demo-blocker",
+  "name": "@forestadmin-experimental/live-demo-blocker",
   "version": "0.0.1",
   "license": "GPL-3.0",
   "main": "dist/index.js",
