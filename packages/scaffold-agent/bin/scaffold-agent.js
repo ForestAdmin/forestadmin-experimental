@@ -7,14 +7,11 @@ program
   .name('scaffold-agent')
   .description('CLI to generate a modern agent from a legacy one')
   .version(require('../package.json').version)
-  .requiredOption("-d, --database-url <databaseUrl>", "Database URL")
-  .requiredOption("-s, --schema-path <schema>", "Path to .forestadmin-schema.json")
+  .argument('<projectFolder>', 'Path to the project folder')
 
 program.parse(process.argv);
 
-const options = program.opts();
-
-generateProject(options.schemaPath, options.databaseUrl).catch((err) => {
+generateProject(program.args[0]).catch((err) => {
   console.error(err);
   process.exit(1);
 });

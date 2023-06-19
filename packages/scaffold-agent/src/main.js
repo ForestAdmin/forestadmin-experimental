@@ -1,5 +1,7 @@
 const { readFileSync } = require("node:fs");
+const { join } = require("node:path");
 const { introspect } = require("@forestadmin/datasource-sql");
+const dotenv = require('dotenv');
 
 const { render } = require("./utils/file");
 const { toDashCase } = require("./utils/string");
@@ -18,16 +20,18 @@ function getCollectionsByIntegration(schema) {
   return collections;
 }
 
-function writeFiles(introspection, collectionsByIntegration) {
-  const variables = { collectionsByIntegration, introspection };
+function writeFiles(env, introspection, collectionsByIntegration) {
+  const variables = { collectionsByIntegration, introspection, env };
 
-  render("main", "main.ts", variables);
-  render("typings", "typings.ts", variables);
+  render('package', 'package.json', variables, false);
+  render("main", "src/main.ts", variables);
+  render("typings", "src/typings.ts", variables);
+  render("env", ".env", variables, false);
 
   Object.entries(collectionsByIntegration).forEach(
     ([integration, collections]) => {
       const integrationVariables = { ...variables, integration, collections };
-      const dataSourceFolder = `datasources/${toDashCase(integration)}`;
+      const dataSourceFolder = `src/datasources/${toDashCase(integration)}`;
 
       if (integration === "base") {
         const filepath = `${dataSourceFolder}/index.ts`;
@@ -42,7 +46,7 @@ function writeFiles(introspection, collectionsByIntegration) {
         const collectionVars = { ...integrationVariables, collection };
 
         if (hasCustomizationFile(collection)) {
-          const filepath = `customizations/${filename}.ts`;
+          const filepath = `src/customizations/${filename}.ts`;
           render("customization", filepath, collectionVars);
         }
 
@@ -55,17 +59,21 @@ function writeFiles(introspection, collectionsByIntegration) {
   );
 }
 
-async function generateProject(schemaPath, databaseUrl) {
+async function generateProject(projectFolder) {
+  // Load .env
+  const dotEnvPath = join(projectFolder, ".env");
+  const env = dotenv.parse(readFileSync(dotEnvPath, "utf8"));
+
   // Load schema from database
-  const introspection = await introspect(databaseUrl);
+  const introspection = await introspect(env.DATABASE_URL);
   introspection.sort((a, b) => a.name.localeCompare(b.name));
 
   // Load schema from file
-  const file = readFileSync(schemaPath, "utf8");
-  const schema = JSON.parse(file);
+  const schemaPath = join(projectFolder, ".forestadmin-schema.json");
+  const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
   const collectionsByIntegration = getCollectionsByIntegration(schema);
 
-  writeFiles(introspection, collectionsByIntegration);
+  writeFiles(env, introspection, collectionsByIntegration);
 }
 
 module.exports = { generateProject };

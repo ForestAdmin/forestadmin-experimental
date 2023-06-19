@@ -2,7 +2,6 @@ import { CollectionCustomizer } from '@forestadmin/agent';
 import { Schema } from '../typings';
 
 export default (collection: CollectionCustomizer<Schema, '<%- escape(collection.name) %>'>) => {
-
   <% collection.actions.forEach(action => { %>
     collection.addAction('<%- escape(action.name) %>', {
       scope: '<%- action.type[0].toUpperCase() + action.type.slice(1) %>',
@@ -19,9 +18,10 @@ export default (collection: CollectionCustomizer<Schema, '<%- escape(collection.
     });
   <% }); %>
 
-  <% collection.fields.filter(f => f.isVirtual).forEach(field => { %>
+  <% collection.fields.filter(f => f.isVirtual || f.integration).forEach(field => { %>
     <% if (field.reference) { %>
-
+      // reference to <%- field.reference %>
+      
     <% } else { %>
       collection.addField('<%- escape(field.field) %>', {
         columnType: '<%- field.type %>',

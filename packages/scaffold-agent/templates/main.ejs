@@ -15,7 +15,7 @@ const options: AgentOptions = {
   forestServerUrl: process.env.FOREST_SERVER_URL,
   isProduction: false,
   loggerLevel: 'Info',
-  typingsPath: './typings.ts',
+  typingsPath: './src/typings.ts',
 };
 
 const agent = createAgent<Schema>(options);
