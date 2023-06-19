@@ -48,4 +48,13 @@ export default (collection: CollectionCustomizer<Schema, '<%- escape(collection.
       return { aggregator: 'Or', conditions: [] };
     });
   <% }); %>
+
+  <%# Not sure this is a good way %>
+  <%# We should be working with the schema genereted from the sql datasource, not a raw introspection %>
+  <% collection.introspection?.columns
+      .filter(c => c.constraints.length === 0)
+      .filter(c => collection.fields.every(f => f.introspection !== c))
+      .forEach(column => { -%>
+    collection.removeField('<%- escape(column.name) %>');
+  <% }); -%>
 };
