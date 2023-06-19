@@ -4,12 +4,22 @@ const ejs = require("ejs");
 const prettier = require("prettier");
 
 const { escape, toCamelCase, toDashCase, toPascalCase } = require("./string");
-const { hasCustomizationFile } = require("./schema");
+
+const helpers = {
+  '_shared': require('../template-helpers/_shared'),
+  'customization': require('../template-helpers/customization'),
+  'datasource-base': require('../template-helpers/datasource-base'),
+  'datasource-collection': require('../template-helpers/datasource-collection'),
+}
 
 function render(tplPath, destPath, variables) {
-  const template = fs.readFileSync(`./templates/${tplPath}`, "utf-8");
+  const template = fs.readFileSync(`./templates/${tplPath}.ejs`, "utf-8");
+  const helper = helpers[tplPath] ?? {};
+
   const content = ejs.render(template, {
-    toCamelCase, toDashCase, toPascalCase, escape, hasCustomizationFile,
+    toCamelCase, toDashCase, toPascalCase, escape,
+    ...helpers._shared,
+    ...helper,
     ...variables,
   });
 

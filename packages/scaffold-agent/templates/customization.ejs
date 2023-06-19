@@ -7,7 +7,7 @@ export default (collection: CollectionCustomizer<Schema, '<%- escape(collection.
     collection.addAction('<%- escape(action.name) %>', {
       scope: '<%- action.type[0].toUpperCase() + action.type.slice(1) %>',
       <% if (action.fields?.length > 0) { -%>
-        form: <%- JSON.stringify(computeActionForm(action)) %>,
+        form: <%- stringify(computeActionForm(action)) %>,
       <% } -%>
       <% if (action.download) { -%>
         generateFile: true,
@@ -26,10 +26,11 @@ export default (collection: CollectionCustomizer<Schema, '<%- escape(collection.
       collection.addField('<%- escape(field.field) %>', {
         columnType: '<%- field.type %>',
         dependencies: ['id'],
-        <%- field.enums !== null ? `enum: ${JSON.stringify(field.enums)},` : "" -%>
-        <%- field.defaultValue !== null ? `defaultValue: ${JSON.stringify(field.defaultValue)},` : "" -%>
+        <%- field.enums !== null ? `enum: ${stringify(field.enums)},` : "" -%>
+        <%- field.defaultValue !== null ? `defaultValue: ${stringify(field.defaultValue)},` : "" -%>
         getValues: (records, context) => records.map(async ({ id }) => {
           // TODO: Port the code from the field get method here.
+          return <%- stringify(getValueOfType(field.type)) %>;
         })
       });
 

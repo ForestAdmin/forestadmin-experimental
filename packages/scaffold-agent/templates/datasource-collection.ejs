@@ -3,6 +3,7 @@ import {
   Aggregation,
   BaseCollection,
   Caller,
+  ColumnSchema,
   DataSource,
   Filter,
   Logger,
@@ -12,11 +13,16 @@ import {
 } from "@forestadmin/datasource-toolkit";
 
 export default class <%- toPascalCase(collection.name) %>Collection extends BaseCollection {
-  private logger: Logger;
+  private readonly logger: Logger;
+  private readonly columns: Record<string, ColumnSchema> = <%- stringify(computeColumns(collection)) %>;
 
   constructor(logger: Logger, dataSource: DataSource) {
     super('<%- escape(collection.name) %>', dataSource);
+
     this.logger = logger;
+    for (const [name, column] of Object.entries(this.columns)) {
+      this.addField(name, column);
+    }
   }
 
   async list(
