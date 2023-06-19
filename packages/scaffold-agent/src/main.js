@@ -1,7 +1,7 @@
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { introspect } = require("@forestadmin/datasource-sql");
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 
 const { render } = require("./utils/file");
 const { toDashCase } = require("./utils/string");
@@ -23,10 +23,11 @@ function getCollectionsByIntegration(schema) {
 function writeFiles(env, introspection, collectionsByIntegration) {
   const variables = { collectionsByIntegration, introspection, env };
 
-  render('package', 'package.json', variables, false);
+  render("package", "package.json", variables, false);
+  render("tsconfig", "tsconfig.json", variables, false);
+  render("env", ".env", variables, false);
   render("main", "src/main.ts", variables);
   render("typings", "src/typings.ts", variables);
-  render("env", ".env", variables, false);
 
   Object.entries(collectionsByIntegration).forEach(
     ([integration, collections]) => {
@@ -71,6 +72,22 @@ async function generateProject(projectFolder) {
   // Load schema from file
   const schemaPath = join(projectFolder, ".forestadmin-schema.json");
   const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
+
+  // Link schema together
+  for (const collection of schema.collections) {
+    // we should look at the magic sequelize is performing and do the same with the inflection library
+    // https://sequelize.org/docs/v6/other-topics/naming-strategies/
+    collection.introspection = introspection.find(
+      (c) => c.name === collection.name + "s"
+    );
+
+    for (const field of collection.fields) {
+      field.introspection = collection.introspection?.columns.find(
+        (column) => column.name === field.field
+      );
+    }
+  }
+
   const collectionsByIntegration = getCollectionsByIntegration(schema);
 
   writeFiles(env, introspection, collectionsByIntegration);

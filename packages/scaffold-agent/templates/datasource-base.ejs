@@ -2,7 +2,7 @@ import { DataSourceCustomizer } from "@forestadmin/datasource-customizer";
 import { createSqlDataSource } from "@forestadmin/datasource-sql";
 
 export default async function loadBaseDataSource(ds: DataSourceCustomizer) {
-  const factory = createSqlDataSource(process.env.FOREST_DATABASE_URL!);
+  const factory = createSqlDataSource(process.env.DATABASE_URL!);
 
   ds.addDataSource(factory, <%- stringify(computeBaseDsOptions(introspection, collections)) %>);
 }

@@ -1,5 +1,5 @@
+import 'dotenv/config';
 import { createAgent, AgentOptions } from '@forestadmin/agent';
-import { Schema } from './typings';
 
 <% Object.values(collectionsByIntegration).flat().filter(hasCustomizationFile).forEach(collection => { -%>
   import customize<%- toPascalCase(collection.name) %> from './customizations/<%- toDashCase(collection.name) %>';
@@ -8,6 +8,9 @@ import { Schema } from './typings';
 <% Object.keys(collectionsByIntegration).forEach(integration => { -%>
   import load<%- toPascalCase(integration) %>DataSource from './datasources/<%-toDashCase(integration) %>';
 <% }); %>
+
+import { Schema } from './typings';
+
 
 const options: AgentOptions = {
   authSecret: process.env.FOREST_AUTH_SECRET!,

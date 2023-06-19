@@ -1,36 +1,20 @@
 function computeBaseDsOptions(introspection, collections) {
   const options = { exclude: [], rename: {} };
 
-  // Rename collections to match the former schema
-  const actualNames = introspection.map((c) => c.name);
-  const wantedNames = collections.map((c) => c.name);
-
-  for (const actualName of actualNames) {
-    if (wantedNames.includes(actualName)) continue;
-
-    const shortActualName = actualName.toLowerCase().replace(/-_/g, "");
-    const match = wantedNames.find((wn) => {
-      const shortWantedName = wn.toLowerCase().replace(/-_/g, "");
-      return (
-        shortWantedName === shortActualName ||
-        shortWantedName === shortActualName.replace(/s$/, "")
-      );
-    });
-
-    if (match) {
-      options.rename[actualName] = match;
-      continue;
+  for (const collection of collections) {
+    if (!collection.introspection) {
+      console.warn(`The collection ${collection.name} is missing!`);
+    } else if (collection.introspection.name !== collection.name) {
+      options.rename[collection.introspection.name] = collection.name;
     }
-
-    options.exclude.push(actualName);
   }
 
   // Warn about missing collections
-  for (const wantedName of wantedNames) {
-    if (Object.values(options.rename).includes(wantedName)) continue;
-    if (actualNames.includes(wantedName)) continue;
-
-    console.warn(`The collection ${wantedName} is missing!`);
+  for (const collection of introspection) {
+    if (!collections.some((c) => c.introspection === collection)) {
+      console.warn(`Skipping extra collection ${collection.name}!`);
+      options.exclude.push(collection.name);
+    }
   }
 
   return options;
