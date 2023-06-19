@@ -1,0 +1,50 @@
+import { CollectionCustomizer } from '@forestadmin/agent';
+import { Schema } from '../typings';
+
+export default (collection: CollectionCustomizer<Schema, '<%- escape(collection.name) %>'>) => {
+
+  <% collection.actions.forEach(action => { %>
+    collection.addAction('<%- escape(action.name) %>', {
+      scope: '<%- action.type[0].toUpperCase() + action.type.slice(1) %>',
+      <% if (action.fields?.length > 0) { -%> 
+        form: <%- JSON.stringify(computeActionForm(action)) %>,
+      <% } -%>
+      <% if (action.download) { -%>
+        generateFile: true,
+      <% } -%>
+      execute: async (context, resultBuilder) => {
+        // TODO: implement your action here
+        resultBuilder.error('Action was not yet ported');
+      },
+    });
+  <% }); %>
+
+  <% collection.fields.filter(f => f.isVirtual).forEach(field => { %>
+    <% if (field.reference) { %>
+      
+    <% } else { %>
+      collection.addField('<%- escape(field.field) %>', {
+        columnType: '<%- field.type %>',
+        dependencies: ['id'],
+        <%- field.enums !== null ? `enum: ${JSON.stringify(field.enums)},` : "" %>
+        <%- field.defaultValue !== null ? `defaultValue: ${JSON.stringify(field.defaultValue)},` : "" %>
+        getValues: (records, context) => records.map(async ({ id }) => {
+          // TODO: Port the code from the field get method here.
+        })
+      });
+
+      <% if (!field.isReadOnly) { %>
+        collection.replaceFieldWriting('<%- escape(field.field) %>', (value, context) => {
+          // TODO: Port the code from the field set method here.
+        });
+      <% } %>
+    <% } %>
+  <% }); %>
+
+  <% collection.segments.forEach(segment => { %>
+    collection.addSegment('<%- escape(segment.name) %>', async context => {
+      // TODO: implement your segment here
+      return { aggregator: 'Or', conditions: [] };
+    });
+  <% }); %>
+};

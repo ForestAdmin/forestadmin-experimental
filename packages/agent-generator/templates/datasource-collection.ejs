@@ -1,0 +1,57 @@
+import {
+  AggregateResult,
+  Aggregation,
+  BaseCollection,
+  Caller,
+  DataSource,
+  Filter,
+  Logger,
+  PaginatedFilter,
+  Projection,
+  RecordData,
+} from "@forestadmin/datasource-toolkit";
+
+export default class <%- toPascalCase(collection.name) %>Collection extends BaseCollection {
+  private logger: Logger;
+
+  constructor(logger: Logger, dataSource: DataSource) {
+    super('<%- escape(collection.name) %>', dataSource);
+    this.logger = logger;
+  }
+
+  async list(
+    caller: Caller,
+    filter: PaginatedFilter,
+    projection: Projection,
+  ): Promise<RecordData[]> {
+    // TODO: implement your smart collection here
+    this.logger('Info', 'Returning empty list for collection <%- escape(collection.name) %>');
+    return [];
+  }
+
+  async aggregate(
+    caller: Caller,
+    filter: Filter,
+    aggregation: Aggregation,
+    limit: number,
+  ): Promise<AggregateResult[]> {
+    // This will emulate the aggregation on the list method
+    return aggregation.apply(
+      await this.list(caller, filter, aggregation.projection),
+      caller.timezone,
+      limit,
+    );
+  }
+
+  create(): Promise<RecordData[]> {
+    throw new Error('Method not supported.');
+  }
+
+  update(): Promise<void> {
+    throw new Error('Method not supported.');
+  }
+
+  delete(): Promise<void> {
+    throw new Error('Method not supported.');
+  }
+}

@@ -1,0 +1,36 @@
+import { createAgent, AgentOptions } from '@forestadmin/agent';
+import { Schema } from './typings';
+
+<% Object.values(collectionsByIntegration).flat().filter(hasCustomizationFile).forEach(collection => { -%>
+  import customize<%- toPascalCase(collection.name) %> from './customizations/<%- toDashCase(collection.name) %>';
+<% }); %>
+
+<% Object.keys(collectionsByIntegration).forEach(integration => { -%>
+  import load<%- toPascalCase(integration) %>DataSource from './datasources/<%-toDashCase(integration) %>';
+<% }); %>
+
+const options: AgentOptions = {
+  authSecret: process.env.FOREST_AUTH_SECRET!,
+  envSecret: process.env.FOREST_ENV_SECRET!,
+  forestServerUrl: process.env.FOREST_SERVER_URL,
+  isProduction: false,
+  loggerLevel: 'Info',
+  typingsPath: './typings.ts',
+};
+
+const agent = createAgent<Schema>(options);
+
+<% Object.keys(collectionsByIntegration).forEach(integration => { -%>
+  agent.use(load<%- toPascalCase(integration) %>DataSource);
+<% }); %>
+
+<% Object.values(collectionsByIntegration).flat().filter(hasCustomizationFile).forEach(collection => { -%>
+  agent.customizeCollection('<%- escape(collection.name) %>', customize<%- toPascalCase(collection.name) %>);
+<% }); %>
+
+agent.mountOnStandaloneServer(Number(process.env.PORT));
+
+agent.start().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
