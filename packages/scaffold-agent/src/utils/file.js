@@ -13,7 +13,7 @@ const helpers = {
 };
 
 function render(tplPath, destPath, variables, lint = true) {
-  const template = fs.readFileSync(`./templates/${tplPath}.ejs`, "utf-8");
+  const template = fs.readFileSync(path.join(__dirname, `../../templates/${tplPath}.ejs`), "utf-8");
   const helper = helpers[tplPath] ?? {};
   const content = ejs.render(template, {
     ...stringHelpers,
