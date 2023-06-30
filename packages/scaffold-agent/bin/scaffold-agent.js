@@ -8,10 +8,11 @@ program
   .description('CLI to generate a modern agent from a legacy one')
   .version(require('../package.json').version)
   .argument('<projectFolder>', 'Path to the project folder')
+  .argument('<destinationFolder>', 'Path to the destination folder')
 
 program.parse(process.argv);
 
-generateProject(program.args[0]).catch((err) => {
+generateProject(program.args[0], program.args[1]).catch((err) => {
   console.error(err);
   process.exit(1);
 });

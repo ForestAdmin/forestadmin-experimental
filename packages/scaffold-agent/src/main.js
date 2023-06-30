@@ -1,4 +1,5 @@
 const { pluralize } = require('inflection');
+const { join } = require('node:path');
 
 const { render } = require('./utils/file');
 const { toDashCase, toSnakeCase } = require('./utils/string');
@@ -68,53 +69,24 @@ function linkOldSchemaAndNewSchema(oldSchema, newSchema) {
   }
 }
 
-// function warnAboutDiscrepancies(oldSchema, newSchema) {
-//   // Scan for things that are in the new schema but not in the old one
-//   console.log('== In the new schema but not in the old one ==');
-//   for (const newCollection of newSchema.collections) {
-//     if (!newCollection.oldCollection)
-//       console.log(`Did not find old collection for ${newCollection.name}`);
-//     else {
-//       for (const newField of newCollection.fields) {
-//         if (!newField.oldField)
-//           console.log(`Did not find old field ${newCollection.name}.${newField.field}`);
-//       }
-//     }
-//   }
-
-//   // Scan for things that are in the old schema but not in the new one
-//   console.log('== In the old schema but not in the new one ==');
-//   for (const oldCollection of oldSchema.collections) {
-//     if (!oldCollection.newCollection) {
-//       if (!oldCollection.isVirtual && !oldCollection.integration)
-//         console.log(`Did not find new collection for ${oldCollection.name}`);
-//     } else {
-//       for (const oldField of oldCollection.fields) {
-//         if (!oldField.newField && !oldField.isVirtual && !oldField.integration)
-//           console.log(`Did not find new field ${oldCollection.name}.${oldField.field}`);
-//       }
-//     }
-//   }
-// }
-
-function writeFiles(env, newSchema, collectionsByIntegration) {
+function writeFiles(destPath, env, newSchema, collectionsByIntegration) {
   const variables = { collectionsByIntegration, newSchema, env };
 
-  render('package', 'package.json', variables, false);
-  render('tsconfig', 'tsconfig.json', variables, false);
-  render('env', '.env', variables, false);
-  render('main', 'src/main.ts', variables);
-  render('typings', 'src/typings.ts', variables);
+  render('package', join(destPath, 'package.json'), variables, false);
+  render('tsconfig', join(destPath, 'tsconfig.json'), variables, false);
+  render('env', join(destPath, '.env'), variables, false);
+  render('main', join(destPath, 'src/main.ts'), variables);
+  render('typings', join(destPath, 'src/typings.ts'), variables);
 
   Object.entries(collectionsByIntegration).forEach(([integration, oldCollections]) => {
     const integrationVariables = { ...variables, integration, oldCollections };
     const dataSourceFolder = `src/datasources/${toDashCase(integration)}`;
 
     if (integration === 'base') {
-      const filepath = `${dataSourceFolder}/index.ts`;
+      const filepath = join(destPath, `${dataSourceFolder}/index.ts`);
       render('datasource-base', filepath, integrationVariables);
     } else {
-      const filepath = `${dataSourceFolder}/index.ts`;
+      const filepath = join(destPath, `${dataSourceFolder}/index.ts`);
       render('datasource-index', filepath, integrationVariables);
     }
 
@@ -123,19 +95,19 @@ function writeFiles(env, newSchema, collectionsByIntegration) {
       const collectionVars = { ...integrationVariables, oldCollection };
 
       if (hasCustomizationFile(oldCollection)) {
-        const filepath = `src/customizations/${filename}.ts`;
+        const filepath = join(destPath, `src/customizations/${filename}.ts`);
         render('customization', filepath, collectionVars);
       }
 
       if (integration !== 'base') {
-        const filepath = `${dataSourceFolder}/${filename}.ts`;
+        const filepath = join(destPath, `${dataSourceFolder}/${filename}.ts`);
         render('datasource-collection', filepath, collectionVars);
       }
     }
   });
 }
 
-async function generateProject(projectFolder) {
+async function generateProject(projectFolder, destPath) {
   const env = loadEnv(projectFolder);
   const oldSchema = loadOldSchema(projectFolder);
   const newSchema = await loadNewSchema(env.DATABASE_URL);
@@ -144,7 +116,7 @@ async function generateProject(projectFolder) {
 
   const collectionsByIntegration = getCollectionsByIntegration(oldSchema);
 
-  writeFiles(env, newSchema, collectionsByIntegration);
+  writeFiles(destPath, env, newSchema, collectionsByIntegration);
 }
 
 module.exports = { generateProject };

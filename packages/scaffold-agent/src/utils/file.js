@@ -26,8 +26,8 @@ function render(tplPath, destPath, variables, lint = true) {
     ? prettier.format(content, { parser: "typescript", printWidth: 100 })
     : content;
 
-  fs.mkdirSync(path.dirname(`./agent/${destPath}`), { recursive: true });
-  fs.writeFileSync(`./agent/${destPath}`, formatted);
+  fs.mkdirSync(path.dirname(destPath), { recursive: true });
+  fs.writeFileSync(destPath, formatted);
 }
 
 module.exports = {
