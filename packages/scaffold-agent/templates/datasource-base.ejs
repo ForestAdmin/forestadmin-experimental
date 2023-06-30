@@ -1,0 +1,60 @@
+import { DataSourceCustomizer } from "@forestadmin/datasource-customizer";
+import { createSqlDataSource } from "@forestadmin/datasource-sql";
+
+/**
+ * This file allows loading the data from your database into forestadmin.
+ * 
+ * Most of the code here is actually generated so that the naming of both collections and fields
+ * is consistent with your old schema.
+ * 
+ * @see https://docs.forestadmin.com/developer-guide-agents-nodejs/data-sources/provided-data-sources/sql
+ * @see https://docs.forestadmin.com/developer-guide-agents-nodejs/data-sources/connection/naming-conflicts
+ */
+export default async function loadBaseDataSource(ds: DataSourceCustomizer) {
+  const factory = createSqlDataSource(process.env.DATABASE_URL!);
+
+  ds.addDataSource(factory, <%- stringify(computeBaseDsOptions(newSchema)) %>);
+
+  <% for (const newCollection of newSchema.collections) { -%>
+    <% const { adds, renames, removes } = getFieldsDiff(newCollection); -%>
+
+    <% if (adds.length || renames.length || removes.length) { -%>
+      <% if (adds.length) { %>
+        ///////////////////////////////////////////////////////////////////
+        // /!\ WARNING: FIELD MAPPING HAS FAILED FOR THIS COLLECTION /!\ //
+        ///////////////////////////////////////////////////////////////////
+      <% } -%>
+      ds.customizeCollection('<%- escape(newCollection.oldCollection.name) %>', collection => {
+        <% if (adds.length) { %>
+          // We could not find the following fields in your database, but they were present in your project.
+          // THIS MAY NEED TO BE FIXED MANUALLY.
+          <% for (const field of adds) { -%>
+            // - '<%- field %>'
+          <% } %>
+        <% } %>
+
+        <% if (renames.length) { %>
+          // ======================================
+          // == Rename columns and relationships ==
+          // ======================================
+          <% for (const { from, to, candidates } of renames) { -%>
+            <% if (candidates) { %>
+              // Warning: the field '<%- from %>' was renamed to '<%- to %>'.
+              // However other candidates were found: <%- candidates.join(', ') %>.
+            <% } -%>
+            collection.renameField('<%- escape(from) %>', '<%- escape(to) %>');
+          <% } %>
+        <% } %>
+        
+        <% if (removes.length) { %>
+          // ========================================================================  
+          // == Remove fields that we found in your db, but not in your project. ==
+          // ========================================================================  
+          <% for (const field of removes) { -%>
+            collection.removeField('<%- escape(field) %>');
+          <% } %>
+        <% } %>
+      });
+    <% } %>
+  <% } %>
+}

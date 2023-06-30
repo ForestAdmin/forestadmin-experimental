@@ -1,0 +1,78 @@
+import {
+  AggregateResult,
+  Aggregation,
+  BaseCollection,
+  Caller,
+  DataSource,
+  FieldSchema,
+  Filter,
+  Logger,
+  PaginatedFilter,
+  Projection,
+  RecordData,
+} from "@forestadmin/datasource-toolkit";
+
+/**
+ * Implementation of a collection.
+ * @see https://docs.forestadmin.com/developer-guide-agents-nodejs/data-sources/custom
+ */
+export default class <%- toPascalCase(oldCollection.name) %>Collection extends BaseCollection {
+  private readonly logger: Logger;
+  private readonly fields: Record<string, FieldSchema> = {
+    <% for (const [name, field] of Object.entries(computeFields(oldCollection))) { -%>
+      <% if (field.type === 'Column') { -%>
+        '<%- escape(name) %>': <%- stringify(field) %>,
+      <% } -%>
+    <% } %>
+    <% for (const [name, field] of Object.entries(computeFields(oldCollection))) { -%>
+      <% if (field.type !== 'Column') { -%>
+        // '<%- escape(name) %>': <%- stringify(field) %>,
+      <% } -%>
+    <% } %>
+  };
+
+  constructor(logger: Logger, dataSource: DataSource) {
+    super('<%- escape(oldCollection.name) %>', dataSource);
+
+    this.logger = logger;
+    for (const [name, field] of Object.entries(this.fields)) {
+      this.addField(name, field);
+    }
+  }
+
+  async list(
+    caller: Caller,
+    filter: PaginatedFilter,
+    projection: Projection,
+  ): Promise<RecordData[]> {
+    // TODO: implement your smart collection here
+    this.logger('Info', 'Returning empty list for collection <%- escape(oldCollection.name) %>');
+    return [];
+  }
+
+  async aggregate(
+    caller: Caller,
+    filter: Filter,
+    aggregation: Aggregation,
+    limit: number,
+  ): Promise<AggregateResult[]> {
+    // This will emulate the aggregation on the list method
+    return aggregation.apply(
+      await this.list(caller, filter, aggregation.projection),
+      caller.timezone,
+      limit,
+    );
+  }
+
+  create(): Promise<RecordData[]> {
+    throw new Error('Method not supported.');
+  }
+
+  update(): Promise<void> {
+    throw new Error('Method not supported.');
+  }
+
+  delete(): Promise<void> {
+    throw new Error('Method not supported.');
+  }
+}

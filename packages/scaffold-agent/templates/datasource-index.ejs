@@ -1,0 +1,26 @@
+import { DataSourceCustomizer } from '@forestadmin/datasource-customizer';
+import { BaseDataSource, Logger } from "@forestadmin/datasource-toolkit";
+
+<% oldCollections.forEach(collection => { -%>
+  import <%- toPascalCase(collection.name) %>Collection from './<%- toDashCase(collection.name) %>';
+<% }); -%>
+
+/**
+ * Implementation of a datasource.
+ * @see https://docs.forestadmin.com/developer-guide-agents-nodejs/data-sources/custom
+ */
+class <%- toPascalCase(integration) %>DataSource extends BaseDataSource {
+  constructor(logger: Logger) {
+    super();
+
+    <% oldCollections.forEach(collection => { -%>
+      this.addCollection(new <%- toPascalCase(collection.name) %>Collection(logger, this));
+    <% }); -%>
+  }
+}
+
+export default async function load<%- toPascalCase(integration) %>DataSource(ds: DataSourceCustomizer) {
+  const factory = async (logger: Logger) => new <%- toPascalCase(integration) %>DataSource(logger);
+
+  ds.addDataSource(factory)
+}

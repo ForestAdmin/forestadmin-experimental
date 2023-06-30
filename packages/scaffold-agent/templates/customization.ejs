@@ -1,0 +1,76 @@
+import { CollectionCustomizer } from '@forestadmin/agent';
+import { Schema } from '../typings';
+
+export default (collection: CollectionCustomizer<Schema, '<%- escape(oldCollection.name) %>'>) => {
+  <% oldCollection.actions.forEach(action => { %>
+    /** @see https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/actions */
+    collection.addAction('<%- escape(action.name) %>', {
+      scope: '<%- action.type[0].toUpperCase() + action.type.slice(1) %>',
+      <% if (action.fields?.length > 0) { -%>
+        form: <%- stringify(computeActionForm(action)) %>,
+      <% } -%>
+      <% if (action.download) { -%>
+        generateFile: true,
+      <% } -%>
+      execute: async (context, resultBuilder) => {
+        // TODO: implement your action here
+        resultBuilder.error('Action was not yet ported');
+      },
+    });
+  <% }); %>
+
+  <% oldCollection.fields.filter(f => f.isVirtual && !f.integration).forEach(oldField => { %>
+    <% if (!oldField.reference) { %>
+      /** @see https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/fields */
+      collection.addField('<%- escape(oldField.field) %>', {
+        columnType: '<%- oldField.type %>',
+        dependencies: <%- stringify(oldCollection.fields.filter(f => f.isPrimaryKey).map(f => f.field)) %>,
+        <%- oldField.enums !== null ? `enum: ${stringify(oldField.enums)},` : "" -%>
+        <%- oldField.defaultValue !== null ? `defaultValue: ${stringify(oldField.defaultValue)},` : "" -%>
+        getValues: (records, context) => records.map(async ({ id }) => {
+          // TODO: Port the code from the field get method here.
+          return <%- stringify(getValueOfType(oldField.type)) %>;
+        })
+      });
+
+      <% if (oldField.isFilterable) { %>
+        collection.emulateFieldFiltering('<%- escape(oldField.field) %>');
+      <% } %>
+
+      <% if (!oldField.isReadOnly) { %>
+        collection.replaceFieldWriting('<%- escape(oldField.field) %>', (value, context) => {
+          // TODO: Port the code from the field set method here.
+          return {};
+        });
+      <% } %>
+    <% } %>
+  <% }); %>
+
+  <% oldCollection.fields.filter(f => f.isVirtual && !f.integration).forEach(oldField => { %>
+    <% if (oldField.reference) { %>
+      /*
+       * Your original agent contained a smart relationships to the collection <%- escape(oldField.reference.split('.')[0]) %>
+       * This relationship was not ported to the new agent, you can port it manually by uncommenting the following lines.
+       *
+       * @see https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/relationships
+       */ 
+      <% if (!Array.isArray(oldField.type)) { -%>
+        // collection.addManyToOneRelation('<%- escape(oldField.field) %>', '<%- escape(oldField.reference.split('.')[0]) %>', {
+        //   foreignKey: '?????',
+        // });
+      <% } else { -%>
+        // collection.addOneToManyRelation('<%- escape(oldField.field) %>', '<%- escape(oldField.reference.split('.')[0]) %>', {
+        //   originKey: '?????',
+        // });
+      <% } %>
+    <% } %>
+  <% }); %>
+
+  <% oldCollection.segments.forEach(segment => { %>
+    /** @see https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/segments */
+    collection.addSegment('<%- escape(segment.name) %>', async context => {
+      // TODO: implement your segment here
+      return { aggregator: 'Or', conditions: [] };
+    });
+  <% }); %>
+};
