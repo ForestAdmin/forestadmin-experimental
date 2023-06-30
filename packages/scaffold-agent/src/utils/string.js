@@ -17,9 +17,14 @@ function toPascalCase(str) {
   return toCamelCase(str).replace(/^[a-z]/, (g) => g.toUpperCase());
 }
 
+function toSnakeCase(str) {
+  return toDashCase(str).replace(/-/g, "_");
+}
+
 module.exports = {
   escape,
   toCamelCase,
   toDashCase,
   toPascalCase,
+  toSnakeCase,
 };

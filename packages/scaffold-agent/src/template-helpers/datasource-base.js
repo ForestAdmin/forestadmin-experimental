@@ -1,23 +1,42 @@
-function computeBaseDsOptions(introspection, collections) {
+function computeBaseDsOptions(newSchema) {
   const options = { exclude: [], rename: {} };
 
-  for (const collection of collections) {
-    if (!collection.introspection) {
-      console.warn(`The collection ${collection.name} is missing!`);
-    } else if (collection.introspection.name !== collection.name) {
-      options.rename[collection.introspection.name] = collection.name;
-    }
-  }
-
-  // Warn about missing collections
-  for (const collection of introspection) {
-    if (!collections.some((c) => c.introspection === collection)) {
-      console.warn(`Skipping extra collection ${collection.name}!`);
-      options.exclude.push(collection.name);
+  for (const newCollection of newSchema.collections) {
+    if (!newCollection.oldCollection) {
+      options.exclude.push(newCollection.name);
+    } else if (newCollection.oldCollection.name !== newCollection.name) {
+      options.rename[newCollection.name] = newCollection.oldCollection.name;
     }
   }
 
   return options;
 }
 
-module.exports = { computeBaseDsOptions };
+function getFieldsDiff(newCollection) {
+  const result = { adds: [], renames: [], removes: [] };
+
+  // Collection was dropped in computeBaseDsOptions, we can ignore it.
+  if (!newCollection.oldCollection) return result;
+
+  for (const newField of newCollection.fields) {
+    if (!newField.oldField) {
+      result.removes.push(newField.field);
+    } else if (newField.oldField.field !== newField.field) {
+      const rename = { from: newField.field, to: newField.oldField.field };
+      if (newField.oldField.newFieldCandidates)
+        rename.candidates = newField.oldField.newFieldCandidates.map(field => field.field);
+
+      result.renames.push(rename);
+    }
+  }
+
+  for (const oldField of newCollection.oldCollection.fields) {
+    if (!oldField.newField && !oldField.isVirtual && !oldField.integration) {
+      result.adds.push(oldField.field);
+    }
+  }
+
+  return result;
+}
+
+module.exports = { computeBaseDsOptions, getFieldsDiff };
