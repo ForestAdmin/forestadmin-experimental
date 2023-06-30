@@ -34,7 +34,7 @@ export default (collection: CollectionCustomizer<Schema, '<%- escape(oldCollecti
       });
 
       <% if (oldField.isFilterable) { %>
-        collection.emulateFieldFiltering('<%- escape(oldField.field) %>);
+        collection.emulateFieldFiltering('<%- escape(oldField.field) %>');
       <% } %>
 
       <% if (!oldField.isReadOnly) { %>
