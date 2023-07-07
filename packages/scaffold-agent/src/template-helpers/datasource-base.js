@@ -20,7 +20,8 @@ function getFieldsDiff(newCollection) {
 
   for (const newField of newCollection.fields) {
     if (!newField.oldField) {
-      result.removes.push(newField.field);
+      if (!newField.isPrimaryKey)
+        result.removes.push(newField.field);
     } else if (newField.oldField.field !== newField.field) {
       const rename = { from: newField.field, to: newField.oldField.field };
       if (newField.oldField.newFieldCandidates)
