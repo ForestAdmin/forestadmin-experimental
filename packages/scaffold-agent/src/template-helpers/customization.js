@@ -19,7 +19,7 @@ function computeActionForm(action) {
       newField.collectionName = field.reference.split('.')[0];
     }
 
-    if (newField.type === 'Enum') {
+    if (newField.type === 'Enum' || newField.type === 'EnumList') {
       newField.enumValues = field.enums;
     }
 
