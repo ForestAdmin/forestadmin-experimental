@@ -57,7 +57,7 @@ export default async function loadBaseDataSource(ds: DataSourceCustomizer) {
 
         <% if (adds.length) { %>
           console.error('There are <%- adds.length %> inconsistencies in the schema of the <%- newCollection.name %> structure.')
-          console.error('Please the issues before launching your agent. Not doing so may result in losing GUI customizations.');
+          console.error('Please fix those issues before launching your agent. Not doing so may result in losing GUI customizations.');
           console.error('Edit: src/datasources/base/index.ts');
           process.exit(1);
         <% } %>
