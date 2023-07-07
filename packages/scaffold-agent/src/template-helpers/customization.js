@@ -43,4 +43,11 @@ function getValueOfType(type) {
   return null;
 }
 
-module.exports = { computeActionForm, getValueOfType, convertType };
+function getFieldDependency(oldCollection) {
+  const fields = oldCollection.fields.filter(f => f.isPrimaryKey);
+  if (fields.length === 0) fields.push(oldCollection.fields[0]);
+
+  return fields.map(f => f.field);
+}
+
+module.exports = { computeActionForm, getValueOfType, convertType, getFieldDependency };
