@@ -24,7 +24,7 @@ export default (collection: CollectionCustomizer<Schema, '<%- escape(oldCollecti
       /** @see https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/fields */
       collection.addField('<%- escape(oldField.field) %>', {
         columnType: '<%- oldField.type %>',
-        dependencies: <%- stringify(oldCollection.fields.filter(f => f.isPrimaryKey).map(f => f.field)) %>,
+        dependencies: <%- stringify(getFieldDependency(oldCollection)) %>,
         <%- oldField.enums !== null ? `enum: ${stringify(oldField.enums)},` : "" -%>
         <%- oldField.defaultValue !== null ? `defaultValue: ${stringify(oldField.defaultValue)},` : "" -%>
         getValues: (records, context) => records.map(async ({ id }) => {
