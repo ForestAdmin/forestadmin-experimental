@@ -11,13 +11,6 @@
 yarn add @forestadmin-experimental/plugin-operational-database
 ```
 
-## Limits
-
-For now, this only works when:
-- the collection being customized primary key is called `id`
-- the `id` is an integer
-
-(this is trivial to patch if needed)
 
 ## Example
 
