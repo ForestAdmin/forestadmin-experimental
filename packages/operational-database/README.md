@@ -8,7 +8,7 @@
 ## Installation
 
 ```bash
-yarn add @forestadmin/plugin-operational-database
+yarn add @forestadmin-experimental/plugin-operational-database
 ```
 
 ## Limits

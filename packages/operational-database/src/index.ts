@@ -1,5 +1,5 @@
 import { createSequelizeDataSource } from "@forestadmin/datasource-sequelize";
-import {
+import type {
   CollectionCustomizer,
   DataSourceCustomizer,
 } from "@forestadmin/datasource-customizer";
@@ -23,8 +23,12 @@ async function createOperationalTable(
   await sequelize.sync();
 }
 
-function linkDatabases(collection: CollectionCustomizer, columns: Columns) {
-  //  link main db collection to operational db collection
+function linkDatabases(
+  dataSource: DataSourceCustomizer,
+  collection: CollectionCustomizer,
+  columns: Columns
+) {
+  // link main db collection to operational db collection
   collection.addOneToOneRelation(
     "operational",
     `operational_${collection.name}`,
@@ -42,9 +46,7 @@ function linkDatabases(collection: CollectionCustomizer, columns: Columns) {
   collection.removeField("operational");
 
   // remove operational db collection
-  // This actually does not work... we have a branch implementing this feature that
-  // has been waiting for months to be finished as it was deprioritized.
-  // dataSource.removeCollection(`operational_${collection.name}`);
+  dataSource.removeCollection(`operational_${collection.name}`);
 }
 
 export default async function addOperationalColumns(
@@ -60,5 +62,7 @@ export default async function addOperationalColumns(
   dataSource.addDataSource(createSequelizeDataSource(sequelize));
 
   // Link main db collection to operational db collection
-  linkDatabases(collection, options.columns);
+  linkDatabases(dataSource, collection, options.columns);
 }
+
+export { DataType, DataTypes };
