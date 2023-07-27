@@ -35,7 +35,7 @@ async function createOperationalTable(
   );
 
   // Synchronize the Sequelize instance with the database
-  await sequelize.sync();
+  await sequelize.sync({ alter: true });
 }
 
 function linkDatabases(
