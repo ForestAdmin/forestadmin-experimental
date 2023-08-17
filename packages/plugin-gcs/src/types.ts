@@ -53,6 +53,7 @@ export type Options<
     context: WriteCustomizationContext<S, N>,
   ) => string | Promise<string>;
 
+  // TODO mapping function does not support array of String, where it should
   /**
    * This function allows customizing the object key that will be used in S3 without interfering
    * with what is stored in the database.
