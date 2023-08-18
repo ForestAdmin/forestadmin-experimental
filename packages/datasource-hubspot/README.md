@@ -2,7 +2,7 @@ The [HubSpot](https://www.hubspot.com/) data source allows importing objects fro
 
 # Installation
 
-- install the package `@forestadmin/datasource-hubspot`.
+- install the package `@forestadmin-experimental/datasource-hubspot`.
 - [access your HubSpot API key](https://knowledge.hubspot.com/integrations/how-do-i-get-my-hubspot-api-key)
 
 ```javascript
