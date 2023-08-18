@@ -8,7 +8,7 @@ import { DownloadFilesConfiguration, DownloadFilesOptions, File, Options } from 
 import Client from './utils/gcs';
 import addDownloadAll from './actions/add-download-all';
 
-export { Options, File };
+export { Options as CreateFileFieldOption, File, DownloadFilesOptions };
 
 export function createFileField<
   S extends TSchema = TSchema,
@@ -41,7 +41,7 @@ export function createFileField<
   replaceField(collection, config);
 }
 
-export function addDownloadAllAction<
+export function addDownloadFilesAction<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
 > (datasource, collection, options: DownloadFilesOptions) {

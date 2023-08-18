@@ -11,16 +11,16 @@ export default function addDownloadAll(collection: CollectionCustomizer, config:
     scope: 'Single',
     generateFile: true,
     execute: async (context, resultBuilder) => {
-      let filesToDownload: string[] = []
+      let filesToDownload: string[] = [];
 
       if (config.getFiles) {
         filesToDownload = await config.getFiles(context);
       } else {
-        const record = context.getRecord(config.fields)
+        const record = await context.getRecord(config.fields);
 
         for (const field of config.fields) {
           if ((collection.schema.fields[field] as ColumnSchema).columnType === 'String') {
-            filesToDownload.push(record[field])
+            filesToDownload.push(record[field]);
           } else {
             filesToDownload.push(...record[field]);
           }

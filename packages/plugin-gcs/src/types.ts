@@ -118,20 +118,18 @@ export type Configuration<
 export type DownloadFilesOptions<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
-> = Required<
+> = 
   Pick<Options<S, N>, 'gcs' > & {
   fields?: TColumnName<S, N>[];
   actionName: string;
   fileName: string;
   getFiles?: (context: ActionContextSingle<S, N>) => Promise<string[]>;
-}
->;
+};
 
 export type DownloadFilesConfiguration<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
-> = Required<
+> =
   Omit<DownloadFilesOptions<S, N>, 'gcs' > & {
   client: Client;
-}
->;
+};
