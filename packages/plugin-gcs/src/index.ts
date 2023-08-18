@@ -4,7 +4,7 @@ import createField from './field/create-field';
 import makeFieldRequired from './field/make-field-required';
 import makeFieldWritable from './field/make-field-writable';
 import replaceField from './field/replace-field';
-import { DownloadAllConfiguration, DownloadAllOptions, File, Options } from './types';
+import { DownloadFilesConfiguration, DownloadFilesOptions, File, Options } from './types';
 import Client from './utils/gcs';
 import addDownloadAll from './actions/add-download-all';
 
@@ -44,19 +44,20 @@ export function createFileField<
 export function addDownloadAllAction<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
-> (datasource, collection, options: DownloadAllOptions) {
+> (datasource, collection, options: DownloadFilesOptions) {
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
+  if (options.fields && options.getFiles) throw new Error('`fields` and `getFiles` can not be used together, please pick only one of the two options');
 
   if (options.fileName && !options.fileName.endsWith('.zip')) {
     options.fileName = options.fileName.split('.')[0] + '.zip';
   }
 
-  const config: DownloadAllConfiguration = {
+  const config: DownloadFilesConfiguration = {
     client: new Client(options.gcs),
     actionName: options.actionName || 'Download all files',
     fields: options.fields,
-    objectKeyFromRecord: options?.objectKeyFromRecord || null,
+    getFiles: options.getFiles,
     fileName: options.fileName || 'all-files-download',
   };
 

@@ -1,26 +1,29 @@
 import type { CollectionCustomizer } from '@forestadmin/datasource-customizer';
 
-import type { DownloadAllConfiguration } from '../types';
+import type { DownloadFilesConfiguration } from '../types';
 import archiver from 'archiver';
 import { ColumnSchema } from '@forestadmin/datasource-toolkit';
 import * as Stream from 'stream';
 
-//TODO add support for mappingFunction
-export default function addDownloadAll(collection: CollectionCustomizer, config: DownloadAllConfiguration): void {
-  const dependencies = config.objectKeyFromRecord?.extraDependencies ?? [];
+export default function addDownloadAll(collection: CollectionCustomizer, config: DownloadFilesConfiguration): void {
 
   collection.addAction(config.actionName || 'Download all documents', {
     scope: 'Single',
     generateFile: true,
     execute: async (context, resultBuilder) => {
-      const record = await context.getRecord([...dependencies, ...config.fields]);
-      const filesToDownload: string[] = []
+      let filesToDownload: string[] = []
 
-      for (const field of config.fields) {
-        if ((collection.schema.fields[field] as ColumnSchema).columnType === 'String') {
-          filesToDownload.push(record[field])
-        } else {
-          filesToDownload.push(...record[field]);
+      if (config.getFiles) {
+        filesToDownload = await config.getFiles(context);
+      } else {
+        const record = context.getRecord(config.fields)
+
+        for (const field of config.fields) {
+          if ((collection.schema.fields[field] as ColumnSchema).columnType === 'String') {
+            filesToDownload.push(record[field])
+          } else {
+            filesToDownload.push(...record[field]);
+          }
         }
       }
 

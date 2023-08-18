@@ -10,6 +10,7 @@ import type CollectionCustomizationContext from '@forestadmin/datasource-customi
 import type WriteCustomizationContext from '@forestadmin/datasource-customizer/dist/decorators/write/write-replace/context';
 
 import Client from "./utils/gcs";
+import { ActionContextSingle } from '@forestadmin/datasource-customizer';
 
 export type File = {
   name: string;
@@ -114,22 +115,23 @@ export type Configuration<
   }
 >;
 
-export type DownloadAllOptions<
+export type DownloadFilesOptions<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
 > = Required<
-  Pick<Options<S, N>, 'objectKeyFromRecord' | 'gcs' > & {
-  fields: TColumnName<S, N>[];
+  Pick<Options<S, N>, 'gcs' > & {
+  fields?: TColumnName<S, N>[];
   actionName: string;
   fileName: string;
+  getFiles?: (context: ActionContextSingle<S, N>) => Promise<string[]>;
 }
 >;
 
-export type DownloadAllConfiguration<
+export type DownloadFilesConfiguration<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
 > = Required<
-  Pick<DownloadAllOptions<S, N>, 'objectKeyFromRecord' | 'fields' | 'actionName' | 'fileName' > & {
+  Omit<DownloadFilesOptions<S, N>, 'gcs' > & {
   client: Client;
 }
 >;
