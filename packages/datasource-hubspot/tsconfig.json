@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "target": "ES2022",
     "outDir": "dist",
     // allow using import with json files
     "resolveJsonModule": true
