@@ -1,4 +1,5 @@
 import type { TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
+import type { ColumnSchema } from '@forestadmin/datasource-toolkit';
 
 import createField from './field/create-field';
 import makeFieldRequired from './field/make-field-required';
@@ -17,11 +18,15 @@ export function createFileField<
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
 
-  const sourceSchema = collection.schema.fields[options.fieldName];
+  const sourceSchema = collection.schema.fields[options.fieldName] as ColumnSchema;
 
-  if (!sourceSchema || sourceSchema.type !== 'Column' /*|| ![[ 'String' ], 'String'].includes(sourceSchema.columnType)*/) {
+  if (
+    !sourceSchema
+    || sourceSchema.type !== 'Column'
+    || !(sourceSchema.columnType === 'String' || (Array.isArray(sourceSchema.columnType) && sourceSchema.columnType[0] === 'String')) 
+  ) {
     const field = `${collection.name}.${options.fieldName}`;
-    throw new Error(`The field '${field}' does not exist or is not a string.`);
+    throw new Error(`The field '${field}' does not exist or is not a string or array of string.`);
   }
 
   const config = {
@@ -41,7 +46,7 @@ export function createFileField<
 export function addDownloadFilesAction<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
-> (datasource, collection, options: DownloadFilesOptions) {
+> (datasource, collection, options: DownloadFilesOptions<S,N>) {
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
   if (options.fields && options.getFiles) throw new Error('`fields` and `getFiles` can not be used together, please pick only one of the two options');
@@ -54,7 +59,7 @@ export function addDownloadFilesAction<
     client: new Client(options.gcs),
     actionName: options.actionName || 'Download all files',
     fields: options.fields,
-    getFiles: options.getFiles,
+    getFiles: options.getFiles as unknown as DownloadFilesConfiguration['getFiles'],
     fileName: options.fileName || 'all-files-download',
   };
 

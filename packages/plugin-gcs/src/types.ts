@@ -72,7 +72,7 @@ export type Options<
     mappingFunction: (
       record: TPartialSimpleRow<S, N>,
       context: CollectionCustomizationContext<S, N>,
-    ) => string | Promise<string>;
+    ) => string | Promise<string> | string[] | Promise<string[]>;
   };
 
   /** GCS configuration */
@@ -95,7 +95,7 @@ export type Configuration<
   Pick<Options<S, N>, 'storeAt' | 'objectKeyFromRecord' > & {
     client: Client;
     sourceName: TColumnName<S, N>;
-    fileName: TColumnName<S, N>;
+    fileName: string;
   }
 >;
 

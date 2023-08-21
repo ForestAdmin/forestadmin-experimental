@@ -1,7 +1,7 @@
 import type { CollectionCustomizer } from '@forestadmin/datasource-customizer';
+import type { ColumnSchema, ColumnType } from '@forestadmin/datasource-toolkit';
 
 import type { Configuration } from '../types';
-import { ColumnSchema, ColumnType } from '@forestadmin/datasource-toolkit';
 
 //TODO add support for proxy option ?
 export default function createField(collection: CollectionCustomizer, config: Configuration): void {

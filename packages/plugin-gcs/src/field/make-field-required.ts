@@ -1,6 +1,7 @@
-import type { Configuration } from '../types';
 import type { CollectionCustomizer } from '@forestadmin/datasource-customizer';
 import type { ColumnSchema } from '@forestadmin/datasource-toolkit';
+
+import type { Configuration } from '../types';
 
 export default function makeFieldRequired(
   collection: CollectionCustomizer,

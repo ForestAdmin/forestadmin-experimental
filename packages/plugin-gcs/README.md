@@ -9,7 +9,7 @@ Note that:
 
 ## Inside this plugin
 
-Two features comes out of the box with this plugin:
+Some features comes out of the box with this plugin:
 
 - The possibility to generate signed url to get your file
 - The possibility to upload files to your bucket
@@ -20,12 +20,17 @@ Here is a sample describing how to create file fields
 ```javascript
 const { createAgent } = require('@forestadmin/agent');
 
-const { createFileField, addDownloadFilesAction } = require('@forestadmin-experimental/plugin-gcs');
+const {
+  createFileField,
+  CreateFileFieldOption,
+  addDownloadFilesAction,
+  DownloadFilesOptions,
+} = require('@forestadmin-experimental/plugin-gcs');
 
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   .customizeCollection('Users', usersCollection => {
-    .use(createFileField, {
+    .use<CreateFileFieldOption<Schema, 'Users'>>(createFileField, {
       fieldname: 'drivingLicense',
       gcs: {
         bucketId: 'production-bucket',
@@ -36,7 +41,7 @@ await createAgent<Schema>(Options)
         return `Users/${userId}/identity/${originalFilename}`;
       },
     })
-    .use(addDownloadFilesAction, {
+    .use<DownloadFilesOptions<Schema, 'Users'>>(addDownloadFilesAction, {
       gcs: {
         bucketId: 'production-bucket',
         projectId: 'myproject-346344',
@@ -58,7 +63,7 @@ Here is the list of the available options:
 ```javascript
 .use(createFileField, {
   /** Name of the field that you want to use as a file-picker on the frontend */
-  fieldname: TColumnName<S, N>;
+  fieldName: TColumnName<S, N>;
 
   /**
    * This function allows customizing the string that will be saved in the database.

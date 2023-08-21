@@ -1,8 +1,8 @@
 import type { CollectionCustomizer } from '@forestadmin/datasource-customizer';
+import type { ColumnSchema } from '@forestadmin/datasource-toolkit';
 
 import type { DownloadFilesConfiguration } from '../types';
 import archiver from 'archiver';
-import { ColumnSchema } from '@forestadmin/datasource-toolkit';
 import * as Stream from 'stream';
 
 export default function addDownloadAll(collection: CollectionCustomizer, config: DownloadFilesConfiguration): void {
@@ -19,10 +19,10 @@ export default function addDownloadAll(collection: CollectionCustomizer, config:
         const record = await context.getRecord(config.fields);
 
         for (const field of config.fields) {
-          if ((collection.schema.fields[field] as ColumnSchema).columnType === 'String') {
-            filesToDownload.push(record[field]);
-          } else {
+          if (Array.isArray((collection.schema.fields[field] as ColumnSchema).columnType)) {
             filesToDownload.push(...record[field]);
+          } else {
+            filesToDownload.push(record[field]);
           }
         }
       }

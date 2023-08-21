@@ -22,7 +22,6 @@ function getPks(collection: CollectionCustomizer): string[] {
 
 function computeProjection(collection: CollectionCustomizer, config: Configuration): string[] {
   return [
-    // @ts-ignore
     ...new Set([
       config.sourceName, // storage field
       ...getPks(collection), // pk
