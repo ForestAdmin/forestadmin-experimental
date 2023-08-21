@@ -6,9 +6,9 @@ export default function makeFieldRequired(
   collection: CollectionCustomizer,
   config: Configuration,
 ): void {
-  const schema = collection.schema.fields[config.sourcename] as ColumnSchema;
+  const schema = collection.schema.fields[config.sourceName] as ColumnSchema;
 
   if (schema.validation?.find(rule => rule.operator === 'Present')) {
-    collection.addFieldValidation(config.filename, 'Present');
+    collection.addFieldValidation(config.fileName, 'Present');
   }
 }

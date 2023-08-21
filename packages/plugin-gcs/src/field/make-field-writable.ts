@@ -24,7 +24,7 @@ function computeProjection(collection: CollectionCustomizer, config: Configurati
   return [
     // @ts-ignore
     ...new Set([
-      config.sourcename, // storage field
+      config.sourceName, // storage field
       ...getPks(collection), // pk
       ...(config.objectKeyFromRecord?.extraDependencies ?? []), // extra deps
     ]),
@@ -35,10 +35,10 @@ export default function makeFieldWritable(
   collection: CollectionCustomizer,
   config: Configuration,
 ): void {
-  const schema = collection.schema.fields[config.sourcename] as ColumnSchema;
+  const schema = collection.schema.fields[config.sourceName] as ColumnSchema;
   if (schema.isReadOnly) return;
 
-  collection.replaceFieldWriting(config.filename, async (value: string | [string], context) => {
+  collection.replaceFieldWriting(config.fileName, async (value: string | [string], context) => {
     const patch = {};
 
     if (!value) {
@@ -71,7 +71,7 @@ export default function makeFieldWritable(
         return patch;
       } else {
         const file = await computeFile(stringValue, recordId, context, config)
-        patch[config.sourcename] = file.name;
+        patch[config.sourceName] = file.name;
         filesToUpload.push({ index: 0, file });
       }
     } else {
@@ -84,7 +84,7 @@ export default function makeFieldWritable(
         arrayValue[index] = fileParsed.name;
       }
 
-      patch[config.sourcename] = arrayValue;
+      patch[config.sourceName] = arrayValue;
     }
 
     let resultMappedKeys: string | string[];

@@ -17,20 +17,17 @@ export function createFileField<
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
 
-  const sourceSchema = collection.schema.fields[options.fieldname];
+  const sourceSchema = collection.schema.fields[options.fieldName];
 
   if (!sourceSchema || sourceSchema.type !== 'Column' /*|| ![[ 'String' ], 'String'].includes(sourceSchema.columnType)*/) {
-    const field = `${collection.name}.${options.fieldname}`;
+    const field = `${collection.name}.${options.fieldName}`;
     throw new Error(`The field '${field}' does not exist or is not a string.`);
   }
 
   const config = {
-    sourcename: options.fieldname,
-    filename: `${options.fieldname}__file`,
+    sourceName: options.fieldName,
+    fileName: `${options.fieldName}__file`,
     client: new Client(options.gcs),
-    deleteFiles: options?.deleteFiles ?? false,
-    readMode: options?.readMode ?? 'url',
-    //acl: options?.acl ?? 'private',
     storeAt: options?.storeAt ?? ((id, name) => `${collection.name}/${id}/${name}`),
     objectKeyFromRecord: options?.objectKeyFromRecord || null,
   };

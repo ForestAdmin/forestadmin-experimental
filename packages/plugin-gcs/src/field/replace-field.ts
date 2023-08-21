@@ -6,6 +6,6 @@ export default function replaceField(
   collection: CollectionCustomizer,
   config: Configuration,
 ): void {
-  collection.removeField(config.sourcename);
-  collection.renameField(config.filename, config.sourcename);
+  collection.removeField(config.sourceName);
+  collection.renameField(config.fileName, config.sourceName);
 }

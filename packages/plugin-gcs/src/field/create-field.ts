@@ -6,18 +6,18 @@ import { ColumnSchema, ColumnType } from '@forestadmin/datasource-toolkit';
 //TODO add support for proxy option ?
 export default function createField(collection: CollectionCustomizer, config: Configuration): void {
   const dependencies = config.objectKeyFromRecord?.extraDependencies ?? [];
-  const columnType: ColumnType = (collection.schema.fields[config.sourcename] as ColumnSchema).columnType;
+  const columnType: ColumnType = (collection.schema.fields[config.sourceName] as ColumnSchema).columnType;
 
-  if (!dependencies.includes(config.sourcename)) {
-    dependencies.push(config.sourcename);
+  if (!dependencies.includes(config.sourceName)) {
+    dependencies.push(config.sourceName);
   }
 
-  collection.addField(config.filename, {
+  collection.addField(config.fileName, {
     columnType,
     dependencies,
     getValues: (records, context) =>
       records.map(async record => {
-        let key = record[config.sourcename];
+        let key = record[config.sourceName];
 
         if (!key) {
           return null;

@@ -20,22 +20,20 @@ export type File = {
 };
 
 /**
- * Configuration for the AWS S3 addon of Forest Admin.
+ * Configuration for the GCS bucket addon of Forest Admin.
  *
- * It can be included in the global agent configuration under the "s3" key and overriden for
- * specific fields by using the "config" property on `AmazonS3File`.
  */
 export type Options<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
 > = {
   /** Name of the field that you want to use as a file-picker on the frontend */
-  fieldname: TColumnName<S, N>;
+  fieldName: TColumnName<S, N>;
 
   /**
    * This function allows customizing the string that will be saved in the database.
    * If the objectKeyFromRecord option is not set, the output of that function will also
-   * be used as the object key in S3.
+   * be used as the object key in your bucket.
    *
    * Note that the recordId parameter will _not_ be provided when records are created.
    *
@@ -56,7 +54,7 @@ export type Options<
 
   // TODO mapping function does not support array of String, where it should
   /**
-   * This function allows customizing the object key that will be used in S3 without interfering
+   * This function allows customizing the object key that will be used in you bucket without interfering
    * with what is stored in the database.
    *
    * @example
@@ -77,29 +75,15 @@ export type Options<
     ) => string | Promise<string>;
   };
 
-  /** Either if old files should be deleted when updating or deleting a record. */
-
-  deleteFiles?: boolean;
-
-  /**
-   * 'url' (the default) will cause urls to be transmitted to the frontend. You final users
-   * will download the file from S3.
-   *
-   * 'proxy' will cause files to be routed by the agent. Use this option only if you are
-   * dealing with small files and are behind an entreprise proxy which forbids direct
-   * access to S3.
-   */
-  readMode?: 'url' | 'proxy';
-
-  /** AWS configuration */
+  /** GCS configuration */
   gcs: {
-    /** AWS access key, defaults to process.env.AWS_ACCESS_KEY_ID. */
+    /** Identifier of your bucket */
     bucketId: string;
 
-    /** AWS secret, defaults to process.env.AWS_ACCESS_KEY_SECRET. */
+    /** The project where the bucket resides */
     projectId: string;
 
-    /** AWS region, defaults to process.env.AWS_DEFAULT_REGION. */
+    /** Authentication file corresponding to the service account provided by Google */
     keyFilePath: string;
   };
 };
@@ -108,10 +92,10 @@ export type Configuration<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
 > = Required<
-  Pick<Options<S, N>, 'deleteFiles' | 'storeAt' | 'objectKeyFromRecord' | 'readMode' > & {
+  Pick<Options<S, N>, 'storeAt' | 'objectKeyFromRecord' > & {
     client: Client;
-    sourcename: TColumnName<S, N>;
-    filename: TColumnName<S, N>;
+    sourceName: TColumnName<S, N>;
+    fileName: TColumnName<S, N>;
   }
 >;
 
@@ -121,8 +105,8 @@ export type DownloadFilesOptions<
 > = 
   Pick<Options<S, N>, 'gcs' > & {
   fields?: TColumnName<S, N>[];
-  actionName: string;
-  fileName: string;
+  actionName?: string;
+  fileName?: string;
   getFiles?: (context: ActionContextSingle<S, N>) => Promise<string[]>;
 };
 
