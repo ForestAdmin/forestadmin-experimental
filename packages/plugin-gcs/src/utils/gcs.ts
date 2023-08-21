@@ -17,10 +17,6 @@ export default class Client {
     })).bucket(options.bucketId)
   }
 
-  /*getPublicUrl(key: string): string {
-    return `https://${this.bucket}.s3.${this.client.config.region}.amazonaws.com/${key}`;
-  }*/
-
   async getSignedUrl(key: string): Promise<string> {
     const response = await this.client.file(key).getSignedUrl({
       expires: Date.now() + 1000 * 60 * 60,
@@ -46,8 +42,4 @@ export default class Client {
       contentType: file.mimeType,
     });
   }
-
-  /*async delete(Key: string): Promise<void> {
-    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key }));
-  }*/
 }
