@@ -30,10 +30,12 @@ export function createFileField<
 
   const sourceSchema = collection.schema.fields[options.fieldName] as ColumnSchema;
 
-  if (sourceSchema.type !== 'Column' || assertIsSupportedType(options.fieldName, collection)) {
+  if (sourceSchema.type !== 'Column') {
     const field = `${collection.name}.${options.fieldName}`;
     throw new Error(`The field '${field}' is not a field but a relation`);
   }
+
+  assertIsSupportedType(options.fieldName, collection);
 
   const config = {
     sourceName: options.fieldName,
