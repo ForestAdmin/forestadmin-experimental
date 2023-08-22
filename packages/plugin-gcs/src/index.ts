@@ -11,6 +11,16 @@ import addDownloadAll from './actions/add-download-all';
 
 export { Options as CreateFileFieldOption, File, DownloadFilesOptions };
 
+function assertIsSupportedType(field: string, collection) {
+  const column = collection.schema.fields[field];
+
+  if (!column || !(column.columnType === 'String' || (Array.isArray(column.columnType) && column.columnType[0] === 'String'))) {
+    throw new Error(`The field '${collection.name}.${field}' does not exist or is not a string or array of string.`);
+  }
+
+  return true;
+}
+
 export function createFileField<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
@@ -20,13 +30,9 @@ export function createFileField<
 
   const sourceSchema = collection.schema.fields[options.fieldName] as ColumnSchema;
 
-  if (
-    !sourceSchema
-    || sourceSchema.type !== 'Column'
-    || !(sourceSchema.columnType === 'String' || (Array.isArray(sourceSchema.columnType) && sourceSchema.columnType[0] === 'String')) 
-  ) {
+  if (sourceSchema.type !== 'Column' || assertIsSupportedType(options.fieldName, collection)) {
     const field = `${collection.name}.${options.fieldName}`;
-    throw new Error(`The field '${field}' does not exist or is not a string or array of string.`);
+    throw new Error(`The field '${field}' is not a field but a relation`);
   }
 
   const config = {
@@ -50,6 +56,14 @@ export function addDownloadFilesAction<
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
   if (options.fields && options.getFiles) throw new Error('`fields` and `getFiles` can not be used together, please pick only one of the two options');
+  if (options.fields && !Array.isArray(options.fields)) throw new Error('`fields` should be of type array of string');
+  if (options.fields && options.fields.length === 0) throw new Error('`fields` should at least contain one field');
+
+  if (options.fields) {
+    options.fields.forEach(field => {
+      assertIsSupportedType(field, collection);
+    })
+  }
 
   if (options.fileName && !options.fileName.endsWith('.zip')) {
     options.fileName = options.fileName.split('.')[0] + '.zip';
