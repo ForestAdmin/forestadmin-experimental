@@ -6,8 +6,8 @@ export default class Client {
   private client: Bucket;
 
   constructor(options: Options['gcs']) {
-    if (!options.bucketId || !options.keyFilePath || !options.projectId) {
-      throw new Error('Your gcs configuration is incorrect, missing either bucketId or keyFilePath or projectId.');
+    if (!options.bucketId || !options.projectId) {
+      throw new Error('Your gcs configuration is incorrect, missing either bucketId or projectId.');
     }
 
     this.client = (new Storage({

@@ -83,20 +83,19 @@ export type Options<
     projectId: string;
 
     /** Authentication file corresponding to the service account provided by Google */
-    keyFilePath: string;
+    keyFilePath?: string;
   };
 };
 
 export type Configuration<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
-> = Required<
+> = 
   Pick<Options<S, N>, 'storeAt' | 'objectKeyFromRecord' > & {
-    client: Client;
-    sourceName: TColumnName<S, N>;
-    fileName: string;
-  }
->;
+  client: Client;
+  sourceName: TColumnName<S, N>;
+  fileName: string;
+};
 
 export type DownloadFilesOptions<
   S extends TSchema = TSchema,
