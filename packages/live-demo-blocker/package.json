@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/live-demo-blocker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "GPL-3.0",
   "main": "dist/index.js",
   "publishConfig": {
@@ -11,6 +11,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@forestadmin/datasource-customizer": "^1.6.1"
-  }
+    "@forestadmin/datasource-customizer": "^1.28.2",
+    "@forestadmin/datasource-toolkit": "^1.21.0"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ]
 }
