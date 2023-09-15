@@ -7,7 +7,7 @@ import type {
 import ResultBuilder from '@forestadmin/datasource-customizer/dist/decorators/actions/result-builder';
 import { ActionResult } from '@forestadmin/datasource-toolkit';
 
-type LiveDemoBlockerOptions = {
+export type LiveDemoBlockerOptions = {
   userEmail?: string;
   errorMessage?: string;
 }
