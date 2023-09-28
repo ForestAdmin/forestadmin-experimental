@@ -2,8 +2,7 @@ import type { CollectionCustomizer } from '@forestadmin/datasource-customizer';
 import type { ColumnSchema } from '@forestadmin/datasource-toolkit';
 
 import type { DownloadFilesConfiguration } from '../types';
-import archiver from 'archiver';
-import * as Stream from 'stream';
+import jszip from 'jszip';
 
 export default function addDownloadAll(collection: CollectionCustomizer, config: DownloadFilesConfiguration): void {
 
@@ -27,21 +26,22 @@ export default function addDownloadAll(collection: CollectionCustomizer, config:
         }
       }
 
-      const passThrough = new Stream.PassThrough();
-      const archive = archiver('zip', {
-        gzip: true,
-        zlib: { level: 9 }
-      });
-      archive.pipe(passThrough);
+      const zip = new jszip();
 
       for (const fileKey of filesToDownload) {
         const file = await config.client.load(fileKey);
-        archive.append(file.buffer, { name: file.name });
+        zip.file(file.name, file.buffer)
       }
 
-      await archive.finalize();
+      const archiveBuffer = await zip.generateAsync({
+        type: 'nodebuffer',
+        compression: config.compressionLevel ? 'DEFLATE' : 'STORE',
+        compressionOptions: {
+          level: config.compressionLevel,
+        }
+      });
 
-      return resultBuilder.file(passThrough, config.fileName, 'application/zip');
+      return resultBuilder.file(archiveBuffer, config.fileName, 'application/zip');
     }
   });
 }
