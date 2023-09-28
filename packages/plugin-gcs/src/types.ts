@@ -106,6 +106,7 @@ export type DownloadFilesOptions<
   actionName?: string;
   fileName?: string;
   getFiles?: (context: ActionContextSingle<S, N>) => Promise<string[]>;
+  compressionLevel?: 0|1|2|3|4|5|6|7|8|9;
 };
 
 export type DownloadFilesConfiguration<

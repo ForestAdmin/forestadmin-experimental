@@ -60,6 +60,10 @@ export function addDownloadFilesAction<
   if (options.fields && options.getFiles) throw new Error('`fields` and `getFiles` can not be used together, please pick only one of the two options');
   if (options.fields && !Array.isArray(options.fields)) throw new Error('`fields` should be of type array of string');
   if (options.fields && options.fields.length === 0) throw new Error('`fields` should at least contain one field');
+  if (Number.isInteger(options.compressionLevel) && (options.compressionLevel < 0 || options.compressionLevel > 9)) {
+    throw new Error('`compressionlevel` should be a number between 0 and 9');
+  }
+
 
   if (options.fields) {
     options.fields.forEach(field => {
@@ -77,6 +81,7 @@ export function addDownloadFilesAction<
     fields: options.fields,
     getFiles: options.getFiles as unknown as DownloadFilesConfiguration['getFiles'],
     fileName: options.fileName || 'all-files-download',
+    compressionLevel: options.compressionLevel,
   };
 
   addDownloadAll(collection, config)
