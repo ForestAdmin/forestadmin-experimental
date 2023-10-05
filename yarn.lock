@@ -76,6 +76,17 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
+"@forestadmin/datasource-customizer@1.35.2":
+  version "1.35.2"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.35.2.tgz#a94e74083c2d605d48da32d1b1adc1d6989bb384"
+  integrity sha512-1iIf0a8ZEx3I4ZccCpCsOho/iV7pESgpYpu0XTX9Zo7F07iZoMjdjcsOIvxCU8NrjGuhI29JPD2sJ87SvknRqw==
+  dependencies:
+    "@forestadmin/datasource-toolkit" "1.28.0"
+    file-type "^16.5.4"
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "^9.0.0"
+
 "@forestadmin/datasource-customizer@1.9.0":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.9.0.tgz#829e82d1e79abcb3eb07d4de985b968e7898f8a9"
@@ -152,6 +163,15 @@
   version "1.21.0"
   resolved "https://registry.npmjs.org/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.21.0.tgz"
   integrity sha512-rwMyt4A/QXYDMtU+NvwXtgAcXhxgbuuU+34oTpX8XF+BxRCFs+6jPEtCQ2RlGK/xSEeUfsz2QAeXFnjJfyR7WA==
+  dependencies:
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "^9.0.0"
+
+"@forestadmin/datasource-toolkit@1.28.0":
+  version "1.28.0"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.28.0.tgz#940c29daa3be8cd241aab73f9e701bfbeb5cbc8c"
+  integrity sha512-AEgdtuYM4A5nzlhnyom9nej4maxeggLFSwhrdQsB/PcAzdl3vHApfCAFHSaWkrrGV+a8vuc1jZ35h01VcytfRA==
   dependencies:
     luxon "^3.2.1"
     object-hash "^3.0.0"
