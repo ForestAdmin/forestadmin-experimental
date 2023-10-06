@@ -1,5 +1,5 @@
 import type { TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
-import type { ColumnSchema } from '@forestadmin/datasource-toolkit';
+import type { ColumnSchema, Logger } from '@forestadmin/datasource-toolkit';
 
 import createField from './field/create-field';
 import makeFieldRequired from './field/make-field-required';
@@ -24,7 +24,7 @@ function assertIsSupportedType(field: string, collection) {
 export function createFileField<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
->(dataSource, collection, options?: Options<S, N>) {
+>(dataSource, collection, options: Options<S, N>, logger: Logger) {
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
 
@@ -40,7 +40,7 @@ export function createFileField<
   const config = {
     sourceName: options.fieldName,
     fileName: `${options.fieldName}__file`,
-    client: new Client(options.gcs),
+    client: new Client(options.gcs, logger),
     storeAt: options?.storeAt ?? ((id, name) => `${collection.name}/${id}/${name}`),
     objectKeyFromRecord: options?.objectKeyFromRecord || null,
   };
@@ -54,7 +54,7 @@ export function createFileField<
 export function addDownloadFilesAction<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
-> (datasource, collection, options: DownloadFilesOptions<S,N>) {
+> (datasource, collection, options: DownloadFilesOptions<S,N>, logger: Logger) {
   if (!collection) throw new Error('createFileField can only be used on collections.');
   if (!options) throw new Error('Options must be provided.');
   if (options.fields && options.getFiles) throw new Error('`fields` and `getFiles` can not be used together, please pick only one of the two options');
@@ -76,7 +76,7 @@ export function addDownloadFilesAction<
   }
 
   const config: DownloadFilesConfiguration = {
-    client: new Client(options.gcs),
+    client: new Client(options.gcs, logger),
     actionName: options.actionName || 'Download all files',
     fields: options.fields,
     getFiles: options.getFiles as unknown as DownloadFilesConfiguration['getFiles'],
