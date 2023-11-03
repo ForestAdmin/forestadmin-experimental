@@ -22,12 +22,18 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@forestadmin/forestadmin-client": "^1.0.0",
-    "@forestadmin/datasource-customizer": "^1.9.0",
-    "@forestadmin/datasource-toolkit": "^1.9.0",
-    "@forestadmin/agent": "^1.9.0",
     "superagent": "^8.1.2",
     "jsonapi-serializer": "^3.5.1",
     "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@forestadmin/agent": "^1.36.0",
+    "@forestadmin/datasource-customizer": "^1.37.2",
+    "@forestadmin/datasource-toolkit": "^1.29.0"
+  },
+  "peerDependencies": {
+    "@forestadmin/agent": "*",
+    "@forestadmin/datasource-customizer": "*",
+    "@forestadmin/datasource-toolkit": "*"
   }
 }
