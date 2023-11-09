@@ -175,6 +175,15 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
+"@forestadmin/datasource-toolkit@^1.29.0":
+  version "1.29.0"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.29.0.tgz#2124ea562e15d20cd63bcb78e600ba397e98259a"
+  integrity sha512-GTapHcaqg4rlDlZwWfbfPYSiEYkTh1RB7NF4vK51pxlmunJbheHR4Jj4vus+YwMoCt8SoiAM5OO3D66lVBGSXA==
+  dependencies:
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "^9.0.0"
+
 "@forestadmin/forestadmin-client@1.4.0":
   version "1.4.0"
   resolved "https://registry.npmjs.org/@forestadmin/forestadmin-client/-/forestadmin-client-1.4.0.tgz"
