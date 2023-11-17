@@ -25,6 +25,8 @@ export type TestableImportedField = {
   options: Parameters<CollectionCustomizer['importField']>['1'];
 };
 
+export type TestableSearchReplacement = Parameters<CollectionCustomizer['replaceSearch']>['0'];
+
 export type TestableAddedManyToOneRelation = {
   name: Parameters<CollectionCustomizer['addManyToOneRelation']>['0'];
   foreignCollection: Parameters<CollectionCustomizer['addManyToOneRelation']>['1'];
