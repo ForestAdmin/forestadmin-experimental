@@ -53,7 +53,7 @@ export async function setupAndStartTestableAgent() {
 
 ```javascript
 describe('billing collection', () => {
-  let agent: TestableAgent<Schema>;
+  let agent;
 
   beforeAll(async () => {
     agent = await setupAndStartTestableAgent();
@@ -66,12 +66,12 @@ describe('billing collection', () => {
   it('should return all the records of the billing collection', async () => {
     // create records in the database
     // ...
-    
-    // call the billing collection from the agent to get the records 
+
+    // call the billing collection from the agent to get the records
     const result = await agent.collection('billing').list();
-    
+
     // check the result
-    expect(result.data).toHaveLength(2);
+    expect(result).toHaveLength(2);
   });
 });
 ```
