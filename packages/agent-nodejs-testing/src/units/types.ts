@@ -2,7 +2,7 @@ import type { CollectionCustomizer } from '@forestadmin/agent';
 import { ActionContextSingle } from '@forestadmin/agent';
 import { TSchema } from '@forestadmin/datasource-customizer';
 
-export type CollectionCustomizerFunction = (collection: CollectionCustomizer, ...args: any[]) => void;
+export type CollectionCustomizerFunction = (collection: CollectionCustomizer<any, any>, ...args: any[]) => void;
 
 export type TestableAction = {
   name: Parameters<CollectionCustomizer['addAction']>['0'];
