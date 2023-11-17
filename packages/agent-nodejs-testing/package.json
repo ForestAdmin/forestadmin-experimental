@@ -1,0 +1,39 @@
+{
+  "name": "@forestadmin-experimental/agent-nodejs-testing",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/agent-nodejs-testing"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "superagent": "^8.1.2",
+    "jsonapi-serializer": "^3.5.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@forestadmin/agent": "1.36.3",
+    "@forestadmin/datasource-customizer": "1.37.4",
+    "@forestadmin/datasource-toolkit": "1.29.0"
+  },
+  "peerDependencies": {
+    "@forestadmin/agent": ">=1.35.15",
+    "@forestadmin/datasource-customizer": ">=1.37.0",
+    "@forestadmin/datasource-toolkit": ">=1.29.0"
+  }
+}
