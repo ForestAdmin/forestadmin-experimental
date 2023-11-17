@@ -10,7 +10,7 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
   options?: AgentOptions,
   port = 9997,
 ): Promise<TestableAgent<TypingsSchema>> {
-  const agentOptions = {
+  const agentOptions: AgentOptions = {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     logger: () => {},
     typingsPath: 'typings-test.ts',

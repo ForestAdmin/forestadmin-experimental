@@ -8,7 +8,6 @@ import type {
   ModelCustomizationService,
   UserInfo,
 } from '@forestadmin/forestadmin-client';
-import type { ForestAdminAuthServiceInterface } from '@forestadmin/forestadmin-client/dist/types';
 
 export default class ForestAdminClientMock implements ForestAdminClient {
   readonly chartHandler: ChartHandlerInterface;
@@ -19,7 +18,7 @@ export default class ForestAdminClientMock implements ForestAdminClient {
 
   readonly permissionService: any;
 
-  readonly authService: ForestAdminAuthServiceInterface;
+  readonly authService: any;
 
   constructor() {
     this.permissionService = {
