@@ -27,13 +27,13 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "@forestadmin/agent": "^1.36.0",
-    "@forestadmin/datasource-customizer": "^1.37.2",
-    "@forestadmin/datasource-toolkit": "^1.29.0"
+    "@forestadmin/agent": "1.36.3",
+    "@forestadmin/datasource-customizer": "1.37.4",
+    "@forestadmin/datasource-toolkit": "1.29.0"
   },
   "peerDependencies": {
-    "@forestadmin/agent": "*",
-    "@forestadmin/datasource-customizer": "*",
-    "@forestadmin/datasource-toolkit": "*"
+    "@forestadmin/agent": ">=1.35.15",
+    "@forestadmin/datasource-customizer": ">=1.37.0",
+    "@forestadmin/datasource-toolkit": ">=1.29.0"
   }
 }
