@@ -5,6 +5,7 @@ import { createHttpRequester } from './http-requester';
 
 export * from './testable-agent';
 export { AgentOptions, Agent } from '@forestadmin/agent';
+export * from './types';
 
 export async function createTestableAgent<TypingsSchema extends TSchema = TSchema>(
   options?: AgentOptions,
