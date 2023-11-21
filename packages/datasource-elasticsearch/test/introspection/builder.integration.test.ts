@@ -49,7 +49,7 @@ const dataset = [
 describe('introspection > builder', () => {
   describe('addCollectionFromIndex', () => {
     it('should get the attributes with their types and constraints', async () => {
-      const client = await createElasticsearchIndex('test-index', dataset);
+      const { client } = await createElasticsearchIndex('test-index', dataset);
       const elasticsearchDatasourceBuilder = new ElasticsearchDatasourceBuilder(client);
 
       elasticsearchDatasourceBuilder.addCollectionFromIndex({
@@ -105,7 +105,7 @@ describe('introspection > builder', () => {
 
   describe('addCollectionFromTemplate', () => {
     it('should get the attributes with their types and constraints', async () => {
-      const client = await createElasticsearchTemplate(
+      const { client } = await createElasticsearchTemplate(
         'test-template',
         {
           indexPattern: 'test-template-*',

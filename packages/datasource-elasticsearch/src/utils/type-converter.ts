@@ -60,9 +60,6 @@ export default class TypeConverter {
       // return 'Uuid';
       default:
         throw new Error(`Unsupported data type: "${dataType}"`);
-
-      // completion?
-      // percolator?
     }
   }
 
