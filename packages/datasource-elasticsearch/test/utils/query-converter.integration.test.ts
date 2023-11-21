@@ -49,7 +49,7 @@ const dataset = [
   },
 ];
 const indexName = 'test-index-operators';
-let nedUuid;
+let nedUuid: string;
 
 beforeAll(async () => {
   const bulkItems = await createElasticsearchIndex(indexName, dataset);
