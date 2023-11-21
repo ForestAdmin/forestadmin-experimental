@@ -38,3 +38,10 @@ jobs:
             github.ref == 'refs/heads/main' 
           )
         run: npx nx affected --base=HEAD~1 -t publish:package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIT_AUTHOR_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
+          GIT_AUTHOR_NAME: ${{ secrets.GIT_AUTHOR_NAME }}
+          GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
