@@ -52,9 +52,9 @@ const indexName = 'test-index-operators';
 let nedUuid: string;
 
 beforeAll(async () => {
-  const bulkItems = await createElasticsearchIndex(indexName, dataset);
+  const { items } = await createElasticsearchIndex(indexName, dataset);
   // eslint-disable-next-line no-underscore-dangle
-  nedUuid = bulkItems[1].index._id;
+  nedUuid = items[1].index._id;
 });
 afterAll(async () => {
   await deleteElasticsearchIndex(indexName);

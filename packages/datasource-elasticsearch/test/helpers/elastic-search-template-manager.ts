@@ -24,10 +24,11 @@ export async function createElasticsearchTemplate(
 
   if (data) {
     const body = data.flatMap(({ index, ...doc }) => [{ index: { _index: index } }, doc]);
-    await client.bulk({ refresh: true, body });
+
+    return { client, items: (await client.bulk({ refresh: true, body })).body.items };
   }
 
-  return client;
+  return { client, items: [] };
 }
 
 export async function deleteElasticsearchTemplate(template: string, indexPattern: string) {
