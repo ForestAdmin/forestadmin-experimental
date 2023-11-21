@@ -19,7 +19,7 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint src"
+    "publish:package": "semantic-release --dry-run"
   },
   "dependencies": {
     "superagent": "^8.1.2",

@@ -6,9 +6,15 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/live-demo-blocker"
+  },
   "devDependencies": {},
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "publish:package": "semantic-release --dry-run"
   },
   "dependencies": {
     "@forestadmin/datasource-customizer": "^1.28.2",
