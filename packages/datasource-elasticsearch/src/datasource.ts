@@ -11,13 +11,9 @@ export default class ElasticsearchDataSource extends BaseDataSource<Elasticsearc
    * To ensure compatibility, we need to only import types from Elasticsearch,
    *    and use the customer elasticsearch version to deal with the data manipulation.
    */
-  protected elasticsearchClient: Client = null;
+  protected elasticsearchClient: Client;
 
-  constructor(
-    elasticsearchClient: Client,
-    collectionModels: ModelElasticsearch[],
-    logger?: Logger,
-  ) {
+  constructor(elasticsearchClient: Client, collectionModels: ModelElasticsearch[], logger: Logger) {
     super();
 
     if (!elasticsearchClient) throw new Error('Invalid (null) Elasticsearch instance.');
@@ -29,12 +25,17 @@ export default class ElasticsearchDataSource extends BaseDataSource<Elasticsearc
     logger?.('Info', 'ElasticsearchDataSource - Built');
   }
 
-  protected async createCollections(collectionModels: ModelElasticsearch[], logger?: Logger) {
+  protected async createCollections(collectionModels: ModelElasticsearch[], logger: Logger) {
     collectionModels
       // avoid schema reordering
       .sort((modelA, modelB) => (modelA.name > modelB.name ? 1 : -1))
       .forEach(model => {
-        const collection = new ElasticsearchCollection(this, model, logger);
+        const collection = new ElasticsearchCollection(
+          this,
+          model,
+          logger,
+          this.elasticsearchClient,
+        );
         this.addCollection(collection);
       });
   }

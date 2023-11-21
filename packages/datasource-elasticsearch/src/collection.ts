@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import { Client } from '@elastic/elasticsearch';
 import {
   AggregateResult,
   Aggregation,
@@ -23,10 +24,15 @@ export default class ElasticsearchCollection extends BaseCollection {
 
   private queryConverter: QueryConverter;
 
-  constructor(datasource: DataSource, model: ModelElasticsearch, logger?: Logger) {
+  constructor(
+    datasource: DataSource,
+    model: ModelElasticsearch,
+    logger: Logger,
+    nativeDriver: Client,
+  ) {
     if (!model) throw new Error('Invalid (null) model instance.');
 
-    super(model.name, datasource);
+    super(model.name, datasource, nativeDriver);
 
     this.internalModel = model;
 
@@ -38,7 +44,7 @@ export default class ElasticsearchCollection extends BaseCollection {
     this.addFields(modelSchema.fields);
     this.addSegments(modelSchema.segments);
 
-    logger?.('Debug', `ElasticsearchCollection - ${this.name} added`);
+    logger('Debug', `ElasticsearchCollection - ${this.name} added`);
   }
 
   async create(caller: Caller, data: RecordData[]): Promise<RecordData[]> {
@@ -54,14 +60,6 @@ export default class ElasticsearchCollection extends BaseCollection {
     filter: PaginatedFilter,
     projection: Projection,
   ): Promise<RecordData[]> {
-    // This code was needed to include models needed for the projection.
-    // In our case such case does not exist !
-    // if (filter.conditionTree) {
-    //   include = include.concat(
-    //     this.queryConverter.getIncludeFromProjection(filter.conditionTree.projection),
-    //   );
-    // }
-
     const searchBody = {
       query: this.queryConverter.getBoolQueryFromConditionTree(filter.conditionTree),
       ...(filter.sort?.length > 0
@@ -73,7 +71,7 @@ export default class ElasticsearchCollection extends BaseCollection {
       this.internalModel.search(searchBody, filter.page?.skip, filter.page?.limit),
     );
 
-    // Might be removed in the future ?
+    // Apply projection to only return projection fields
     return projection.apply(recordsResponse);
   }
 
