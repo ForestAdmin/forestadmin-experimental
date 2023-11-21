@@ -24,7 +24,7 @@ jobs:
       - name: Install
         run: yarn 
       - name: Lint, Test & Build
-        run: npx nx affected -t lint test build
+        run: npx nx affected --base=origin/main -t lint test build
       - name: Publish
         if: |
           github.event_name == 'push' 
