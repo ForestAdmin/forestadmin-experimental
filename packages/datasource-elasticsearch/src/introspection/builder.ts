@@ -41,7 +41,7 @@ export type ElasticsearchCollectionFromTemplateOptions = {
   /**
    * Allow to properly generate index name for records creation
    */
-  generateIndexName: string | ((record?: unknown) => string);
+  generateIndexName?: string | ((record?: unknown) => string);
 
   /**
    * Allow to override the type converter
