@@ -25,7 +25,7 @@
     "clean": "rm -rf coverage dist",
     "lint": "eslint src test",
     "test": "docker-compose up -d; sleep 5 && jest",
-    "publish:package": "semantic-release --dry-run"
+    "publish:package": "semantic-release"
   },
   "devDependencies": {
     "@elastic/elasticsearch-mock": "1.0.0"
