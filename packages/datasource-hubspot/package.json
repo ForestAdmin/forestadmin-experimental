@@ -20,7 +20,8 @@
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
     "lint": "eslint src test",
-    "test": "jest"
+    "test": "jest",
+    "publish:package": "semantic-release --dry-run"
   },
   "dependencies": {
     "@forestadmin/datasource-replica": "^1.0.0",

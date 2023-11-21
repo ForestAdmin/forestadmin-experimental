@@ -24,7 +24,8 @@
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
     "lint": "eslint src test",
-    "test": "jest"
+    "test": "jest",
+    "publish:package": "semantic-release --dry-run"
   },
   "devDependencies": {
     "@elastic/elasticsearch-mock": "1.0.0"
