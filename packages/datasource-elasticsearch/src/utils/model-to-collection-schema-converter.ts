@@ -13,6 +13,7 @@ import {
 } from '@forestadmin/datasource-toolkit';
 
 import TypeConverter from './type-converter';
+import { OverrideTypeConverter } from '../introspection/builder';
 import ModelElasticsearch from '../model-builder/model';
 
 export default class ModelToCollectionSchemaConverter {
@@ -93,6 +94,7 @@ export default class ModelToCollectionSchemaConverter {
   private static convertAttributes(
     modelName: string,
     attributes: Record<string, MappingProperty>,
+    overrideTypeConverter: OverrideTypeConverter,
     logger: Logger,
   ): CollectionSchema['fields'] {
     const fields: CollectionSchema['fields'] = {};
@@ -104,7 +106,12 @@ export default class ModelToCollectionSchemaConverter {
             ...this.convertAssociations(modelName, attribute as MappingJoinProperty, logger),
           });
         } else {
-          fields[name] = this.convertAttribute(attribute);
+          fields[name] = this.getFieldSchemaOrOverride(
+            modelName,
+            name,
+            attribute,
+            overrideTypeConverter,
+          );
         }
       } catch (error) {
         logger?.('Warn', `Skipping column '${modelName}.${name}' (${error.message})`);
@@ -131,6 +138,24 @@ export default class ModelToCollectionSchemaConverter {
     return fields;
   }
 
+  private static getFieldSchemaOrOverride(
+    modelName: string,
+    fieldName: string,
+    attribute: MappingProperty,
+    overrideTypeConverter?: OverrideTypeConverter,
+  ): FieldSchema {
+    const field = ModelToCollectionSchemaConverter.convertAttribute(attribute);
+
+    return overrideTypeConverter
+      ? overrideTypeConverter({
+          modelName,
+          fieldName,
+          attribute,
+          generatedFieldSchema: field,
+        }) || field
+      : field;
+  }
+
   public static convert(model: ModelElasticsearch, logger: Logger): CollectionSchema {
     if (!model) throw new Error('Invalid (null) model.');
 
@@ -139,7 +164,12 @@ export default class ModelToCollectionSchemaConverter {
       charts: [],
       countable: true,
       fields: {
-        ...this.convertAttributes(model.name, model.getAttributes(), logger),
+        ...this.convertAttributes(
+          model.name,
+          model.getAttributes(),
+          model.overrideTypeConverter,
+          logger,
+        ),
       },
       searchable: false,
       segments: [],
