@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-    pull_request:
+  pull_request:
 
 
 jobs:
@@ -16,20 +16,19 @@ jobs:
       - name: Cancel previous running workflows
         uses: fkirc/skip-duplicate-actions@master
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
           node-version: 18.14.0
-      - uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('yarn.lock') }}
       - name: Install
         run: yarn 
       - name: Lint, Test & Build
-        run: npx nx affected -t lint test build
-      - uses: actions/cache/save@v3
-        with:
-          path: packages/*/dist
-          key: ${{ runner.os }}-build-${{ github.sha }}
+        run: npx nx affected --base=origin/main -t lint test build
+      - name: Publish
+        if: |
+          github.event_name == 'push' 
+          && (
+            github.ref == 'refs/heads/main' 
+          )
+        run: npx nx affected -t publish:packages
