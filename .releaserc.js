@@ -4,13 +4,9 @@ module.exports = {
   ],
   plugins: [
     [
-      '@semantic-release/commit-analyzer',
+      '@semantic-release/exec',
       {
-        preset: 'angular',
-        releaseRules: [
-          // Example: `type(scope): subject [force release]`
-          { subject: '*\\[force release\\]*', release: 'patch' },
-        ],
+        analyzeCommitsCmd:  "./commit-analyser.sh"
       },
     ],
     '@semantic-release/npm',
