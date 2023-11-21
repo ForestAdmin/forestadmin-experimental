@@ -9,8 +9,8 @@ import ResultBuilder from '@forestadmin/datasource-customizer/dist/decorators/ac
 import { ActionResult } from '@forestadmin/datasource-toolkit';
 
 export type LiveDemoBlockerOptions = {
-  userEmail?: string; // The user email to use
-  errorMessage?: string; // The error message to display
+  userEmail?: string;
+  errorMessage?: string;
 };
 
 const LIVE_DEMO_USER_EMAIL_DEFAULT = 'erlich.bachman@forestadmin.com';
