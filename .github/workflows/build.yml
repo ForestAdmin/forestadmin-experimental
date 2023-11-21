@@ -19,17 +19,14 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.14.0
-      - uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-          key: ${{ runner.os }}-modules-${{ hashFiles('yarn.lock') }}
       - name: Install
         run: yarn 
       - name: Lint, Test & Build
         run: npx nx affected -t lint test build
-      - uses: actions/cache/save@v3
-        with:
-          path: packages/*/dist
-          key: ${{ runner.os }}-build-${{ github.sha }}
+      - name: Publish
+        if: |
+          github.event_name == 'push' 
+          && (
+            github.ref == 'refs/heads/main' 
+          )
+        run: npx nx affected -t publish:packages        
