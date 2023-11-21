@@ -23,7 +23,7 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
-    "publish:package": "semantic-release --dry-run"
+    "publish:package": "semantic-release"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.2"
