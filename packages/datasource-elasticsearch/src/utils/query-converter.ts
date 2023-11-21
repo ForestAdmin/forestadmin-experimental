@@ -52,7 +52,7 @@ export default class QueryConverter {
         if (field === '_id')
           return {
             ids: {
-              values: Array.isArray(value) ? value : [value],
+              values,
             },
           };
 
@@ -76,14 +76,23 @@ export default class QueryConverter {
             [field]: values,
           },
         };
+
       case 'NotEqual':
       case 'NotIn':
         return {
           bool: {
             must_not: {
-              terms: {
-                [field]: values,
-              },
+              ...(field === '_id'
+                ? {
+                    ids: {
+                      values,
+                    },
+                  }
+                : {
+                    terms: {
+                      [field]: values,
+                    },
+                  }),
             },
           },
         };

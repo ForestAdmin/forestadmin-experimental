@@ -13,10 +13,11 @@ export async function createElasticsearchIndex(index: string, data?: object[]) {
 
   if (data) {
     const body = data.flatMap(doc => [{ index: { _index: index } }, doc]);
-    await client.bulk({ refresh: true, body });
+
+    return (await client.bulk({ refresh: true, body })).body.items;
   }
 
-  return client;
+  return [];
 }
 
 export async function deleteElasticsearchIndex(index: string) {
