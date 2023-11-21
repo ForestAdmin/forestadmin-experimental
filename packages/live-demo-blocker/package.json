@@ -14,6 +14,7 @@
   "devDependencies": {},
   "scripts": {
     "build": "tsc",
+    "lint": "eslint src",
     "publish:package": "semantic-release --dry-run"
   },
   "dependencies": {
