@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src",
-    "publish:package": "semantic-release --dry-run"
+    "publish:package": "semantic-release"
   },
   "dependencies": {
     "@forestadmin/datasource-customizer": "^1.28.2",
