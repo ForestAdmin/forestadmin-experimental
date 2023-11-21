@@ -23,7 +23,7 @@ jobs:
         run: yarn 
       - name: Lint, Test & Build on branch
         if: github.ref != 'refs/heads/main' 
-        run: npx nx affected -t lint test build
+        run: npx nx affected --base=origin/main -t lint test build
       - name: Lint, Test & Build on main
         if: |
           github.event_name == 'push' 
