@@ -31,4 +31,4 @@ jobs:
           && (
             github.ref == 'refs/heads/main' 
           )
-        run: npx nx affected -t publish:packages        
+        run: npx nx affected -t publish:packages
