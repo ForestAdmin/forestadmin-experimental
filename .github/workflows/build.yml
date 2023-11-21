@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
-      - name: Cancel previous running workflows
-        uses: fkirc/skip-duplicate-actions@master
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
         with:
           fetch-depth: 0
@@ -23,12 +21,20 @@ jobs:
           node-version: 18.14.0
       - name: Install
         run: yarn 
-      - name: Lint, Test & Build
+      - name: Lint, Test & Build on branch
+        if: github.ref != 'refs/heads/main' 
         run: npx nx affected --base=origin/main -t lint test build
-      - name: Publish
+      - name: Lint, Test & Build on main
         if: |
           github.event_name == 'push' 
           && (
             github.ref == 'refs/heads/main' 
           )
-        run: npx nx affected -t publish:packages
+        run: npx nx affected --base=HEAD~1 -t lint test build
+      - name: Publish from main
+        if: |
+          github.event_name == 'push' 
+          && (
+            github.ref == 'refs/heads/main' 
+          )
+        run: npx nx affected --base=HEAD~1 -t publish:packages
