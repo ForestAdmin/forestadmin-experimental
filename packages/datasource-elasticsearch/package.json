@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/datasource-elasticsearch",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ForestAdmin/agent-nodejs.git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
     "directory": "packages/datasource-elasticsearch"
   },
   "dependencies": {
@@ -24,7 +24,7 @@
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
     "lint": "eslint src test",
-    "test": "jest",
+    "test": "docker-compose up -d; sleep 5 && jest",
     "publish:package": "semantic-release --dry-run"
   },
   "devDependencies": {

@@ -1,12 +1,12 @@
-import * as factories from '@forestadmin/datasource-toolkit/dist/test/__factories__';
+import { Aggregation, Filter } from '@forestadmin/datasource-toolkit';
 
 import AggregationUtils from '../../src/utils/aggregation-converter';
 
 describe('Utils > Aggregation', () => {
   describe('aggs', () => {
     it('should return aggregations', () => {
-      const aggregation = factories.aggregation.build({ operation: 'Sum', field: 'price' });
-      const filter = factories.filter.build();
+      const aggregation = new Aggregation({ operation: 'Sum', field: 'price' });
+      const filter = new Filter({});
 
       expect(AggregationUtils.aggs(aggregation, filter)).toStrictEqual({
         metricsAggregations: { sum: { field: 'price' } },
