@@ -106,12 +106,7 @@ export default class ModelToCollectionSchemaConverter {
             ...this.convertAssociations(modelName, attribute as MappingJoinProperty, logger),
           });
         } else {
-          fields[name] = this.getFieldSchemaOrOverride(
-            modelName,
-            name,
-            attribute,
-            overrideTypeConverter,
-          );
+          fields[name] = this.getFieldSchemaOrOverride(name, attribute, overrideTypeConverter);
         }
       } catch (error) {
         logger?.('Warn', `Skipping column '${modelName}.${name}' (${error.message})`);
@@ -139,7 +134,6 @@ export default class ModelToCollectionSchemaConverter {
   }
 
   private static getFieldSchemaOrOverride(
-    modelName: string,
     fieldName: string,
     attribute: MappingProperty,
     overrideTypeConverter?: OverrideTypeConverter,
@@ -148,7 +142,6 @@ export default class ModelToCollectionSchemaConverter {
 
     return overrideTypeConverter
       ? overrideTypeConverter({
-          modelName,
           fieldName,
           attribute,
           generatedFieldSchema: field,

@@ -21,7 +21,6 @@ export type ElasticsearchCollectionFromIndexOptions = {
   overrideTypeConverter?: OverrideTypeConverter;
 };
 export type OverrideTypeConverter = (input: {
-  modelName: string;
   fieldName: string;
   attribute: MappingProperty;
   generatedFieldSchema: FieldSchema;

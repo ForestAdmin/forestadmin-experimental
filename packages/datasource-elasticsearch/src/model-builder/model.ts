@@ -35,7 +35,7 @@ export default class ModelElasticsearch {
 
   private elasticsearchClient: Client;
 
-  public overrideTypeConverter: OverrideTypeConverter;
+  public overrideTypeConverter?: OverrideTypeConverter;
 
   constructor(
     elasticsearchClient: Client,

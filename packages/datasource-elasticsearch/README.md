@@ -46,7 +46,7 @@ const agent = createAgent(options).addDataSource(
           overrideTypeConverter: field => {
             if (field.fieldName === 'label' || field.attribute.type === 'text')
               return { ...field.generatedFieldSchema, isSortable: false };
-            if (field.fieldName === 'status' && field.modelName === 'User')
+            if (field.fieldName === 'status')
               return {
                 ...field.generatedFieldSchema,
                 columnType: 'Enum',
