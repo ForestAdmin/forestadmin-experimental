@@ -2,7 +2,7 @@
 import { Client } from '@elastic/elasticsearch';
 import { MappingProperty } from '@elastic/elasticsearch/api/types';
 import MockClient from '@elastic/elasticsearch-mock';
-import { CollectionSchema } from '@forestadmin/datasource-toolkit';
+import { CollectionSchema, ColumnSchema } from '@forestadmin/datasource-toolkit';
 
 import ModelElasticsearch from '../../src/model-builder/model';
 import ModelToCollectionSchemaConverter from '../../src/utils/model-to-collection-schema-converter';
@@ -153,6 +153,97 @@ describe('Utils > ModelToCollectionSchemaConverter', () => {
         },
         searchable: false,
         segments: [],
+      };
+
+      expect(ModelToCollectionSchemaConverter.convert(modelElasticsearch, logger)).toEqual(schema);
+    });
+    it('should apply type conversion overrides', () => {
+      const { modelElasticsearch } = setup({
+        myInteger: {
+          type: 'integer',
+        },
+        myBoolean: {
+          type: 'boolean',
+        },
+        myJson: {
+          type: 'nested',
+        },
+        myDate: {
+          type: 'date',
+        },
+        myText: {
+          type: 'text',
+        },
+      });
+
+      const schema: CollectionSchema = {
+        actions: {},
+        charts: [],
+        countable: true,
+        fields: {
+          _id: {
+            columnType: 'String',
+            filterOperators: TypeConverter.operatorsForId(),
+            isPrimaryKey: true,
+            isReadOnly: true,
+            isSortable: false,
+            validation: [],
+            type: 'Column',
+          },
+          myInteger: {
+            columnType: 'Date',
+            filterOperators: TypeConverter.operatorsForColumnType('Number'),
+            isReadOnly: false,
+            isSortable: true,
+            validation: [],
+            type: 'Column',
+          },
+          myBoolean: {
+            columnType: 'Boolean',
+            filterOperators: TypeConverter.operatorsForColumnType('Boolean'),
+            isReadOnly: false,
+            isSortable: true,
+            validation: [],
+            type: 'Column',
+          },
+          myText: {
+            columnType: 'String',
+            filterOperators: TypeConverter.operatorsForColumnType('String'),
+            isReadOnly: false,
+            isSortable: false,
+            validation: [],
+            type: 'Column',
+          },
+          myJson: {
+            columnType: 'String',
+            filterOperators: TypeConverter.operatorsForColumnType('Json'),
+            isReadOnly: false,
+            isSortable: true,
+            validation: [],
+            type: 'Column',
+          },
+          myDate: {
+            columnType: 'Date',
+            filterOperators: TypeConverter.operatorsForColumnType('Date'),
+            isReadOnly: false,
+            isSortable: true,
+            validation: [],
+            type: 'Column',
+          },
+        },
+        searchable: false,
+        segments: [],
+      };
+
+      modelElasticsearch.overrideTypeConverter = field => {
+        if (field.fieldName === 'myJson')
+          return { ...field.generatedFieldSchema, columnType: 'String' };
+        if (field.attribute.type === 'text')
+          return { ...field.generatedFieldSchema, isSortable: false };
+        if ((field.generatedFieldSchema as ColumnSchema).columnType === 'Number')
+          return { ...field.generatedFieldSchema, columnType: 'Date' };
+        if ((field.generatedFieldSchema as ColumnSchema).columnType === 'Date')
+          return { ...field.generatedFieldSchema, isSortable: true };
       };
 
       expect(ModelToCollectionSchemaConverter.convert(modelElasticsearch, logger)).toEqual(schema);
