@@ -6,7 +6,7 @@ module.exports = {
     [
       '@semantic-release/exec',
       {
-        analyzeCommitsCmd:  "./commit-analyser.sh"
+        analyzeCommitsCmd:  "../../commit-analyser.sh"
       },
     ],
     '@semantic-release/npm',

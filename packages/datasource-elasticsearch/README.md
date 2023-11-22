@@ -10,6 +10,7 @@ Note that:
 - Points are not supported at the moment
 - Arrays are not supported out of the box. See the section [`Specifying that a field is an array`](#Tips)
 
+
 ```javascript
 const { createAgent } = require('@forestadmin/agent');
 
