@@ -2,6 +2,7 @@ import { Client } from '@elastic/elasticsearch';
 import { MappingTypeMapping } from '@elastic/elasticsearch/api/types';
 import { RecordData } from '@forestadmin/datasource-toolkit';
 
+import { OverrideTypeConverter } from '../introspection/builder';
 import Serializer from '../utils/serializer';
 
 export default class ModelElasticsearch {
@@ -34,6 +35,8 @@ export default class ModelElasticsearch {
 
   private elasticsearchClient: Client;
 
+  public overrideTypeConverter?: OverrideTypeConverter;
+
   constructor(
     elasticsearchClient: Client,
     name: string,
@@ -41,12 +44,14 @@ export default class ModelElasticsearch {
     aliases: string[],
     mapping: MappingTypeMapping,
     generateIndexName?: (record?: unknown) => string,
+    overrideTypeConverter?: OverrideTypeConverter,
   ) {
     this.name = name;
     this.indexPatterns = indexPatterns;
     this.aliases = aliases;
     this.mapping = mapping;
     this.generateIndexName = generateIndexName;
+    this.overrideTypeConverter = overrideTypeConverter;
 
     this.elasticsearchClient = elasticsearchClient;
   }

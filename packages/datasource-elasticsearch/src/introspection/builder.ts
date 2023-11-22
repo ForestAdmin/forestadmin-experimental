@@ -1,4 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
+import { MappingProperty } from '@elastic/elasticsearch/api/types';
+import { FieldSchema } from '@forestadmin/datasource-toolkit';
 
 import ModelElasticsearch from '../model-builder/model';
 
@@ -16,7 +18,13 @@ export type ElasticsearchCollectionFromIndexOptions = {
    * are used as a basis for creating the index.
    */
   indexName: string;
+  overrideTypeConverter?: OverrideTypeConverter;
 };
+export type OverrideTypeConverter = (field: {
+  fieldName: string;
+  attribute: MappingProperty;
+  generatedFieldSchema: FieldSchema;
+}) => void | FieldSchema;
 
 export type ElasticsearchCollectionFromTemplateOptions = {
   /**
@@ -33,6 +41,11 @@ export type ElasticsearchCollectionFromTemplateOptions = {
    * Allow to properly generate index name for records creation
    */
   generateIndexName?: string | ((record?: unknown) => string);
+
+  /**
+   * Allow to override the type converter
+   */
+  overrideTypeConverter?: OverrideTypeConverter;
 };
 
 export type ConfigurationOptions = (
@@ -52,6 +65,7 @@ export interface ElasticsearchDatasourceOptionsBuilder {
     name,
     templateName,
     generateIndexName,
+    overrideTypeConverter,
   }: ElasticsearchCollectionFromTemplateOptions): this;
 }
 
@@ -67,6 +81,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
   public addCollectionFromIndex({
     name,
     indexName,
+    overrideTypeConverter,
   }: ElasticsearchCollectionFromIndexOptions): this {
     this.collectionsPromises.push(
       (async () => {
@@ -81,6 +96,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           template.body[indexName].aliases, // aliases
           template.body[indexName].mappings,
           () => indexName,
+          overrideTypeConverter,
         );
       })(),
     );
@@ -92,6 +108,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
     name,
     templateName,
     generateIndexName,
+    overrideTypeConverter,
   }: ElasticsearchCollectionFromTemplateOptions): this {
     this.collectionsPromises.push(
       (async () => {
@@ -112,6 +129,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           aliases,
           mappings,
           typeof generateIndexName === 'string' ? () => generateIndexName : generateIndexName,
+          overrideTypeConverter,
         );
       })(),
     );
