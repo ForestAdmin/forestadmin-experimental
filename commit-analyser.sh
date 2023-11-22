@@ -1,3 +1,4 @@
+#!/bin/bash
 LASTCOMMIT=$(git log -1 --pretty=%B | cat)
 
 if [[ $LASTCOMMIT =~ feat.* ]]
