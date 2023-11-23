@@ -56,7 +56,7 @@ afterAll(async () => {
   await deleteElasticsearchIndex(indexName);
 });
 
-describe('Utils > QueryConverter', () => {
+describe('Collection > CRUD > list', () => {
   describe('ConditionTree', () => {
     describe('Operators', () => {
       it.each([
