@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { Client } from '@elastic/elasticsearch';
 import { MappingTypeMapping } from '@elastic/elasticsearch/api/types';
 import { RecordData } from '@forestadmin/datasource-toolkit';
@@ -67,25 +68,25 @@ export default class ModelElasticsearch {
       });
     }
 
-    const recordsCreationPromises = data.map(newRecord =>
-      this.elasticsearchClient.index<{
-        _index: string;
-        _id: string;
-      }>({
-        op_type: 'create',
-        index: this.generateIndexName(newRecord),
-        body: newRecord,
-      }),
-    );
-    const recordsResponse = await Promise.all(recordsCreationPromises);
+    const body = data.flatMap(newRecord => [
+      {
+        // Strategies
+        // - create fails if a document with the same ID already exists in the target
+        // - index adds or replaces a document as necessary
+        // we choose index behavior for now
+        index: { _index: this.generateIndexName(newRecord) },
+      },
+      newRecord,
+    ]);
 
-    // It makes all operations performed on an index since the last refresh available for search
-    await this.elasticsearchClient.indices.refresh({ index: this.indexPatterns[0] });
+    const bulkResponse = await this.elasticsearchClient.bulk({
+      body,
+      refresh: true,
+    });
 
-    return recordsResponse.map((response, index) =>
+    return bulkResponse.body.items.map((item, index) =>
       Serializer.serialize({
-        // eslint-disable-next-line no-underscore-dangle
-        _id: response.body._id,
+        _id: item.index._id,
         ...data[index],
       }),
     );
@@ -169,14 +170,12 @@ export default class ModelElasticsearch {
   public async delete(ids: string[]): Promise<void> {
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html#docs-bulk
 
-    const body = ids.map(id => {
-      return {
-        delete: {
-          _index: this.indexPatterns[0],
-          _id: id,
-        },
-      };
-    });
+    const body = ids.map(id => ({
+      delete: {
+        _index: this.indexPatterns[0],
+        _id: id,
+      },
+    }));
 
     await this.elasticsearchClient.bulk({
       body,
