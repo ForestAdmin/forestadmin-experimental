@@ -34,7 +34,7 @@ const dataset = [
   },
 ];
 
-const indexName = 'test-index-crud';
+const indexName = 'test-crud-update';
 
 beforeAll(async () => {
   await createElasticsearchIndex(indexName, dataset);

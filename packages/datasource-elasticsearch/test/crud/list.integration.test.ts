@@ -47,7 +47,7 @@ const dataset = [
     user: 'ilyn',
   },
 ];
-const indexName = 'test-index-operators';
+const indexName = 'test-crud-delete';
 
 beforeAll(async () => {
   await createElasticsearchIndex(indexName, dataset);
