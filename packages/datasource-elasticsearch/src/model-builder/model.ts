@@ -57,7 +57,7 @@ export default class ModelElasticsearch {
     this.elasticsearchClient = elasticsearchClient;
   }
 
-  public async bulkCreate(data: RecordData[]): Promise<RecordData[]> {
+  public async create(data: RecordData[]): Promise<RecordData[]> {
     if (!this.generateIndexName)
       throw new Error('You need to define generateIndexName in order to create a record');
 
@@ -73,7 +73,7 @@ export default class ModelElasticsearch {
         // Strategies
         // - create fails if a document with the same ID already exists in the target
         // - index adds or replaces a document as necessary
-        // we choose index behavior for now
+        // we choose index behavior for now but we don't provide IDs
         index: { _index: this.generateIndexName(newRecord) },
       },
       newRecord,
@@ -92,10 +92,65 @@ export default class ModelElasticsearch {
     );
   }
 
+  public async update(ids: string[], patch: RecordData): Promise<void> {
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html#bulk-update
+    const recordsToUpdate = await this.search({
+      query: {
+        ids: {
+          values: ids,
+        },
+      },
+      _source: false,
+    });
+
+    const body = recordsToUpdate.reduce<Array<unknown>>((acc, { _id: id, _index: index }) => {
+      acc.push({
+        update: {
+          _index: index,
+          _id: id,
+        },
+      });
+      acc.push({
+        doc: patch,
+      });
+
+      return acc;
+    }, []);
+
+    await this.elasticsearchClient.bulk({
+      body,
+      refresh: true,
+    });
+  }
+
+  public async delete(ids: string[]): Promise<void> {
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html#docs-bulk
+    const recordsToUpdate = await this.search({
+      query: {
+        ids: {
+          values: ids,
+        },
+      },
+      _source: false,
+    });
+
+    const body = recordsToUpdate.map(({ _id: id, _index: index }) => ({
+      delete: {
+        _index: index,
+        _id: id,
+      },
+    }));
+
+    await this.elasticsearchClient.bulk({
+      body,
+      refresh: true,
+    });
+  }
+
   public async search(
     searchBody: Record<string, unknown>,
-    offset: number,
-    limit: number,
+    offset?: number,
+    limit?: number,
   ): Promise<RecordData[]> {
     const response = await this.elasticsearchClient.search<{
       hits: {
@@ -110,9 +165,8 @@ export default class ModelElasticsearch {
 
     return response.body.hits.hits.map(hit => {
       return Serializer.serialize({
-        // eslint-disable-next-line no-underscore-dangle
         _id: hit._id,
-        // eslint-disable-next-line no-underscore-dangle
+        _index: hit._index,
         ...hit._source,
       });
     });
@@ -130,57 +184,6 @@ export default class ModelElasticsearch {
     });
 
     return response.body.aggregations;
-  }
-
-  public async update(ids: string[], patch: RecordData): Promise<void> {
-    // await this.elasticsearchClient.update<{
-    //   aggregations: Record<string, unknown>;
-    // }>({
-    //   id,
-    //   index: this.indexPatterns[0],
-    //   body: {
-    //     doc: {
-    //       ...patch,
-    //     },
-    //   },
-    // });
-
-    // www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html#bulk-update
-
-    const body = ids.reduce((acc, id) => {
-      acc.push({
-        update: {
-          _index: this.indexPatterns[0],
-          _id: id,
-        },
-      });
-      acc.push({
-        doc: { ...patch },
-      });
-
-      return acc;
-    }, []);
-
-    await this.elasticsearchClient.bulk({
-      body,
-      refresh: true,
-    });
-  }
-
-  public async delete(ids: string[]): Promise<void> {
-    // https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html#docs-bulk
-
-    const body = ids.map(id => ({
-      delete: {
-        _index: this.indexPatterns[0],
-        _id: id,
-      },
-    }));
-
-    await this.elasticsearchClient.bulk({
-      body,
-      refresh: true,
-    });
   }
 
   // INTERNAL USAGES

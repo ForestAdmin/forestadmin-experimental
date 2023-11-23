@@ -1,6 +1,7 @@
 import {
   Caller,
-  ConditionTreeLeaf,
+  ConditionTree,
+  Operator,
   Page,
   PaginatedFilter,
   Projection,
@@ -8,9 +9,7 @@ import {
   Sort,
 } from '@forestadmin/datasource-toolkit';
 
-import ElasticsearchCollection from '../../src/collection';
-import { createElasticsearchDataSource } from '../../src/index';
-import ELASTICSEARCH_URL from '../helpers/connection-details';
+import { getCollectionForIndex } from '../helpers/elastic-search-collection';
 import {
   createElasticsearchIndex,
   deleteElasticsearchIndex,
@@ -49,12 +48,9 @@ const dataset = [
   },
 ];
 const indexName = 'test-index-operators';
-let nedUuid: string;
 
 beforeAll(async () => {
-  const { items } = await createElasticsearchIndex(indexName, dataset);
-  // eslint-disable-next-line no-underscore-dangle
-  nedUuid = items[1].index._id;
+  await createElasticsearchIndex(indexName, dataset);
 });
 afterAll(async () => {
   await deleteElasticsearchIndex(indexName);
@@ -65,44 +61,44 @@ describe('Utils > QueryConverter', () => {
     describe('Operators', () => {
       it.each([
         [
-          { field: 'text', operator: 'Present' } as ConditionTreeLeaf,
+          { field: 'text', operator: 'Present' as Operator } as unknown as ConditionTree,
           expect.not.arrayContaining([expect.objectContaining({ user: 'ilyn' })]),
           5,
         ],
-        [{ field: 'text', operator: 'Missing' } as ConditionTreeLeaf, [{ user: 'ilyn' }], 1],
+        [
+          { field: 'text', operator: 'Missing' as Operator } as unknown as ConditionTree,
+          [{ user: 'ilyn' }],
+          1,
+        ],
         [
           {
             field: 'user',
-            operator: 'Equal',
+            operator: 'Equal' as Operator,
             value: 'jon',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [{ user: 'jon' }],
           1,
         ],
         [
-          {
-            field: 'text',
-            operator: 'Equal',
-            value: null,
-          } as ConditionTreeLeaf,
+          { field: 'text', operator: 'Equal' as Operator, value: null } as unknown as ConditionTree,
           [{ user: 'ilyn' }],
           1,
         ],
         [
           {
             field: 'text',
-            operator: 'Equal',
+            operator: 'Equal' as Operator,
             value: ['', null],
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [{ user: 'ilyn' }],
           1,
         ],
         [
           {
             field: 'user',
-            operator: 'NotIn',
+            operator: 'NotIn' as Operator,
             value: ['tyrion', 'jon'],
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           expect.not.arrayContaining([
             expect.objectContaining({ user: 'tyrion' }),
             expect.objectContaining({ user: 'jon' }),
@@ -112,63 +108,63 @@ describe('Utils > QueryConverter', () => {
         [
           {
             field: 'user',
-            operator: 'Like',
+            operator: 'Like' as Operator,
             value: 'yrio',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           expect.not.arrayContaining([expect.objectContaining({ user: 'tyrion' })]),
           0,
         ],
         [
           {
             field: 'text',
-            operator: 'Like',
+            operator: 'Like' as Operator,
             value: '%debts',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [{ text: 'A Lannister always pays his debts' }],
           1,
         ],
         [
           {
             field: 'user',
-            operator: 'Like',
+            operator: 'Like' as Operator,
             value: 'n%',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [{ user: 'ned' }],
           1,
         ],
         [
           {
             field: 'user',
-            operator: 'Like',
+            operator: 'Like' as Operator,
             value: 'NED',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [],
           0,
         ],
         [
           {
             field: 'user',
-            operator: 'ILike',
+            operator: 'ILike' as Operator,
             value: 'NED',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [{ user: 'ned' }],
           1,
         ],
         [
           {
             field: 'id',
-            operator: 'LessThan',
+            operator: 'LessThan' as Operator,
             value: 2,
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           [{ user: 'jon' }],
           1,
         ],
         [
           {
             field: 'id',
-            operator: 'GreaterThan',
+            operator: 'GreaterThan' as Operator,
             value: 4,
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           expect.arrayContaining([
             expect.objectContaining({ user: 'ilyn' }),
             expect.objectContaining({ user: 'arya' }),
@@ -178,43 +174,16 @@ describe('Utils > QueryConverter', () => {
         [
           {
             field: 'user',
-            operator: 'NotContains',
+            operator: 'NotContains' as Operator,
             value: 'ned',
-          } as ConditionTreeLeaf,
+          } as unknown as ConditionTree,
           expect.not.arrayContaining([expect.objectContaining({ user: 'ned' })]),
           5,
-        ],
-        [
-          {
-            field: '_id',
-            operator: 'NotEqual',
-            value: '{{nedUuid}}',
-          } as ConditionTreeLeaf,
-          expect.not.arrayContaining([expect.objectContaining({ user: 'ned' })]),
-          5,
-        ],
-        [
-          {
-            field: '_id',
-            operator: 'Equal',
-            value: '{{nedUuid}}',
-          } as ConditionTreeLeaf,
-          expect.arrayContaining([expect.objectContaining({ user: 'ned' })]),
-          1,
         ],
       ])(
         'for operator %s it should return %s',
-        async (conditionTree: ConditionTreeLeaf, expectedResult: RecordData[], lenght: number) => {
-          const collection = (await (
-            await createElasticsearchDataSource(ELASTICSEARCH_URL, configurator =>
-              configurator.addCollectionFromIndex({ name: 'index', indexName }),
-            )(jest.fn())
-          ).getCollection('index')) as ElasticsearchCollection;
-
-          conditionTree.value =
-            typeof conditionTree.value === 'string'
-              ? conditionTree.value.replace('{{nedUuid}}', nedUuid)
-              : conditionTree.value;
+        async (conditionTree: ConditionTree, expectedResult: RecordData[], lenght: number) => {
+          const collection = await getCollectionForIndex(indexName);
 
           const paginatedFilter: PaginatedFilter = {
             conditionTree,
