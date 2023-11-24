@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable max-len */
 import { Client } from '@elastic/elasticsearch';
 import {
@@ -49,7 +50,7 @@ export default class ElasticsearchCollection extends BaseCollection {
 
   async create(caller: Caller, data: RecordData[]): Promise<RecordData[]> {
     const recordsResponse = await handleErrors('create', async () =>
-      this.internalModel.bulkCreate(data),
+      this.internalModel.create(data),
     );
 
     return recordsResponse;
@@ -77,20 +78,14 @@ export default class ElasticsearchCollection extends BaseCollection {
 
   async update(caller: Caller, filter: Filter, patch: RecordData): Promise<void> {
     const records = await this.list(caller, filter, new Projection('_id'));
-    // eslint-disable-next-line no-underscore-dangle
     const ids = records.map(record => record._id as string);
-
-    // We should list them then update them using the right ids and indices ?
 
     await handleErrors('update', () => this.internalModel.update(ids, patch));
   }
 
   async delete(caller: Caller, filter: Filter): Promise<void> {
     const records = await this.list(caller, filter, new Projection('_id'));
-    // eslint-disable-next-line no-underscore-dangle
     const ids = records.map(record => record._id as string);
-
-    // We should list them then delete them using the right ids and indices ?
 
     await handleErrors('delete', () => this.internalModel.delete(ids));
   }
