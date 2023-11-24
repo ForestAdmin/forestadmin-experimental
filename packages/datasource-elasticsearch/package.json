@@ -24,7 +24,7 @@
     "publish:package": "semantic-release"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-toolkit": "~1.29.0",
+    "@forestadmin/datasource-toolkit": "^1.29.0",
     "@elastic/elasticsearch": ">= 7.16.0 < 8"
   },
   "devDependencies": {
