@@ -11,10 +11,6 @@
     "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
     "directory": "packages/datasource-elasticsearch"
   },
-  "dependencies": {
-    "@forestadmin/datasource-toolkit": "^1.29.0",
-    "@elastic/elasticsearch": "^7.16.0"
-  },
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts"
@@ -27,7 +23,13 @@
     "test": "docker-compose up -d; sleep 5 && jest",
     "publish:package": "semantic-release"
   },
+  "peerDependencies": {
+    "@forestadmin/datasource-toolkit": "~1.29.0",
+    "@elastic/elasticsearch": ">= 7.16.0 < 8"
+  },
   "devDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.29.0",
+    "@elastic/elasticsearch": "^7.16.0",
     "@elastic/elasticsearch-mock": "1.0.0"
   }
 }
