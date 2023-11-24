@@ -99,19 +99,21 @@ export default class ModelToCollectionSchemaConverter {
   ): CollectionSchema['fields'] {
     const fields: CollectionSchema['fields'] = {};
 
-    Object.entries(attributes).forEach(([name, attribute]) => {
-      try {
-        if (attribute.type === 'join') {
-          Object.assign(fields, {
-            ...this.convertAssociations(modelName, attribute as MappingJoinProperty, logger),
-          });
-        } else {
-          fields[name] = this.getFieldSchemaOrOverride(name, attribute, overrideTypeConverter);
+    Object.entries(attributes)
+      .sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+      .forEach(([name, attribute]) => {
+        try {
+          if (attribute.type === 'join') {
+            Object.assign(fields, {
+              ...this.convertAssociations(modelName, attribute as MappingJoinProperty, logger),
+            });
+          } else {
+            fields[name] = this.getFieldSchemaOrOverride(name, attribute, overrideTypeConverter);
+          }
+        } catch (error) {
+          logger?.('Warn', `Skipping column '${modelName}.${name}' (${error.message})`);
         }
-      } catch (error) {
-        logger?.('Warn', `Skipping column '${modelName}.${name}' (${error.message})`);
-      }
-    });
+      });
 
     // Virtual field _id
     const defaultPrimaryColumn: ColumnSchema = {
