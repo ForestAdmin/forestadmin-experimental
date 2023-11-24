@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { Caller, ConditionTreeLeaf, Filter, Projection } from '@forestadmin/datasource-toolkit';
 
 import { getCollectionForIndex } from '../helpers/elastic-search-collection';
