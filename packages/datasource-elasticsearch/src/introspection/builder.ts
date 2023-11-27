@@ -4,12 +4,33 @@ import { FieldSchema } from '@forestadmin/datasource-toolkit';
 
 import ModelElasticsearch from '../model-builder/model';
 
-export type ElasticsearchCollectionFromIndexOptions = {
+export type OverrideTypeConverter = (field: {
+  fieldName: string;
+  attribute: MappingProperty;
+  generatedFieldSchema: FieldSchema;
+}) => void | FieldSchema;
+
+export type ElasticsearchCollectionBase = {
   /**
    * Give the name of the collection
    */
   name: string;
 
+  /**
+   * Allow to override the type converter
+   */
+  overrideTypeConverter?: OverrideTypeConverter;
+
+  /**
+   * Enabling `enableCount` allows the pagination widget to display the total number of pages
+   * in this collection while browsing records.
+   *
+   * _It is disabled by default for performance matters._
+   */
+  enableCount?: boolean;
+};
+
+export type ElasticsearchCollectionFromIndexOptions = {
   /**
    * An index template is a way to tell Elasticsearch how to configure an index when it is
    * created. For data streams, the index template configures the stream’s backing indices
@@ -18,20 +39,9 @@ export type ElasticsearchCollectionFromIndexOptions = {
    * are used as a basis for creating the index.
    */
   indexName: string;
-  overrideTypeConverter?: OverrideTypeConverter;
-};
-export type OverrideTypeConverter = (field: {
-  fieldName: string;
-  attribute: MappingProperty;
-  generatedFieldSchema: FieldSchema;
-}) => void | FieldSchema;
+} & ElasticsearchCollectionBase;
 
 export type ElasticsearchCollectionFromTemplateOptions = {
-  /**
-   * Give the name of the collection
-   */
-  name: string;
-
   /**
    * Give the name of the collection
    */
@@ -41,12 +51,7 @@ export type ElasticsearchCollectionFromTemplateOptions = {
    * Allow to properly generate index name for records creation
    */
   generateIndexName?: string | ((record?: unknown) => string);
-
-  /**
-   * Allow to override the type converter
-   */
-  overrideTypeConverter?: OverrideTypeConverter;
-};
+} & ElasticsearchCollectionBase;
 
 export type ConfigurationOptions = (
   configurator: ElasticsearchDatasourceOptionsBuilder,

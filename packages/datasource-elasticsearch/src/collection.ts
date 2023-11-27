@@ -41,7 +41,7 @@ export default class ElasticsearchCollection extends BaseCollection {
 
     const modelSchema = ModelConverter.convert(this.internalModel, logger);
 
-    this.enableCount();
+    if (this.internalModel.enableCount) this.enableCount();
     this.addFields(modelSchema.fields);
     this.addSegments(modelSchema.segments);
 
