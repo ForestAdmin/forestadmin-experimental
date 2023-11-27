@@ -38,6 +38,8 @@ export default class ModelElasticsearch {
 
   public overrideTypeConverter?: OverrideTypeConverter;
 
+  public enableCount?: boolean;
+
   constructor(
     elasticsearchClient: Client,
     name: string,
@@ -46,6 +48,7 @@ export default class ModelElasticsearch {
     mapping: MappingTypeMapping,
     generateIndexName?: (record?: unknown) => string,
     overrideTypeConverter?: OverrideTypeConverter,
+    enableCount?: boolean,
   ) {
     this.name = name;
     this.indexPatterns = indexPatterns;
@@ -53,6 +56,7 @@ export default class ModelElasticsearch {
     this.mapping = mapping;
     this.generateIndexName = generateIndexName;
     this.overrideTypeConverter = overrideTypeConverter;
+    this.enableCount = enableCount;
 
     this.elasticsearchClient = elasticsearchClient;
   }
