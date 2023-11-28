@@ -36,7 +36,7 @@ export default class TestableAction<TypingsSchema> {
     this.fieldsFormStates = new FieldFormStates(this.name);
   }
 
-  async execute(actionContext: {
+  async execute(actionContext?: {
     recordId?: string | number;
     recordIds?: string[] | number[];
   }): Promise<{ success: string; html?: string }> {
