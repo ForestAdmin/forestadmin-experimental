@@ -22,12 +22,12 @@ export class HttpRequester {
   }
 
   async query<Data = unknown>({
-    method,
-    path,
-    body,
-    query,
-    maxTimeAllowed,
-  }: {
+                                method,
+                                path,
+                                body,
+                                query,
+                                maxTimeAllowed,
+                              }: {
     method: 'get' | 'post' | 'put' | 'delete';
     path: string;
     body?: Record<string, unknown>;
@@ -53,7 +53,7 @@ export class HttpRequester {
     } catch (error) {
       throw new Error(
         JSON.stringify(
-          (error as { response: { error: Record<string, string> } }).response.error,
+          { error: (error as { response: { error: Record<string, string> } }).response.error, body },
           null,
           4,
         ),
@@ -63,9 +63,9 @@ export class HttpRequester {
 }
 
 export async function createHttpRequester({
-  agentOptions,
-  port,
-}: {
+                                            agentOptions,
+                                            port,
+                                          }: {
   agentOptions: AgentOptions;
   port: number;
 }): Promise<HttpRequester> {
