@@ -1,16 +1,10 @@
 import type { HttpRequester } from './http-requester';
-import type { ForestSchema, ForestServerActionField } from '@forestadmin/forestadmin-client';
-import TestableActionFieldDropdown from './testable-action-field-dropdown';
-import FieldFormStates from './utils/field-form-states';
-import TestableActionFieldCheckbox from './testable-action-field-checkbox';
-import TestableActionFieldNumber from './testable-action-field-number';
+import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
-type ResponseBody<T extends ForestServerActionField = ForestServerActionField> = {
-  fields: {
-    field: string;
-    widgetEdit: { parameters: T['widgetEdit']['parameters'] };
-  }[];
-};
+import FieldFormStates from './action-fields/field-form-states';
+import TestableActionFieldCheckbox from './action-fields/testable-action-field-checkbox';
+import TestableActionFieldDropdown from './action-fields/testable-action-field-dropdown';
+import TestableActionFieldNumber from './action-fields/testable-action-field-number';
 
 export default class TestableAction<TypingsSchema> {
   private readonly name: string;
@@ -21,7 +15,7 @@ export default class TestableAction<TypingsSchema> {
 
   private readonly httpRequester: HttpRequester;
 
-  private readonly fieldsFormStates: FieldFormStates;
+  private readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
 
   constructor(
     name: string,
@@ -33,7 +27,12 @@ export default class TestableAction<TypingsSchema> {
     this.collectionName = collectionName;
     this.schema = schema;
     this.httpRequester = httpRequester;
-    this.fieldsFormStates = new FieldFormStates(this.name);
+    this.fieldsFormStates = new FieldFormStates(
+      this.name,
+      this.getActionPath(collectionName, name),
+      collectionName,
+      this.httpRequester,
+    );
   }
 
   async execute(actionContext?: {
@@ -46,7 +45,8 @@ export default class TestableAction<TypingsSchema> {
       actionContext?.recordIds || actionContext?.recordId ? [`${actionContext?.recordId}`] : [];
 
     const values = this.fieldsFormStates.getFields().reduce((acc, { field, value }) => {
-      if(value !== undefined) acc[field] = value;
+      if (value !== undefined) acc[field] = value;
+
       return acc;
     }, {});
 
@@ -64,92 +64,16 @@ export default class TestableAction<TypingsSchema> {
     });
   }
 
-  async getFieldNumber<T extends ForestServerActionField = ForestServerActionField>(
-    fieldName: string,
-  ): Promise<TestableActionFieldNumber<TypingsSchema>> {
-    const actionPath = this.getActionPath(this.collectionName, this.name);
-
-    if (this.fieldsFormStates.isEmpty()) {
-      await this.loadState(null, fieldName, actionPath);
-    }
-
-    this.fieldsFormStates.throwIfFieldDoesNotExist(fieldName);
-
-    return new TestableActionFieldNumber<TypingsSchema>(
-      fieldName,
-      this.collectionName,
-      actionPath,
-      this.fieldsFormStates,
-      this.httpRequester,
-    );
-  }
-  async getDropdownField<T extends ForestServerActionField = ForestServerActionField>(
-    fieldName: string,
-
-  ): Promise<TestableActionFieldDropdown<TypingsSchema>> {
-    const actionPath = this.getActionPath(this.collectionName, this.name);
-
-    if (this.fieldsFormStates.isEmpty()) {
-      await this.loadState(null, fieldName, actionPath);
-    }
-
-    this.fieldsFormStates.throwIfFieldDoesNotExist(fieldName);
-
-    return new TestableActionFieldDropdown<TypingsSchema>(
-      fieldName,
-      this.collectionName,
-      actionPath,
-      this.fieldsFormStates,
-      this.httpRequester,
-    );
+  async getFieldNumber(fieldName: string): Promise<TestableActionFieldNumber<TypingsSchema>> {
+    return new TestableActionFieldNumber<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  async getCheckboxField<T extends ForestServerActionField = ForestServerActionField>(
-    fieldName: string,
-  ): Promise<TestableActionFieldCheckbox<TypingsSchema>> {
-    const actionPath = this.getActionPath(this.collectionName, this.name);
-
-    if (this.fieldsFormStates.isEmpty()) {
-      await this.loadState(null, fieldName, actionPath);
-    }
-
-    this.fieldsFormStates.throwIfFieldDoesNotExist(fieldName);
-
-    return new TestableActionFieldCheckbox<TypingsSchema>(
-      fieldName,
-      this.collectionName,
-      actionPath,
-      this.fieldsFormStates,
-      this.httpRequester,
-    );
+  async getDropdownField(fieldName: string): Promise<TestableActionFieldDropdown<TypingsSchema>> {
+    return new TestableActionFieldDropdown<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-
-  private async loadState(fieldContext: {
-    search?: string;
-    formValues?: Record<string, unknown>;
-  }, fieldName: string, actionPath: string) {
-    const { search, formValues } = fieldContext ?? {};
-
-    const requestBody = {
-      data: {
-        attributes: {
-          collection_name: this.collectionName,
-          ids: [],
-          values: formValues ?? {},
-          fields: [{ field: fieldName, searchValue: search }],
-        },
-        type: 'action-requests',
-      },
-    };
-
-    const queryResults = await this.httpRequester.query<ResponseBody>({
-      method: 'post',
-      path: `${actionPath}/hooks/load`,
-      body: requestBody,
-    });
-
-    this.fieldsFormStates.addFields(queryResults.fields);
+  async getCheckboxField(fieldName: string): Promise<TestableActionFieldCheckbox<TypingsSchema>> {
+    return new TestableActionFieldCheckbox<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
   doesFieldExist(fieldName: string): boolean {
