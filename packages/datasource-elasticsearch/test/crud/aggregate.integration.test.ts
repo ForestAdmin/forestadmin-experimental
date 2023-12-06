@@ -6,6 +6,13 @@ import {
   deleteElasticsearchIndex,
 } from '../helpers/elastic-search-index-manager';
 
+const mappings = {
+  properties: {
+    discriminant: { type: 'keyword' },
+    weight: { type: 'integer' },
+    date: { type: 'date' },
+  },
+};
 const dataset = [
   {
     discriminant: 'blue',
@@ -42,7 +49,9 @@ const dataset = [
 const indexName = 'test-crud-update';
 
 beforeAll(async () => {
-  await createElasticsearchIndex(indexName, dataset);
+  await createElasticsearchIndex(indexName, dataset, {
+    mappings,
+  });
 });
 
 afterAll(async () => {
@@ -80,18 +89,6 @@ describe('Collection > CRUD > aggregate', () => {
 
       expect(result[0]).toMatchObject(expect.objectContaining({ value: 3 }));
     });
-
-    it.skip('should count aggregate', async () => {
-      const collection = await getCollectionForIndex(indexName);
-
-      const result = await collection.aggregate(
-        null as unknown as Caller,
-        {} as unknown as Filter,
-        { operation: 'Count', field: 'discriminant' } as unknown as Aggregation,
-      );
-
-      expect(result[0]).toMatchObject(expect.objectContaining({ user: 'jon', text: 'Ygritte <3' }));
-    });
   });
 
   describe('Sum', () => {
@@ -126,46 +123,6 @@ describe('Collection > CRUD > aggregate', () => {
       );
 
       expect(result[0]).toMatchObject(expect.objectContaining({ value: 15 }));
-    });
-  });
-
-  describe.skip('Sum group by', () => {
-    it('should sum field record', async () => {
-      const collection = await getCollectionForIndex(indexName);
-
-      const result = await collection.aggregate(
-        null as unknown as Caller,
-        {} as unknown as Filter,
-        {
-          operation: 'Sum',
-          field: 'weight',
-          // groups: [{ field: 'discriminant', operation: 'Sum' }],
-        } as unknown as Aggregation,
-      );
-
-      expect(result[0]).toMatchObject(expect.objectContaining({ value: 40 }));
-    });
-
-    it('should sum field record with filter', async () => {
-      const collection = await getCollectionForIndex(indexName);
-
-      const result = await collection.aggregate(
-        null as unknown as Caller,
-        {
-          conditionTree: {
-            field: 'discriminant',
-            operator: 'Equal',
-            value: 'red',
-          },
-        } as unknown as Filter,
-        {
-          operation: 'Sum',
-          field: 'weight',
-          // groups: [{ field: 'discriminant', operation: 'Sum' }],
-        } as unknown as Aggregation,
-      );
-
-      expect(result[0]).toMatchObject(expect.objectContaining({ value: 3 }));
     });
   });
 
@@ -363,6 +320,67 @@ describe('Collection > CRUD > aggregate', () => {
       );
 
       expect(result).toMatchObject(expect.arrayContaining(expected));
+    });
+  });
+
+  describe('group by', () => {
+    describe('simple count group by field', () => {
+      it('should return aggregate groups with count', async () => {
+        const collection = await getCollectionForIndex(indexName);
+
+        const result = await collection.aggregate(
+          null as unknown as Caller,
+          {} as unknown as Filter,
+          { operation: 'Count', groups: [{ field: 'discriminant' }] } as unknown as Aggregation,
+        );
+
+        expect(result).toMatchObject([
+          { group: { discriminant: 'blue' }, value: 3 },
+          { group: { discriminant: 'red' }, value: 3 },
+        ]);
+      });
+    });
+    describe('simple sum group by field', () => {
+      it('should sum field record', async () => {
+        const collection = await getCollectionForIndex(indexName);
+
+        const result = await collection.aggregate(
+          null as unknown as Caller,
+          {} as unknown as Filter,
+          {
+            operation: 'Sum',
+            field: 'weight',
+            groups: [{ field: 'discriminant' }],
+          } as unknown as Aggregation,
+        );
+
+        expect(result).toMatchObject([
+          { group: { discriminant: 'blue' }, value: 25 },
+          { group: { discriminant: 'red' }, value: 15 },
+        ]);
+      });
+
+      it('should sum field record with filter', async () => {
+        const collection = await getCollectionForIndex(indexName);
+
+        const result = await collection.aggregate(
+          null as unknown as Caller,
+          {
+            conditionTree: {
+              field: 'discriminant',
+              operator: 'Equal',
+              value: 'red',
+            },
+          } as unknown as Filter,
+          {
+            operation: 'Sum',
+            field: 'weight',
+            groups: [{ field: 'discriminant' }],
+          } as unknown as Aggregation,
+        );
+
+        expect(result).toMatchObject([{ group: { discriminant: 'red' }, value: 15 }]);
+      });
     });
   });
 });
