@@ -1,14 +1,22 @@
 import { Client } from '@elastic/elasticsearch';
+import { RequestBody } from '@elastic/elasticsearch/lib/Transport';
 
 import ELASTICSEARCH_URL from './connection-details';
 
-export async function createElasticsearchIndex(index: string, data?: object[]) {
+export async function createElasticsearchIndex(
+  index: string,
+  data?: object[],
+  createBody?: RequestBody,
+) {
   const client = new Client({ node: ELASTICSEARCH_URL });
 
   const exists = await client.indices.exists({ index });
 
   if (!exists.body) {
-    await client.indices.create({ index });
+    await client.indices.create({
+      index,
+      body: createBody,
+    });
   }
 
   if (data) {
