@@ -3,12 +3,13 @@ import type { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
 import fs from 'fs';
+
 import TestableCollection from './testable-collection';
 
 /**
  * This class can be used to do integration tests on an agent.
  */
-export class TestableAgent<TypingsSchema extends TSchema> {
+export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
   readonly agent: Agent<TypingsSchema>;
 
   private schema?: ForestSchema;
@@ -36,11 +37,11 @@ export class TestableAgent<TypingsSchema extends TSchema> {
     this.agentOptions = agentOptions;
   }
 
-  async stop() {
+  async stop(): Promise<void> {
     await this.agent.stop();
   }
 
-  async start() {
+  async start(): Promise<void> {
     await this.agent.mountOnStandaloneServer(this.port).start();
     this.schema = JSON.parse(fs.readFileSync(this.agentOptions.schemaPath, 'utf8'));
   }
