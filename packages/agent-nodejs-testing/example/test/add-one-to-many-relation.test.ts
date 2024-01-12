@@ -11,7 +11,7 @@ describe('addOneToManyRelation', () => {
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
 
   const relationCustomizer = (agent: Agent) => {
-    // Add a one to many relation between actor and dvd
+    // add a one to many relation between actor and dvd
     agent.customizeCollection('actor', collection => {
       collection.addOneToManyRelation('dvd', 'dvd', {
         originKeyTarget: 'id',

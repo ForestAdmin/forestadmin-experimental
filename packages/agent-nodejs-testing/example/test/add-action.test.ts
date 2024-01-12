@@ -39,7 +39,6 @@ describe('addAction', () => {
     });
   };
 
-  // create users table with age column
   const createTable = async () => {
     sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage: STORAGE_PATH }, logger);
 
