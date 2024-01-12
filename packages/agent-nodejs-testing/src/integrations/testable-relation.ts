@@ -1,5 +1,5 @@
-import type { TestableBaseOptions } from './types';
 import type { HttpRequester } from './http-requester';
+import type { TestableBaseOptions } from './types';
 
 import QuerySerializer from './query-serializer';
 

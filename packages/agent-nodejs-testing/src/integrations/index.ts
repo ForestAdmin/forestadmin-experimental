@@ -1,8 +1,10 @@
-import { AgentOptions, createAgent, TSchema } from '@forestadmin/agent';
-import { TestableAgent } from './testable-agent';
+import { AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
+
 import ForestAdminClientMock from './forest-admin-client-mock';
 import { createHttpRequester } from './http-requester';
+import TestableAgent from './testable-agent';
 
+// eslint-disable-next-line import/export
 export * from './testable-agent';
 export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';

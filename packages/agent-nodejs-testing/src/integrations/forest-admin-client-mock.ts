@@ -1,5 +1,3 @@
-/* eslint-disable class-methods-use-this */
-
 import type {
   ChartHandlerInterface,
   ContextVariablesInstantiatorInterface,
