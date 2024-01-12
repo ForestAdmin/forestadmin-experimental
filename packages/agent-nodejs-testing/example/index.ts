@@ -1,7 +1,7 @@
 import { Agent } from '@forestadmin/agent';
 import { createSqlDataSource } from '@forestadmin/datasource-sql';
-import { createTestableAgent } from '@forestadmin-experimental/agent-nodejs-testing';
 
+import { createTestableAgent } from '../src';
 import TestableAgent from '../src/integrations/testable-agent';
 
 export default async function startTestableAgent(
