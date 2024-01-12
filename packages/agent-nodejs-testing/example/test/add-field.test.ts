@@ -34,7 +34,9 @@ describe('addField', () => {
   };
 
   beforeAll(async () => {
+    // create users table with firstName and lastName columns
     await createTable();
+    // start testable agent
     testableAgent = await startTestableAgent(fullNameCustomizer, STORAGE_PATH);
   });
 
