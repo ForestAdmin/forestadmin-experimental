@@ -47,7 +47,7 @@ describe('addField', () => {
   beforeAll(async () => {
     // create users table with firstName and lastName columns
     await createTable();
-    // Start testable agent
+    // start testable agent
     testableAgent = await startTestableAgent(fullNameCustomizer, STORAGE_PATH);
   });
 
@@ -56,12 +56,14 @@ describe('addField', () => {
     await sequelize?.close();
   });
 
-  it('should return the computed full name', async () => {
+  it('should return the computed full name from first name and last name', async () => {
+    // create a user with firstName John and Doe
     const createdUser = await sequelize.models.users.create({
       firstName: 'John',
       lastName: 'Doe',
     });
 
+    // get the created user
     const [user] = await testableAgent.collection('users').list<{ fullName: string }>({
       filters: {
         conditionTree: {
@@ -71,6 +73,8 @@ describe('addField', () => {
         },
       },
     });
+
+    // test the full name content
     expect(user.fullName).toEqual('John Doe');
   });
 });

@@ -13,15 +13,15 @@ extended in the future.
 npm install @forestadmin-experimental/agent-nodejs-testing
 ```
 
-or for Yarn users:
+or for Yarn users
 
 ```bash
 yarn add @forestadmin-experimental/agent-nodejs-testing
 ```
 
-# Integration Tests
+### Integration Tests - Recommended Testing Strategy
 
-# Setup
+### Setup
 
 ```javascript
 const { createTestableAgent } = require('@forestadmin-experimental/agent-nodejs-testing');
@@ -49,7 +49,7 @@ export async function setupAndStartTestableAgent() {
 }
 ```
 
-# Usage
+### Usage
 
 ```javascript
 describe('billing collection', () => {
@@ -76,6 +76,26 @@ describe('billing collection', () => {
 });
 ```
 
-# Unit Tests
+### Examples
+
+Please check the [example](./example) folder for more examples.
+
+### How it works
+
+The `createTestableAgent` function creates a testable agent that can be used to test your agent.
+The testable agent is a wrapper around your agent that allows you to start and stop it, and to call its collections, actions, charts etc.
+It calls the agent by http, so it's a real integration test. It does exactly what the frontend does when it calls your agent.
+All the authentication part is mocked, so it doesn't call the forestadmin servers.
+It can be run in standalone in your CI for example.
+
+```mermaid
+flowchart LR
+ testableAgent(testable agent)<-->|HTTP|agent
+ agent(agent with customizations)<-->DATA
+ agent-.never call.-server(forestadmin server)
+```
+
+## Unit Tests
 
 WIP
+
