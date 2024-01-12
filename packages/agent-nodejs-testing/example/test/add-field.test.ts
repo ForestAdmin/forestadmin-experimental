@@ -27,27 +27,14 @@ describe('addField', () => {
 
     sequelize.define(
       'users',
-      {
-        firstName: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-      },
-      {
-        tableName: 'users',
-      },
+      { firstName: { type: DataTypes.STRING }, lastName: { type: DataTypes.STRING } },
+      { tableName: 'users' },
     );
     await sequelize.sync({ force: true });
   };
 
   beforeAll(async () => {
-    // create users table with firstName and lastName columns
     await createTable();
-    // start testable agent
     testableAgent = await startTestableAgent(fullNameCustomizer, STORAGE_PATH);
   });
 
@@ -57,7 +44,7 @@ describe('addField', () => {
   });
 
   it('should return the computed full name from first name and last name', async () => {
-    // create a user with firstName John and Doe
+    // create a user with firstName John and Doe as lastName
     const createdUser = await sequelize.models.users.create({
       firstName: 'John',
       lastName: 'Doe',

@@ -1,9 +1,10 @@
 import TestableActionField from './testable-action-field';
+import { Field } from './types';
 
 export default class TestableActionFieldDropdown<
   TypingsSchema,
 > extends TestableActionField<TypingsSchema> {
-  get options(): any[] {
+  get options(): Field['widgetEdit']['parameters']['static']['options'] {
     return this.fieldsFormStates.getField(this.name).widgetEdit.parameters.static.options;
   }
 
