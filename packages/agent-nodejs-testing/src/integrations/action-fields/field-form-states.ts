@@ -1,8 +1,8 @@
-import { ResponseBody } from './types';
+import { Field, ResponseBody } from './types';
 import { HttpRequester } from '../http-requester';
 
 export default class FieldFormStates<TypingsSchema> {
-  private readonly fields: any[];
+  private readonly fields: Field[];
 
   private readonly actionName: string;
 
@@ -25,15 +25,15 @@ export default class FieldFormStates<TypingsSchema> {
     this.httpRequester = httpRequester;
   }
 
-  getFields(): any[] {
+  getFields(): Field[] {
     return this.fields;
   }
 
-  getField(name: string): any | undefined {
+  getField(name: string): Field | undefined {
     return this.getFields().find(({ field }) => field === name);
   }
 
-  async setFieldValue(name: string, value: any): Promise<void> {
+  async setFieldValue(name: string, value: unknown): Promise<void> {
     if (this.isEmpty()) {
       await this.loadInitialState(name);
     }
@@ -45,7 +45,7 @@ export default class FieldFormStates<TypingsSchema> {
     await this.loadChanges(name);
   }
 
-  private addFields(fields: any[]): void {
+  private addFields(fields: Field[]): void {
     this.fields.push(...fields);
   }
 

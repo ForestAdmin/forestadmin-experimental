@@ -5,6 +5,7 @@ import FieldFormStates from './action-fields/field-form-states';
 import TestableActionFieldCheckbox from './action-fields/testable-action-field-checkbox';
 import TestableActionFieldDropdown from './action-fields/testable-action-field-dropdown';
 import TestableActionFieldNumber from './action-fields/testable-action-field-number';
+import TestableActionFieldString from './action-fields/testable-action-field-string';
 
 export default class TestableAction<TypingsSchema> {
   private readonly name: string;
@@ -66,6 +67,10 @@ export default class TestableAction<TypingsSchema> {
 
   async getFieldNumber(fieldName: string): Promise<TestableActionFieldNumber<TypingsSchema>> {
     return new TestableActionFieldNumber<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  async getFieldString(fieldName: string): Promise<TestableActionFieldNumber<TypingsSchema>> {
+    return new TestableActionFieldString<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
   async getDropdownField(fieldName: string): Promise<TestableActionFieldDropdown<TypingsSchema>> {
