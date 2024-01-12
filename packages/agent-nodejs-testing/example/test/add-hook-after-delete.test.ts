@@ -13,7 +13,7 @@ describe('addHook after delete', () => {
   const createHookCustomizer = (agent: Agent) => {
     agent.customizeCollection('assets', collection => {
       collection.addHook('After', 'Delete', async context => {
-        // Delete the replication assets
+        // delete the replication assets
         await context.dataSource.getCollection('replicationAssets').delete(context.filter as any);
       });
     });
@@ -47,7 +47,7 @@ describe('addHook after delete', () => {
 
     await testableAgent.collection('assets').delete([asset.dataValues.id]);
 
-    // Check that the replication asset has been deleted
+    // check that the replication asset has been deleted
     const replicationAssets = await sequelize.models.replicationAssets.findAll();
     expect(replicationAssets.length).toEqual(0);
   });
