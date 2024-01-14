@@ -10,7 +10,7 @@ import TestableCollection from './testable-collection';
  * This class can be used to do integration tests on an agent.
  */
 export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
-  readonly agent: Agent<TypingsSchema>;
+  private readonly agent: Agent<TypingsSchema>;
 
   private schema?: ForestSchema;
 

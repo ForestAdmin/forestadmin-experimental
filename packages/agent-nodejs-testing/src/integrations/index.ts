@@ -1,18 +1,18 @@
-import { AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
+import { Agent, AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import { createHttpRequester } from './http-requester';
 import TestableAgent from './testable-agent';
 
-// eslint-disable-next-line import/export
-export * from './testable-agent';
+export default TestableAgent;
 export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';
 
 export async function createTestableAgent<TypingsSchema extends TSchema = TSchema>(
-  options?: AgentOptions,
-  port = 9997,
+  customizer: (agent: Agent<TypingsSchema>) => void,
+  options?: AgentOptions & { port?: number },
 ): Promise<TestableAgent<TypingsSchema>> {
+  const port = options?.port || 9997;
   const agentOptions: AgentOptions = {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     logger: () => {},
@@ -26,6 +26,8 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
 
   const agent = createAgent<TypingsSchema>(agentOptions);
   if (!agent) throw new Error('Agent is not defined');
+
+  customizer(agent);
 
   const httpRequester = await createHttpRequester({ agentOptions, port });
 

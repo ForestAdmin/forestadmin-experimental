@@ -1,9 +1,9 @@
 import { Agent } from '@forestadmin/agent';
-import { buildSequelizeInstance } from '@forestadmin/datasource-sql';
+import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
+import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import startTestableAgent from '../index';
 import { STORAGE_PATH, logger } from '../utils';
 
 describe('addHook after delete', () => {
@@ -33,7 +33,11 @@ describe('addHook after delete', () => {
 
   beforeAll(async () => {
     await createTable();
-    testableAgent = await startTestableAgent(createHookCustomizer, STORAGE_PATH);
+    testableAgent = await createTestableAgent((agent: Agent) => {
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      createHookCustomizer(agent);
+    });
+    await testableAgent.start();
   });
 
   afterAll(async () => {

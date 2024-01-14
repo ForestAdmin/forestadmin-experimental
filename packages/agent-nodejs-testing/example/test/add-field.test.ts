@@ -1,9 +1,9 @@
 import { Agent } from '@forestadmin/agent';
-import { buildSequelizeInstance } from '@forestadmin/datasource-sql';
+import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
+import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import startTestableAgent from '../index';
 import { STORAGE_PATH, logger } from '../utils';
 
 describe('addField', () => {
@@ -34,10 +34,12 @@ describe('addField', () => {
   };
 
   beforeAll(async () => {
-    // create users table with firstName and lastName columns
     await createTable();
-    // start testable agent
-    testableAgent = await startTestableAgent(fullNameCustomizer, STORAGE_PATH);
+    testableAgent = await createTestableAgent((agent: Agent) => {
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      fullNameCustomizer(agent);
+    });
+    await testableAgent.start();
   });
 
   afterAll(async () => {
