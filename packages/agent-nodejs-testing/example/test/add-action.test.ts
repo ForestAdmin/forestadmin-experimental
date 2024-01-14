@@ -1,9 +1,9 @@
 import { Agent } from '@forestadmin/agent';
-import { buildSequelizeInstance } from '@forestadmin/datasource-sql';
+import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
+import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import startTestableAgent from '../index';
 import { STORAGE_PATH, logger } from '../utils';
 
 describe('addAction', () => {
@@ -56,7 +56,11 @@ describe('addAction', () => {
 
   beforeAll(async () => {
     await createTable();
-    testableAgent = await startTestableAgent(actionFormCustomizer, STORAGE_PATH);
+    testableAgent = await createTestableAgent((agent: Agent) => {
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      actionFormCustomizer(agent);
+    });
+    await testableAgent.start();
   });
 
   afterAll(async () => {

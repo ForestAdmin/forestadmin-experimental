@@ -1,10 +1,9 @@
 import { Agent } from '@forestadmin/agent';
-import { buildSequelizeInstance } from '@forestadmin/datasource-sql';
+import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
-import { ValueChartResponse } from '../../src';
+import { ValueChartResponse, createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import startTestableAgent from '../index';
 import { STORAGE_PATH, logger } from '../utils';
 
 describe('addChart on dashboard', () => {
@@ -32,7 +31,11 @@ describe('addChart on dashboard', () => {
 
   beforeAll(async () => {
     await createTable();
-    testableAgent = await startTestableAgent(dashboardChartCustomizer, STORAGE_PATH);
+    testableAgent = await createTestableAgent((agent: Agent) => {
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      dashboardChartCustomizer(agent);
+    });
+    await testableAgent.start();
   });
 
   afterAll(async () => {

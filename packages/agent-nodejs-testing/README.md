@@ -36,11 +36,8 @@ export async function setupAndStartTestableAgent() {
   // if you have a database, or a server to start, do it here
   // ...
   
-  // create a testable agent
-  const testableAgent = await createTestableAgent();
-
-  // apply all the customizations to the testable agent
-  addAgentCustomizations(testableAgent.agent);
+  // create a testable agent with the customizations
+  const testableAgent = await createTestableAgent(addAgentCustomizations);
 
   // start the testable agent
   await testableAgent.start();
@@ -53,14 +50,14 @@ export async function setupAndStartTestableAgent() {
 
 ```javascript
 describe('billing collection', () => {
-  let agent;
+  let testableAgent;
 
   beforeAll(async () => {
-    agent = await setupAndStartTestableAgent();
+    testableAgent = await setupAndStartTestableAgent();
   });
 
   afterAll(async () => {
-    await agent?.stop();
+    await testableAgent?.stop();
   });
 
   it('should return all the records of the billing collection', async () => {
