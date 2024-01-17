@@ -4,12 +4,14 @@ import { Field } from './types';
 export default class TestableActionFieldDropdown<
   TypingsSchema,
 > extends TestableActionField<TypingsSchema> {
-  get options(): Field['widgetEdit']['parameters']['static']['options'] {
-    return this.fieldsFormStates.getField(this.name).widgetEdit.parameters.static.options;
+  async getOptions(): Promise<Field['widgetEdit']['parameters']['static']['options'] | undefined> {
+    return (await this.fieldsFormStates.getField(this.name))?.widgetEdit.parameters.static.options;
   }
 
   async selectOption(option: string): Promise<void> {
-    const value = this.options.find(o => o.label === option)?.value;
+    const value = (await this.getOptions())?.find(o => o.label === option)?.value;
+    if (!value) throw new Error(`Option "${option}" not found in field "${this.name}"`);
+
     await this.fieldsFormStates.setFieldValue(this.name, value);
   }
 }

@@ -29,7 +29,11 @@ export default class FieldFormStates<TypingsSchema> {
     return this.fields;
   }
 
-  getField(name: string): Field | undefined {
+  async getField(name: string): Promise<Field | undefined> {
+    if (this.isEmpty()) {
+      await this.loadInitialState(name);
+    }
+
     return this.getFields().find(({ field }) => field === name);
   }
 
@@ -38,7 +42,7 @@ export default class FieldFormStates<TypingsSchema> {
       await this.loadInitialState(name);
     }
 
-    const field = this.getField(name);
+    const field = await this.getField(name);
     if (!field) throw new Error(`Field "${name}" not found in action "${this.actionName}"`);
 
     field.value = value;
