@@ -65,24 +65,24 @@ export default class TestableAction<TypingsSchema> {
     });
   }
 
-  async getFieldNumber(fieldName: string): Promise<TestableActionFieldNumber<TypingsSchema>> {
+  getFieldNumber(fieldName: string): TestableActionFieldNumber<TypingsSchema> {
     return new TestableActionFieldNumber<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  async getFieldString(fieldName: string): Promise<TestableActionFieldNumber<TypingsSchema>> {
+  getFieldString(fieldName: string): TestableActionFieldNumber<TypingsSchema> {
     return new TestableActionFieldString<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  async getDropdownField(fieldName: string): Promise<TestableActionFieldDropdown<TypingsSchema>> {
+  getDropdownField(fieldName: string): TestableActionFieldDropdown<TypingsSchema> {
     return new TestableActionFieldDropdown<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  async getCheckboxField(fieldName: string): Promise<TestableActionFieldCheckbox<TypingsSchema>> {
+  getCheckboxField(fieldName: string): TestableActionFieldCheckbox<TypingsSchema> {
     return new TestableActionFieldCheckbox<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  doesFieldExist(fieldName: string): boolean {
-    return !!this.fieldsFormStates.getField(fieldName);
+  async doesFieldExist(fieldName: string): Promise<boolean> {
+    return Boolean(await this.fieldsFormStates.getField(fieldName));
   }
 
   private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {

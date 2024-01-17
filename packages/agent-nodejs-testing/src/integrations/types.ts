@@ -1,3 +1,4 @@
+import { AgentOptions } from '@forestadmin/agent';
 import { PlainFilter, PlainSortClause } from '@forestadmin/datasource-toolkit';
 
 export type TestableBaseOptions = {
@@ -5,4 +6,6 @@ export type TestableBaseOptions = {
   sort?: PlainSortClause;
 };
 
-export type ValueChartResponse = { countCurrent: string; countPrevious: string; };
+export type ValueChartResponse = { countCurrent: string; countPrevious: string };
+
+export type TestableAgentOptions = AgentOptions & { port?: number };

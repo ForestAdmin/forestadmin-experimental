@@ -3,6 +3,7 @@ import { Agent, AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
 import ForestAdminClientMock from './forest-admin-client-mock';
 import { createHttpRequester } from './http-requester';
 import TestableAgent from './testable-agent';
+import { TestableAgentOptions } from './types';
 
 export { TestableAgent };
 export { AgentOptions, Agent } from '@forestadmin/agent';
@@ -10,9 +11,12 @@ export * from './types';
 
 export async function createTestableAgent<TypingsSchema extends TSchema = TSchema>(
   customizer: (agent: Agent<TypingsSchema>) => void,
-  options?: AgentOptions & { port?: number },
+  options?: TestableAgentOptions,
 ): Promise<TestableAgent<TypingsSchema>> {
   const port = options?.port || 9997;
+  // we don't want to pass the port to the agent because the port is not a valid agent option
+  delete options?.port;
+
   const agentOptions: AgentOptions = {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     logger: () => {},
