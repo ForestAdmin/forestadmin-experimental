@@ -4,7 +4,7 @@ import ForestAdminClientMock from './forest-admin-client-mock';
 import { createHttpRequester } from './http-requester';
 import TestableAgent from './testable-agent';
 
-export default TestableAgent;
+export { TestableAgent };
 export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';
 
