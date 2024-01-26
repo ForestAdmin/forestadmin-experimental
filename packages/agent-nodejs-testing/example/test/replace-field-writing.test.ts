@@ -54,7 +54,7 @@ describe('replaceFieldWriting', () => {
     await sequelize?.close();
   });
 
-  it('should crate a user with the first name and last name', async () => {
+  it('should create a user with the first name and last name', async () => {
     // get the created user
     await testableAgent.collection('users').create({ fullName: 'John Doe' });
     const [user] = await testableAgent.collection('users').list<{ firstName; lastName }>();
