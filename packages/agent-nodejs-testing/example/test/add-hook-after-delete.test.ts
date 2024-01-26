@@ -4,11 +4,12 @@ import { DataTypes } from 'sequelize';
 
 import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import { STORAGE_PATH, logger } from '../utils';
+import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addHook after delete', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
+  const storage = `${STORAGE_PREFIX}-hook.db`;
 
   const createHookCustomizer = (agent: Agent) => {
     agent.customizeCollection('assets', collection => {
@@ -20,7 +21,7 @@ describe('addHook after delete', () => {
   };
 
   const createTable = async () => {
-    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage: STORAGE_PATH }, logger);
+    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage }, logger);
 
     sequelize.define('assets', { name: { type: DataTypes.STRING } }, { tableName: 'assets' });
     sequelize.define(
@@ -34,7 +35,7 @@ describe('addHook after delete', () => {
   beforeAll(async () => {
     await createTable();
     testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
       createHookCustomizer(agent);
     });
     await testableAgent.start();

@@ -19,21 +19,22 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
-    "publish:package": "semantic-release"
+    "publish:package": "semantic-release",
+    "test": "jest"
   },
   "dependencies": {
+    "@forestadmin/forestadmin-client": "1.25.3",
     "jsonapi-serializer": "^3.5.1",
     "jsonwebtoken": "^9.0.2",
-    "superagent": "^8.1.2",
-    "@forestadmin/forestadmin-client": "1.25.3"
+    "superagent": "^8.1.2"
   },
   "devDependencies": {
-    "@forestadmin/datasource-sql": "1.7.43",
     "@forestadmin/agent": "1.36.11",
     "@forestadmin/datasource-customizer": "1.39.3",
+    "@forestadmin/datasource-sql": "1.7.43",
     "@forestadmin/datasource-toolkit": "1.29.1",
-    "sqlite3": "5.1.6",
-    "sequelize": "6.35.2"
+    "sequelize": "6.35.2",
+    "sqlite3": "5.1.6"
   },
   "peerDependencies": {
     "@forestadmin/agent": ">=1.35.15",

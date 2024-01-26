@@ -4,11 +4,12 @@ import { DataTypes } from 'sequelize';
 
 import { ValueChartResponse, createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import { STORAGE_PATH, logger } from '../utils';
+import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addChart on dashboard', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
+  const storage = `${STORAGE_PREFIX}-chart.db`;
 
   const dashboardChartCustomizer = (agent: Agent) => {
     agent.addChart('countCustomersChart', async (context, resultBuilder) => {
@@ -19,7 +20,7 @@ describe('addChart on dashboard', () => {
   };
 
   const createTable = async () => {
-    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage: STORAGE_PATH }, logger);
+    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage }, logger);
 
     sequelize.define(
       'customers',
@@ -32,7 +33,7 @@ describe('addChart on dashboard', () => {
   beforeAll(async () => {
     await createTable();
     testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
       dashboardChartCustomizer(agent);
     });
     await testableAgent.start();

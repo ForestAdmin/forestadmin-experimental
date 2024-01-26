@@ -4,11 +4,12 @@ import { DataTypes } from 'sequelize';
 
 import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import { STORAGE_PATH, logger } from '../utils';
+import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addOneToManyRelation', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
+  const storage = `${STORAGE_PREFIX}-one-to-many.db`;
 
   const relationCustomizer = (agent: Agent) => {
     // add a one to many relation between actor and dvd
@@ -21,7 +22,7 @@ describe('addOneToManyRelation', () => {
   };
 
   const createTable = async () => {
-    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage: STORAGE_PATH }, logger);
+    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage }, logger);
 
     sequelize.define(
       'dvd',
@@ -35,7 +36,7 @@ describe('addOneToManyRelation', () => {
   beforeAll(async () => {
     await createTable();
     testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
       relationCustomizer(agent);
     });
     await testableAgent.start();
@@ -50,6 +51,7 @@ describe('addOneToManyRelation', () => {
     const actor = await sequelize.models.actor.create({ name: 'John Doe' });
     const anotherActor = await sequelize.models.actor.create({ name: 'Alban' });
     await sequelize.models.dvd.create({ title: 'Forest', actorId: actor.dataValues.id });
+    await sequelize.models.dvd.create({ title: 'Forest 2', actorId: actor.dataValues.id });
     // create a dvd with another actor, this dvd should not be returned
     await sequelize.models.dvd.create({ title: 'Lumber', actorId: anotherActor.dataValues.id });
 
@@ -59,7 +61,7 @@ describe('addOneToManyRelation', () => {
       .list<{ title: string }>();
 
     // test the full name content
-    expect(dvds.length).toEqual(1);
-    expect(dvds[0].title).toEqual('Forest');
+    expect(dvds.length).toEqual(2);
+    expect(dvds.map(d => d.title)).toEqual(['Forest', 'Forest 2']);
   });
 });
