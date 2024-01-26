@@ -55,12 +55,24 @@ describe('replaceFieldWriting', () => {
   });
 
   it('should create a user with the first name and last name', async () => {
-    // get the created user
     await testableAgent.collection('users').create({ fullName: 'John Doe' });
     const [user] = await testableAgent.collection('users').list<{ firstName; lastName }>();
 
-    // test the full name content
     expect(user.firstName).toEqual('John');
     expect(user.lastName).toEqual('Doe');
+  });
+
+  it('should count the created users', async () => {
+    // reset the database
+    await sequelize.sync({ force: true });
+    // create a user
+    await testableAgent.collection('users').create({ fullName: 'John Doe' });
+    await testableAgent.collection('users').create({ fullName: 'John Doe' });
+    await testableAgent.collection('users').create({ fullName: 'John Doe' });
+
+    const count = await testableAgent.collection('users').count();
+
+    // test the full name content
+    expect(count).toEqual(3);
   });
 });
