@@ -6,6 +6,4 @@ export type TestableBaseOptions = {
   sort?: PlainSortClause;
 };
 
-export type ValueChartResponse = { countCurrent: string; countPrevious: string };
-
 export type TestableAgentOptions = AgentOptions & { port?: number };
