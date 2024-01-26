@@ -4,11 +4,12 @@ import { DataTypes } from 'sequelize';
 
 import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import { STORAGE_PATH, logger } from '../utils';
+import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addAction', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
+  const storage = `${STORAGE_PREFIX}-action.db`;
 
   const actionFormCustomizer = (agent: Agent) => {
     agent.customizeCollection('restaurants', collection => {
@@ -19,7 +20,7 @@ describe('addAction', () => {
           {
             label: 'put a comment',
             type: 'String',
-            // Only display this field if the rating is > 4
+            // Only display this field if the rating is >= 4
             if: context => Number(context.formValues.rating) >= 4,
           },
         ],
@@ -40,7 +41,7 @@ describe('addAction', () => {
   };
 
   const createTable = async () => {
-    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage: STORAGE_PATH }, logger);
+    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage }, logger);
 
     sequelize.define(
       'restaurants',
@@ -57,7 +58,7 @@ describe('addAction', () => {
   beforeAll(async () => {
     await createTable();
     testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
       actionFormCustomizer(agent);
     });
     await testableAgent.start();

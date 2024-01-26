@@ -4,11 +4,12 @@ import { DataTypes } from 'sequelize';
 
 import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
-import { STORAGE_PATH, logger } from '../utils';
+import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addSegment', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
+  const storage = `${STORAGE_PREFIX}-segment.db`;
 
   // create a segment to get only minor users
   const segmentCustomizer = (agent: Agent) => {
@@ -21,7 +22,7 @@ describe('addSegment', () => {
 
   // create users table with age column
   const createTable = async () => {
-    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage: STORAGE_PATH }, logger);
+    sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage }, logger);
 
     sequelize.define('users', { age: { type: DataTypes.INTEGER } }, { tableName: 'users' });
     await sequelize.sync({ force: true });
@@ -30,7 +31,7 @@ describe('addSegment', () => {
   beforeAll(async () => {
     await createTable();
     testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage: STORAGE_PATH }));
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
       segmentCustomizer(agent);
     });
     await testableAgent.start();

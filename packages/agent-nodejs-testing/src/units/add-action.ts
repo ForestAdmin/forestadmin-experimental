@@ -1,10 +1,10 @@
 import type { ActionContext, CollectionCustomizerFunction, TestableAction } from './types';
 import type { DynamicField } from '@forestadmin/datasource-customizer/';
 
-
 export function getAddedAction(
   collectionCustomizerFunction: CollectionCustomizerFunction,
-  ...args: any[]): TestableAction {
+  ...args: any[]
+): TestableAction {
   let action: TestableAction;
 
   const collection = {
@@ -29,5 +29,7 @@ export function getFormFieldValueAction<ReturnType>(
   action: TestableAction,
   label: string,
 ): (actionContext: ActionContext) => Promise<ReturnType> {
-  return getFormFieldAction(action, label).value as (actionContext: ActionContext) => Promise<ReturnType>;
+  return getFormFieldAction(action, label).value as (
+    actionContext: ActionContext,
+  ) => Promise<ReturnType>;
 }

@@ -39,6 +39,14 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
 
   async stop(): Promise<void> {
     await this.agent.stop();
+
+    // try to remove the typings and schema files
+    try {
+      fs.unlinkSync(this.agentOptions.typingsPath);
+      fs.unlinkSync(this.agentOptions.schemaPath);
+    } catch (error) {
+      /* empty */
+    }
   }
 
   async start(): Promise<void> {
