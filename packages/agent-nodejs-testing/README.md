@@ -65,7 +65,7 @@ describe('billing collection', () => {
     // ...
 
     // call the billing collection from the agent to get the records
-    const result = await agent.collection('billing').list();
+    const result = await testableAgent.collection('billing').list();
 
     // check the result
     expect(result).toHaveLength(2);
