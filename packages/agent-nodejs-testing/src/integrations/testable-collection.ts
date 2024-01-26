@@ -1,5 +1,5 @@
-import type { TestableBaseOptions } from './types';
 import type { HttpRequester } from './http-requester';
+import type { TestableBaseOptions } from './types';
 import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
 import QuerySerializer from './query-serializer';
@@ -51,6 +51,16 @@ export default class TestableCollection<TypingsSchema> {
 
     return this.httpRequester.query<Data>({
       method: 'delete',
+      path: `/forest/${this.name as string}`,
+      body: requestBody,
+    });
+  }
+
+  async create<Data = unknown>(attributes: Record<string, unknown>): Promise<Data> {
+    const requestBody = { data: { attributes, type: this.name } };
+
+    return this.httpRequester.query<Data>({
+      method: 'post',
       path: `/forest/${this.name as string}`,
       body: requestBody,
     });
