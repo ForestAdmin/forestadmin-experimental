@@ -40,6 +40,18 @@ export default class TestableCollection<TypingsSchema> {
     });
   }
 
+  async count(options?: TestableBaseOptions): Promise<number> {
+    return Number(
+      (
+        await this.httpRequester.query<{ count: number }>({
+          method: 'get',
+          path: `/forest/${this.name as string}/count`,
+          query: QuerySerializer.serialize(options),
+        })
+      ).count,
+    );
+  }
+
   async delete<Data = unknown>(ids: string[] | number[]): Promise<Data> {
     const serializedIds = ids.map((id: string | number) => id.toString());
     const requestBody = {
