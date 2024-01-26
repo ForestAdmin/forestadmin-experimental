@@ -48,8 +48,8 @@ describe('addChart on dashboard', () => {
     await sequelize.models.customers.create({ firstName: 'John' });
     await sequelize.models.customers.create({ firstName: 'John' });
 
-    const customers = await testableAgent.dashboardChart<ValueChartResponse>('countCustomersChart');
+    const count = await testableAgent.valueChart('countCustomersChart');
 
-    expect(customers.countCurrent).toEqual(2);
+    expect(count).toEqual(2);
   });
 });

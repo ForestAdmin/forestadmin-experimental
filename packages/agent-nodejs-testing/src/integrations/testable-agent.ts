@@ -5,6 +5,7 @@ import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 import fs from 'fs';
 
 import TestableCollection from './testable-collection';
+import { ValueChartResponse } from './types';
 
 /**
  * This class can be used to do integration tests on an agent.
@@ -58,7 +59,11 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
     return new TestableCollection<TypingsSchema>(name, this.httpRequester, this.schema);
   }
 
-  dashboardChart<Data = unknown>(chartName: string): Promise<Data> {
+  async valueChart(chartName: string): Promise<string> {
+    return ((await this.dashboardChart(chartName)) as ValueChartResponse).countCurrent;
+  }
+
+  private dashboardChart<Data = unknown>(chartName: string): Promise<Data> {
     return this.httpRequester.query<Data>({
       method: 'get',
       path: `/forest/_charts/${chartName}`,
