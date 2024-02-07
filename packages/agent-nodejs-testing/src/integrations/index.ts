@@ -1,5 +1,4 @@
-import { Agent, AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
-import fs from 'fs';
+import { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import getAvailablePort from './get-port';
@@ -12,6 +11,7 @@ export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';
 
 export async function createTestableAgent<TypingsSchema extends TSchema = TSchema>(
+  createAgent: <T extends TSchema>(agentOptions: AgentOptions) => Agent<T>,
   customizer: (agent: Agent<TypingsSchema>) => void,
   options?: TestableAgentOptions,
 ): Promise<TestableAgent<TypingsSchema>> {

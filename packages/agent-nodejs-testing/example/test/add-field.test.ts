@@ -1,4 +1,4 @@
-import { Agent } from '@forestadmin/agent';
+import { Agent, createAgent } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
@@ -36,7 +36,7 @@ describe('addField', () => {
 
   beforeAll(async () => {
     await createTable();
-    testableAgent = await createTestableAgent((agent: Agent) => {
+    testableAgent = await createTestableAgent(createAgent, (agent: Agent) => {
       agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
       fullNameCustomizer(agent);
     });
