@@ -29,13 +29,13 @@ const { createTestableAgent } = require('@forestadmin-experimental/agent-nodejs-
 // customizations to apply to your agent
 export function addAgentCustomizations(agent) {
   agent.addDataSource(createSequelizeDataSource(connection));
-};
+}
 
 // setup and start a testable agent
 export async function setupAndStartTestableAgent() {
   // if you have a database, or a server to start, do it here
   // ...
-  
+
   // create a testable agent with the customizations
   const testableAgent = await createTestableAgent(addAgentCustomizations);
 
@@ -95,4 +95,3 @@ flowchart LR
 ## Unit Tests
 
 WIP
-
