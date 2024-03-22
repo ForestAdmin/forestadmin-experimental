@@ -11,8 +11,8 @@ function isPortInUse(port) {
       resolve(true); // Port is in use
     });
     server.once('listening', () => {
-      server.close();
-      resolve(false); // Port is available
+      // Port is available ??
+      server.close(err => (err ? resolve(true) : resolve(false)));
     });
     server.listen(port, '127.0.0.1');
   });

@@ -1,5 +1,4 @@
 import { Agent, AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
-import fs from 'fs';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import getAvailablePort from './get-port';
