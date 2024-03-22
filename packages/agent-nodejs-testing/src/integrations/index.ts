@@ -15,7 +15,7 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
   options?: TestableAgentOptions,
 ): Promise<TestableAgent<TypingsSchema>> {
   const port = options?.port || (await getAvailablePort());
-  // we don't want to pass the port to the agent because the port is not a valid agent option
+  // We don't want to pass the port to the agent because the port is not a valid agent option
   delete options?.port;
 
   const agentOptions: AgentOptions = {
