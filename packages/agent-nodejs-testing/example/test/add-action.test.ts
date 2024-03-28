@@ -23,6 +23,16 @@ describe('addAction', () => {
             // Only display this field if the rating is >= 4
             if: context => Number(context.formValues.rating) >= 4,
           },
+          {
+            label: 'Would you recommend us ?',
+            type: 'String',
+            widget: 'RadioGroup',
+            options: [
+              { value: 'yes', label: 'Yes, absolutely!' },
+              { value: 'no', label: 'Not really...' },
+            ],
+            defaultValue: 'yes',
+          },
         ],
         execute: async context => {
           const rating = Number(context.formValues.rating);
@@ -98,6 +108,17 @@ describe('addAction', () => {
 
       expect(restaurant.rating).toEqual(5);
       expect(restaurant.comment).toEqual('A very nice restaurant');
+    });
+
+    it('should select the recommend option yes by default', async () => {
+      const action = testableAgent.collection('restaurants').action('Leave a review');
+      const recommendField = action.getRadioGroupField('Would you recommend us ?');
+
+      expect(await recommendField.getValue()).toEqual('yes');
+
+      await recommendField.selectOption('Not really...');
+
+      expect(await recommendField.getValue()).toEqual('no');
     });
   });
 });
