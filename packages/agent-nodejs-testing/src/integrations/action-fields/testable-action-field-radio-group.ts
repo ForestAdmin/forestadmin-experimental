@@ -8,7 +8,7 @@ export default class TestableActionFieldRadioGroup<
     return (await this.fieldsFormStates.getField(this.name))?.widgetEdit.parameters.static.options;
   }
 
-  async selectOption(option: string): Promise<void> {
+  async checkOption(option: string): Promise<void> {
     const value = (await this.getOptions())?.find(o => o.label === option)?.value;
     if (!value) throw new Error(`Option "${option}" not found in field "${this.name}"`);
 
