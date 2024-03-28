@@ -5,6 +5,7 @@ import FieldFormStates from './action-fields/field-form-states';
 import TestableActionFieldCheckbox from './action-fields/testable-action-field-checkbox';
 import TestableActionFieldDropdown from './action-fields/testable-action-field-dropdown';
 import TestableActionFieldNumber from './action-fields/testable-action-field-number';
+import TestableActionFieldRadioGroup from './action-fields/testable-action-field-radio-group';
 import TestableActionFieldString from './action-fields/testable-action-field-string';
 
 export default class TestableAction<TypingsSchema> {
@@ -79,6 +80,10 @@ export default class TestableAction<TypingsSchema> {
 
   getCheckboxField(fieldName: string): TestableActionFieldCheckbox<TypingsSchema> {
     return new TestableActionFieldCheckbox<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getRadioGroupField(fieldName: string): TestableActionFieldRadioGroup<TypingsSchema> {
+    return new TestableActionFieldRadioGroup<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
   async doesFieldExist(fieldName: string): Promise<boolean> {
