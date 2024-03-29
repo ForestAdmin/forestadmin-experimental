@@ -135,14 +135,14 @@ describe('addAction', () => {
       const action = await testableAgent.collection('restaurants').action('Leave a review');
       const likeField = action.getCheckboxGroupField('Why do you like us?');
 
-      expect(likeField.getValue()).toEqual(undefined);
+      expect(likeField.getValue()).toBeUndefined();
 
       await likeField.check('Build quality');
       await likeField.check('Good price');
       await likeField.check('It looks good');
       await likeField.uncheck('It looks good');
 
-      expect(await likeField.getValue()).toEqual(['quality', 'price']);
+      expect(likeField.getValue()).toEqual(['quality', 'price']);
     });
   });
 });

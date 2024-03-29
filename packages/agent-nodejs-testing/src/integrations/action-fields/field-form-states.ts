@@ -46,7 +46,7 @@ export default class FieldFormStates<TypingsSchema> {
   }
 
   async setFieldValue(name: string, value: unknown): Promise<void> {
-    const field = await this.getField(name);
+    const field = this.getField(name);
     if (!field) throw new Error(`Field "${name}" not found in action "${this.actionName}"`);
 
     field.getPlainField().value = value;
