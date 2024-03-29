@@ -7,6 +7,9 @@ export default class FieldMultipleChoice extends FieldGetter {
   }
 
   getOption(label: string): PlainFieldOption | undefined {
-    return this.getOptions()?.find(o => o.label === label);
+    const options = this.getOptions()?.find(o => o.label === label);
+    if (!options) throw new Error(`Option "${label}" not found in field "${this.getName()}"`);
+
+    return options;
   }
 }

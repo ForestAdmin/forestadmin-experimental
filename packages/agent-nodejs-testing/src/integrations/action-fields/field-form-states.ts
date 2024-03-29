@@ -3,7 +3,7 @@ import FieldMultipleChoice from './field-multiple-choice';
 import { PlainField, ResponseBody } from './types';
 import { HttpRequester } from '../http-requester';
 
-export default class FieldGetterFormStates<TypingsSchema> {
+export default class FieldFormStates<TypingsSchema> {
   private readonly fields: FieldGetter[];
 
   private readonly actionName: string;

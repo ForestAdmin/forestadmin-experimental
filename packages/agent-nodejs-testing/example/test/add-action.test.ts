@@ -18,13 +18,13 @@ describe('addAction', () => {
         form: [
           { label: 'rating', type: 'Number' },
           {
-            label: 'put a comment',
+            label: 'Put a comment',
             type: 'String',
             // Only display this field if the rating is >= 4
             if: context => Number(context.formValues.rating) >= 4,
           },
           {
-            label: 'Would you recommend us ?',
+            label: 'Would you recommend us?',
             type: 'String',
             widget: 'RadioGroup',
             options: [
@@ -33,10 +33,20 @@ describe('addAction', () => {
             ],
             defaultValue: 'yes',
           },
+          {
+            label: 'Why do you like us?',
+            type: 'StringList',
+            widget: 'CheckboxGroup',
+            options: [
+              { value: 'price', label: 'Good price' },
+              { value: 'quality', label: 'Build quality' },
+              { value: 'look', label: 'It looks good' },
+            ],
+          },
         ],
         execute: async context => {
           const rating = Number(context.formValues.rating);
-          const comment = context.formValues['put a comment'];
+          const comment = context.formValues['Put a comment'];
 
           const { id } = await context.getRecord(['id']);
           await context.dataSource.getCollection('restaurants').update(
@@ -89,14 +99,14 @@ describe('addAction', () => {
       const restaurantId = createdRestaurant.dataValues.id;
 
       const action = testableAgent.collection('restaurants').action('Leave a review');
-      expect(await action.doesFieldExist('put a comment')).toEqual(false);
+      expect(await action.doesFieldExist('Put a comment')).toEqual(false);
 
       const fieldRating = action.getFieldNumber('rating');
       await fieldRating.fill(5);
 
-      expect(await action.doesFieldExist('put a comment')).toEqual(true);
+      expect(await action.doesFieldExist('Put a comment')).toEqual(true);
 
-      const commentField = action.getFieldString('put a comment');
+      const commentField = action.getFieldString('Put a comment');
       await commentField.fill('A very nice restaurant');
 
       await action.execute({ recordId: restaurantId });
@@ -112,13 +122,27 @@ describe('addAction', () => {
 
     it('should select the recommend option yes by default', async () => {
       const action = testableAgent.collection('restaurants').action('Leave a review');
-      const recommendField = action.getRadioGroupField('Would you recommend us ?');
+      const recommendField = action.getRadioGroupField('Would you recommend us?');
 
       expect(await recommendField.getValue()).toEqual('yes');
 
       await recommendField.check('Not really...');
 
       expect(await recommendField.getValue()).toEqual('no');
+    });
+
+    it('should check the different choices', async () => {
+      const action = testableAgent.collection('restaurants').action('Leave a review');
+      const likeField = action.getCheckboxGroupField('Why do you like us?');
+
+      expect(await likeField.getValue()).toEqual(undefined);
+
+      await likeField.check('Build quality');
+      await likeField.check('Good price');
+      await likeField.check('It looks good');
+      await likeField.uncheck('It looks good');
+
+      expect(await likeField.getValue()).toEqual(['quality', 'price']);
     });
   });
 });

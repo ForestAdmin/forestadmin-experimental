@@ -5,8 +5,6 @@ export default class TestableActionFieldRadioGroup<
 > extends TestableActionField<TypingsSchema> {
   async check(option: string): Promise<void> {
     const opt = (await this.fieldsFormStates.getMultipleChoiceField(this.name)).getOption(option);
-    if (!opt) throw new Error(`Option "${option}" not found in field "${this.name}"`);
-
     await this.fieldsFormStates.setFieldValue(this.name, opt.value);
   }
 }
