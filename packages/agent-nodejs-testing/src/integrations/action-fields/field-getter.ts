@@ -7,15 +7,15 @@ export default class FieldGetter {
     this.plainField = plainField;
   }
 
-  getPlainField() {
+  getPlainField(): PlainField {
     return this.plainField;
   }
 
-  getValue() {
+  getValue(): unknown {
     return this.plainField.value;
   }
 
-  getName() {
+  getName(): string {
     return this.plainField.field;
   }
 }

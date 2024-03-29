@@ -1,4 +1,5 @@
 import FieldGetter from './field-getter';
+import { PlainFieldOption } from './types';
 
 export default class WidgetGetter {
   private readonly fieldGetter: FieldGetter;
@@ -7,11 +8,11 @@ export default class WidgetGetter {
     this.fieldGetter = fieldGetter;
   }
 
-  getOptions() {
+  getOptions(): PlainFieldOption[] | undefined {
     return this.fieldGetter.getPlainField().widgetEdit?.parameters.static.options;
   }
 
-  getOption(label: string) {
+  getOption(label: string): PlainFieldOption | undefined {
     return this.getOptions()?.find(o => o.label === label);
   }
 }
