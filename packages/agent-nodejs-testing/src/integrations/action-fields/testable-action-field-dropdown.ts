@@ -10,6 +10,6 @@ export default class TestableActionFieldDropdown<
 
   async select(option: string): Promise<void> {
     const opt = this.fieldsFormStates.getMultipleChoiceField(this.name).getOption(option);
-    await this.fieldsFormStates.setFieldValue(this.name, opt);
+    await this.fieldsFormStates.setFieldValue(this.name, opt.value);
   }
 }
