@@ -3,7 +3,11 @@ import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
 import FieldFormStates from './action-fields/field-form-states';
 import TestableActionFieldCheckbox from './action-fields/testable-action-field-checkbox';
+import TestableActionFieldCheckboxGroup from './action-fields/testable-action-field-checkbox-group';
+import TestableActionFieldColorPicker from './action-fields/testable-action-field-color-picker';
+import TestableActionFieldDate from './action-fields/testable-action-field-date';
 import TestableActionFieldDropdown from './action-fields/testable-action-field-dropdown';
+import TestableActionFieldEnum from './action-fields/testable-action-field-enum';
 import TestableActionFieldNumber from './action-fields/testable-action-field-number';
 import TestableActionFieldRadioGroup from './action-fields/testable-action-field-radio-group';
 import TestableActionFieldString from './action-fields/testable-action-field-string';
@@ -78,6 +82,22 @@ export default class TestableAction<TypingsSchema> {
 
   getCheckboxField(fieldName: string): TestableActionFieldCheckbox<TypingsSchema> {
     return new TestableActionFieldCheckbox<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getCheckboxGroupField(fieldName: string): TestableActionFieldCheckboxGroup<TypingsSchema> {
+    return new TestableActionFieldCheckboxGroup<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getColorPickerField(fieldName: string): TestableActionFieldColorPicker<TypingsSchema> {
+    return new TestableActionFieldColorPicker<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getDateField(fieldName: string): TestableActionFieldDate<TypingsSchema> {
+    return new TestableActionFieldDate<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getEnumField(fieldName: string): TestableActionFieldEnum<TypingsSchema> {
+    return new TestableActionFieldEnum<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
   getRadioGroupField(fieldName: string): TestableActionFieldRadioGroup<TypingsSchema> {
