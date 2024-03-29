@@ -1,8 +1,10 @@
-import { Field, ResponseBody } from './types';
+import FieldGetter, { PlainField } from './field-getter';
+import { ResponseBody } from './types';
+import WidgetGetter from './widget-getter';
 import { HttpRequester } from '../http-requester';
 
-export default class FieldFormStates<TypingsSchema> {
-  private readonly fields: Field[];
+export default class FieldGetterFormStates<TypingsSchema> {
+  private readonly fields: FieldGetter[];
 
   private readonly actionName: string;
 
@@ -25,16 +27,27 @@ export default class FieldFormStates<TypingsSchema> {
     this.httpRequester = httpRequester;
   }
 
-  getFields(): Field[] {
-    return this.fields;
+  getFieldValues(): Record<string, unknown> {
+    return this.fields.reduce((acc, f) => {
+      if (f.getValue() !== undefined) acc[f.getName()] = f.getValue();
+
+      return acc;
+    }, {});
   }
 
-  async getField(name: string): Promise<Field | undefined> {
+  async getFieldWidget(name: string): Promise<WidgetGetter | undefined> {
+    const field = await this.getField(name);
+    if (!field) return undefined;
+
+    return new WidgetGetter(field);
+  }
+
+  async getField(name: string): Promise<FieldGetter | undefined> {
     if (this.isEmpty()) {
       await this.loadInitialState(name);
     }
 
-    return this.getFields().find(({ field }) => field === name);
+    return this.fields.find(f => f.getName() === name);
   }
 
   async setFieldValue(name: string, value: unknown): Promise<void> {
@@ -45,12 +58,12 @@ export default class FieldFormStates<TypingsSchema> {
     const field = await this.getField(name);
     if (!field) throw new Error(`Field "${name}" not found in action "${this.actionName}"`);
 
-    field.value = value;
+    field.getPlainField().value = value;
     await this.loadChanges(name);
   }
 
-  private addFields(fields: Field[]): void {
-    this.fields.push(...fields);
+  private addFields(plainFields: PlainField[]): void {
+    plainFields.forEach(f => this.fields.push(new FieldGetter(f)));
   }
 
   private clear(): void {
@@ -90,7 +103,7 @@ export default class FieldFormStates<TypingsSchema> {
           collection_name: this.collectionName,
           changed_field: fieldName,
           ids: [],
-          fields: this.getFields(),
+          fields: this.fields.map(f => f.getPlainField()),
         },
         type: 'custom-action-hook-requests',
       },

@@ -46,15 +46,13 @@ export default class TestableAction<TypingsSchema> {
     const ids =
       actionContext?.recordIds || actionContext?.recordId ? [`${actionContext?.recordId}`] : [];
 
-    const values = this.fieldsFormStates.getFields().reduce((acc, { field, value }) => {
-      if (value !== undefined) acc[field] = value;
-
-      return acc;
-    }, {});
-
     const requestBody = {
       data: {
-        attributes: { collection_name: this.collectionName, ids, values },
+        attributes: {
+          collection_name: this.collectionName,
+          ids,
+          values: this.fieldsFormStates.getFieldValues(),
+        },
         type: 'custom-action-requests',
       },
     };
