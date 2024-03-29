@@ -3,11 +3,11 @@ import TestableActionField from './testable-action-field';
 export default class TestableActionFieldCheckbox<
   TypingsSchema,
 > extends TestableActionField<TypingsSchema> {
-  async check(): Promise<void> {
+  async check() {
     await this.fieldsFormStates.setFieldValue(this.name, true);
   }
 
-  async uncheck(): Promise<void> {
+  async uncheck() {
     await this.fieldsFormStates.setFieldValue(this.name, false);
   }
 }
