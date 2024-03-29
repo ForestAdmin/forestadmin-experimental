@@ -8,12 +8,14 @@ export default class TestableActionFieldColorPicker<
   }
 
   async isOpacityEnable() {
-    return (await this.fieldsFormStates.getField(this.name))?.widgetEdit.parameters.static
-      .enableOpacity;
+    const field = await this.fieldsFormStates.getField(this.name);
+
+    return Boolean(field?.getPlainField().widgetEdit.parameters.static.enableOpacity);
   }
 
-  async getQuickPalette() {
-    return (await this.fieldsFormStates.getField(this.name))?.widgetEdit.parameters.static
-      .quickPalette;
+  async getQuickPalette(): Promise<string[] | undefined> {
+    const field = await this.fieldsFormStates.getField(this.name);
+
+    return field?.getPlainField().widgetEdit.parameters.static.quickPalette;
   }
 }

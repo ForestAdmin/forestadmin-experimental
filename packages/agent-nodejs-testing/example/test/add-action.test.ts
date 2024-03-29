@@ -116,7 +116,7 @@ describe('addAction', () => {
 
       expect(await recommendField.getValue()).toEqual('yes');
 
-      await recommendField.checkOption('Not really...');
+      await recommendField.check('Not really...');
 
       expect(await recommendField.getValue()).toEqual('no');
     });

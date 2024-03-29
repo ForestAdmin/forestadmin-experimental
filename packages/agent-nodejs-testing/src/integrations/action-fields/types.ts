@@ -11,7 +11,9 @@ export type PlainField = {
   widgetEdit?: {
     parameters: {
       static: {
-        options: PlainFieldOption[];
+        options?: PlainFieldOption[];
+        enableOpacity?: boolean;
+        quickPalette?: string[];
       };
     };
   };

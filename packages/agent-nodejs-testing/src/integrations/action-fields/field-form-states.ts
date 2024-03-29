@@ -41,7 +41,7 @@ export default class FieldGetterFormStates<TypingsSchema> {
     return new FieldMultipleChoice(field?.getPlainField());
   }
 
-  async getField(name: string): Promise<FieldGetter | FieldMultipleChoice | undefined> {
+  async getField(name: string): Promise<FieldGetter | undefined> {
     if (this.isEmpty()) {
       await this.loadInitialState(name);
     }
