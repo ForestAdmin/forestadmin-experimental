@@ -1,6 +1,6 @@
-import FieldGetter, { PlainField } from './field-getter';
-import { ResponseBody } from './types';
-import WidgetGetter from './widget-getter';
+import FieldGetter from './field-getter';
+import FieldMultipleChoice from './field-multiple-choice';
+import { PlainField, ResponseBody } from './types';
 import { HttpRequester } from '../http-requester';
 
 export default class FieldGetterFormStates<TypingsSchema> {
@@ -35,14 +35,13 @@ export default class FieldGetterFormStates<TypingsSchema> {
     }, {});
   }
 
-  async getFieldWidget(name: string): Promise<WidgetGetter | undefined> {
+  async getMultipleChoiceField(name: string): Promise<FieldMultipleChoice> {
     const field = await this.getField(name);
-    if (!field) return undefined;
 
-    return new WidgetGetter(field);
+    return new FieldMultipleChoice(field?.getPlainField());
   }
 
-  async getField(name: string): Promise<FieldGetter | undefined> {
+  async getField(name: string): Promise<FieldGetter | FieldMultipleChoice | undefined> {
     if (this.isEmpty()) {
       await this.loadInitialState(name);
     }
