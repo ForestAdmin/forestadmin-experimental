@@ -35,52 +35,31 @@ export default class FieldFormStates<TypingsSchema> {
     }, {});
   }
 
-  async getMultipleChoiceField(name: string): Promise<FieldMultipleChoice> {
-    const field = await this.getField(name);
+  getMultipleChoiceField(name: string): FieldMultipleChoice {
+    const field = this.getField(name);
 
     return new FieldMultipleChoice(field?.getPlainField());
   }
 
-  async getField(name: string): Promise<FieldGetter | undefined> {
-    if (this.isEmpty()) {
-      await this.loadInitialState(name);
-    }
-
+  getField(name: string): FieldGetter | undefined {
     return this.fields.find(f => f.getName() === name);
   }
 
   async setFieldValue(name: string, value: unknown): Promise<void> {
-    if (this.isEmpty()) {
-      await this.loadInitialState(name);
-    }
-
-    const field = await this.getField(name);
+    const field = this.getField(name);
     if (!field) throw new Error(`Field "${name}" not found in action "${this.actionName}"`);
 
     field.getPlainField().value = value;
     await this.loadChanges(name);
   }
 
-  private addFields(plainFields: PlainField[]): void {
-    plainFields.forEach(f => this.fields.push(new FieldGetter(f)));
-  }
-
-  private clear(): void {
-    this.fields.splice(0, this.fields.length);
-  }
-
-  private isEmpty(): boolean {
-    return this.fields.length === 0;
-  }
-
-  private async loadInitialState(fieldName: string): Promise<void> {
+  async loadInitialState(): Promise<void> {
     const requestBody = {
       data: {
         attributes: {
           collection_name: this.collectionName,
           ids: [],
           values: {},
-          fields: [{ field: fieldName }],
         },
         type: 'action-requests',
       },
@@ -93,6 +72,14 @@ export default class FieldFormStates<TypingsSchema> {
     });
 
     this.addFields(queryResults.fields);
+  }
+
+  private addFields(plainFields: PlainField[]): void {
+    plainFields.forEach(f => this.fields.push(new FieldGetter(f)));
+  }
+
+  private clear(): void {
+    this.fields.splice(0, this.fields.length);
   }
 
   private async loadChanges(fieldName: string): Promise<void> {

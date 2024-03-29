@@ -98,13 +98,13 @@ describe('addAction', () => {
       });
       const restaurantId = createdRestaurant.dataValues.id;
 
-      const action = testableAgent.collection('restaurants').action('Leave a review');
-      expect(await action.doesFieldExist('Put a comment')).toEqual(false);
+      const action = await testableAgent.collection('restaurants').action('Leave a review');
+      expect(action.doesFieldExist('Put a comment')).toEqual(false);
 
       const fieldRating = action.getFieldNumber('rating');
       await fieldRating.fill(5);
 
-      expect(await action.doesFieldExist('Put a comment')).toEqual(true);
+      expect(action.doesFieldExist('Put a comment')).toEqual(true);
 
       const commentField = action.getFieldString('Put a comment');
       await commentField.fill('A very nice restaurant');
@@ -121,28 +121,28 @@ describe('addAction', () => {
     });
 
     it('should select the recommend option yes by default', async () => {
-      const action = testableAgent.collection('restaurants').action('Leave a review');
+      const action = await testableAgent.collection('restaurants').action('Leave a review');
       const recommendField = action.getRadioGroupField('Would you recommend us?');
 
-      expect(await recommendField.getValue()).toEqual('yes');
+      expect(recommendField.getValue()).toEqual('yes');
 
       await recommendField.check('Not really...');
 
-      expect(await recommendField.getValue()).toEqual('no');
+      expect(recommendField.getValue()).toEqual('no');
     });
 
     it('should check the different choices', async () => {
-      const action = testableAgent.collection('restaurants').action('Leave a review');
+      const action = await testableAgent.collection('restaurants').action('Leave a review');
       const likeField = action.getCheckboxGroupField('Why do you like us?');
 
-      expect(await likeField.getValue()).toEqual(undefined);
+      expect(likeField.getValue()).toBeUndefined();
 
       await likeField.check('Build quality');
       await likeField.check('Good price');
       await likeField.check('It looks good');
       await likeField.uncheck('It looks good');
 
-      expect(await likeField.getValue()).toEqual(['quality', 'price']);
+      expect(likeField.getValue()).toEqual(['quality', 'price']);
     });
   });
 });

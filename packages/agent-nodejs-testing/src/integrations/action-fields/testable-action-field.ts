@@ -10,7 +10,7 @@ export default abstract class TestableActionField<TypingsSchema> {
     this.fieldsFormStates = fieldsFormStates;
   }
 
-  async getValue() {
-    return (await this.fieldsFormStates.getField(this.name))?.getValue();
+  getValue() {
+    return this.fieldsFormStates.getField(this.name)?.getValue();
   }
 }
