@@ -20,8 +20,16 @@ export default class TestableCollection<TypingsSchema> {
     this.schema = schema;
   }
 
-  action(name: string): TestableAction<TypingsSchema> {
-    return new TestableAction<TypingsSchema>(name, this.name, this.httpRequester, this.schema);
+  async action(name: string): Promise<TestableAction<TypingsSchema>> {
+    const action = new TestableAction<TypingsSchema>(
+      name,
+      this.name,
+      this.httpRequester,
+      this.schema,
+    );
+    await action.reloadForm();
+
+    return action;
   }
 
   segment(name: string): TestableSegment<TypingsSchema> {

@@ -41,6 +41,10 @@ export default class TestableAction<TypingsSchema> {
     );
   }
 
+  async reloadForm(): Promise<void> {
+    await this.fieldsFormStates.loadInitialState();
+  }
+
   async execute(actionContext?: {
     recordId?: string | number;
     recordIds?: string[] | number[];
@@ -104,8 +108,8 @@ export default class TestableAction<TypingsSchema> {
     return new TestableActionFieldRadioGroup<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  async doesFieldExist(fieldName: string): Promise<boolean> {
-    return Boolean(await this.fieldsFormStates.getField(fieldName));
+  doesFieldExist(fieldName: string): boolean {
+    return Boolean(this.fieldsFormStates.getField(fieldName));
   }
 
   private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {
