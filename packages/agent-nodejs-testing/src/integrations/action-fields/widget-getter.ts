@@ -1,20 +1,5 @@
 import FieldGetter from './field-getter';
 
-export type PlainField = {
-  field: string;
-  value?: unknown;
-  widgetEdit?: {
-    parameters: {
-      static: {
-        options: {
-          label: string;
-          value: string;
-        }[];
-      };
-    };
-  };
-};
-
 export default class WidgetGetter {
   private readonly fieldGetter: FieldGetter;
 

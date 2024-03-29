@@ -1,17 +1,4 @@
-export type PlainField = {
-  field: string;
-  value?: unknown;
-  widgetEdit?: {
-    parameters: {
-      static: {
-        options: {
-          label: string;
-          value: string;
-        }[];
-      };
-    };
-  };
-};
+import { PlainField } from './types';
 
 export default class FieldGetter {
   private readonly plainField: PlainField;
