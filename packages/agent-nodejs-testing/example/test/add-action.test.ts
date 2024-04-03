@@ -9,6 +9,7 @@ import { STORAGE_PREFIX, logger } from '../utils';
 describe('addAction', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
+  let restaurantId: number;
   const storage = `${STORAGE_PREFIX}-action.db`;
 
   const actionFormCustomizer = (agent: Agent) => {
@@ -42,6 +43,11 @@ describe('addAction', () => {
               { value: 'quality', label: 'Build quality' },
               { value: 'look', label: 'It looks good' },
             ],
+          },
+          {
+            label: 'Current id',
+            type: 'Number',
+            defaultValue: async context => Number(await context.getRecordId()),
           },
         ],
         execute: async context => {
@@ -89,16 +95,20 @@ describe('addAction', () => {
     await sequelize?.close();
   });
 
+  beforeEach(async () => {
+    const createdRestaurant = await sequelize.models.restaurants.create({
+      name: 'Best Forest Restaurant',
+      rating: null,
+      comment: null,
+    });
+    restaurantId = createdRestaurant.dataValues.id;
+  });
+
   describe('when the rating is > 4', () => {
     it('should add a comment and a rating', async () => {
-      const createdRestaurant = await sequelize.models.restaurants.create({
-        name: 'Best Forest Restaurant',
-        rating: null,
-        comment: null,
-      });
-      const restaurantId = createdRestaurant.dataValues.id;
-
-      const action = await testableAgent.collection('restaurants').action('Leave a review');
+      const action = await testableAgent
+        .collection('restaurants')
+        .action('Leave a review', { recordId: restaurantId });
       expect(action.doesFieldExist('Put a comment')).toEqual(false);
 
       const fieldRating = action.getFieldNumber('rating');
@@ -109,7 +119,7 @@ describe('addAction', () => {
       const commentField = action.getFieldString('Put a comment');
       await commentField.fill('A very nice restaurant');
 
-      await action.execute({ recordId: restaurantId });
+      await action.execute();
 
       // fetch the restaurant to check the rating and comment
       const [restaurant] = await testableAgent.collection('restaurants').list<{ rating; comment }>({
@@ -121,7 +131,9 @@ describe('addAction', () => {
     });
 
     it('should select the recommend option yes by default', async () => {
-      const action = await testableAgent.collection('restaurants').action('Leave a review');
+      const action = await testableAgent
+        .collection('restaurants')
+        .action('Leave a review', { recordId: restaurantId });
       const recommendField = action.getRadioGroupField('Would you recommend us?');
 
       expect(recommendField.getValue()).toEqual('yes');
@@ -132,7 +144,9 @@ describe('addAction', () => {
     });
 
     it('should check the different choices', async () => {
-      const action = await testableAgent.collection('restaurants').action('Leave a review');
+      const action = await testableAgent
+        .collection('restaurants')
+        .action('Leave a review', { recordId: restaurantId });
       const likeField = action.getCheckboxGroupField('Why do you like us?');
 
       expect(likeField.getValue()).toBeUndefined();
@@ -144,5 +158,14 @@ describe('addAction', () => {
 
       expect(likeField.getValue()).toEqual(['quality', 'price']);
     });
+  });
+
+  it('should handle defaultValue with handler', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+    const currentIdField = action.getFieldNumber('Current id');
+
+    expect(currentIdField.getValue()).toBe(restaurantId);
   });
 });
