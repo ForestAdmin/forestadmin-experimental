@@ -3,7 +3,7 @@ import type { TestableBaseOptions } from './types';
 import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
 import QuerySerializer from './query-serializer';
-import TestableAction from './testable-action';
+import TestableAction, { BaseActionContext } from './testable-action';
 import TestableRelation from './testable-relation';
 import TestableSegment from './testable-segment';
 
@@ -20,12 +20,16 @@ export default class TestableCollection<TypingsSchema> {
     this.schema = schema;
   }
 
-  async action(name: string): Promise<TestableAction<TypingsSchema>> {
+  async action(
+    name: string,
+    actionContext?: BaseActionContext,
+  ): Promise<TestableAction<TypingsSchema>> {
     const action = new TestableAction<TypingsSchema>(
       name,
       this.name,
       this.httpRequester,
       this.schema,
+      actionContext,
     );
     await action.reloadForm();
 

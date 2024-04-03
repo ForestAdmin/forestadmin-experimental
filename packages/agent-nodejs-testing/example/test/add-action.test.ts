@@ -98,7 +98,9 @@ describe('addAction', () => {
       });
       const restaurantId = createdRestaurant.dataValues.id;
 
-      const action = await testableAgent.collection('restaurants').action('Leave a review');
+      const action = await testableAgent
+        .collection('restaurants')
+        .action('Leave a review', { recordId: restaurantId });
       expect(action.doesFieldExist('Put a comment')).toEqual(false);
 
       const fieldRating = action.getFieldNumber('rating');
@@ -109,7 +111,7 @@ describe('addAction', () => {
       const commentField = action.getFieldString('Put a comment');
       await commentField.fill('A very nice restaurant');
 
-      await action.execute({ recordId: restaurantId });
+      await action.execute();
 
       // fetch the restaurant to check the rating and comment
       const [restaurant] = await testableAgent.collection('restaurants').list<{ rating; comment }>({

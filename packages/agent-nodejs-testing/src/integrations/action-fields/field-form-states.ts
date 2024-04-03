@@ -14,17 +14,21 @@ export default class FieldFormStates<TypingsSchema> {
 
   private readonly httpRequester: HttpRequester;
 
+  private readonly ids: string[];
+
   constructor(
     actionName: string,
     actionPath: string,
     collectionName: keyof TypingsSchema,
     httpRequester: HttpRequester,
+    ids: string[],
   ) {
     this.fields = [];
     this.actionName = actionName;
     this.actionPath = actionPath;
     this.collectionName = collectionName;
     this.httpRequester = httpRequester;
+    this.ids = ids;
   }
 
   getFieldValues(): Record<string, unknown> {
@@ -58,7 +62,7 @@ export default class FieldFormStates<TypingsSchema> {
       data: {
         attributes: {
           collection_name: this.collectionName,
-          ids: [],
+          ids: this.ids,
           values: {},
         },
         type: 'action-requests',
@@ -88,7 +92,7 @@ export default class FieldFormStates<TypingsSchema> {
         attributes: {
           collection_name: this.collectionName,
           changed_field: fieldName,
-          ids: [],
+          ids: this.ids,
           fields: this.fields.map(f => f.getPlainField()),
         },
         type: 'custom-action-hook-requests',

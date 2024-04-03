@@ -12,6 +12,11 @@ import TestableActionFieldNumber from './action-fields/testable-action-field-num
 import TestableActionFieldRadioGroup from './action-fields/testable-action-field-radio-group';
 import TestableActionFieldString from './action-fields/testable-action-field-string';
 
+export type BaseActionContext = {
+  recordId?: string | number;
+  recordIds?: string[] | number[];
+};
+
 export default class TestableAction<TypingsSchema> {
   private readonly name: string;
 
@@ -23,21 +28,28 @@ export default class TestableAction<TypingsSchema> {
 
   private readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
 
+  private readonly ids: string[];
+
   constructor(
     name: string,
     collectionName: keyof TypingsSchema,
     httpRequester: HttpRequester,
     schema: ForestSchema,
+    actionContext?: BaseActionContext,
   ) {
     this.name = name;
     this.collectionName = collectionName;
     this.schema = schema;
     this.httpRequester = httpRequester;
+    this.ids =
+      actionContext?.recordIds || actionContext?.recordId ? [`${actionContext?.recordId}`] : [];
+
     this.fieldsFormStates = new FieldFormStates(
       this.name,
       this.getActionPath(collectionName, name),
       collectionName,
       this.httpRequester,
+      this.ids,
     );
   }
 
@@ -45,20 +57,14 @@ export default class TestableAction<TypingsSchema> {
     await this.fieldsFormStates.loadInitialState();
   }
 
-  async execute(actionContext?: {
-    recordId?: string | number;
-    recordIds?: string[] | number[];
-  }): Promise<{ success: string; html?: string }> {
+  async execute(): Promise<{ success: string; html?: string }> {
     const actionPath = this.getActionPath(this.collectionName, this.name);
-
-    const ids =
-      actionContext?.recordIds || actionContext?.recordId ? [`${actionContext?.recordId}`] : [];
 
     const requestBody = {
       data: {
         attributes: {
           collection_name: this.collectionName,
-          ids,
+          ids: this.ids,
           values: this.fieldsFormStates.getFieldValues(),
         },
         type: 'custom-action-requests',
