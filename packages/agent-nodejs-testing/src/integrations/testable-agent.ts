@@ -2,20 +2,18 @@ import type { HttpRequester } from './http-requester';
 import type { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
-import { DistributionChart, PercentageChart, ValueChart } from '@forestadmin/datasource-toolkit';
 import fs from 'fs';
 
+import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
 
 /**
  * This class can be used to do integration tests on an agent.
  */
-export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
+export default class TestableAgent<TypingsSchema extends TSchema = TSchema> extends TestableChart {
   private readonly agent: Agent<TypingsSchema>;
 
   private schema?: ForestSchema;
-
-  private readonly httpRequester: HttpRequester;
 
   private readonly port: number;
 
@@ -32,8 +30,8 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
     httpRequester: HttpRequester;
     port: number;
   }) {
+    super({ httpRequester });
     this.agent = agent;
-    this.httpRequester = httpRequester;
     this.port = port;
     this.agentOptions = agentOptions;
   }
@@ -57,24 +55,5 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
 
   collection(name: keyof TypingsSchema): TestableCollection<TypingsSchema> {
     return new TestableCollection<TypingsSchema>(name, this.httpRequester, this.schema);
-  }
-
-  async valueChart(chartName: string): Promise<ValueChart> {
-    return this.dashboardChart(chartName);
-  }
-
-  async distributionChart(chartName: string): Promise<DistributionChart> {
-    return this.dashboardChart(chartName);
-  }
-
-  async percentageChart(chartName: string): Promise<PercentageChart> {
-    return this.dashboardChart(chartName);
-  }
-
-  private dashboardChart<Data = unknown>(chartName: string): Promise<Data> {
-    return this.httpRequester.query<Data>({
-      method: 'get',
-      path: `/forest/_charts/${chartName}`,
-    });
   }
 }
