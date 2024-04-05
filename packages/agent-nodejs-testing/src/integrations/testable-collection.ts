@@ -89,4 +89,17 @@ export default class TestableCollection<TypingsSchema> {
       body: requestBody,
     });
   }
+
+  async update<Data = unknown>(
+    id: string | number,
+    attributes: Record<string, unknown>,
+  ): Promise<Data> {
+    const requestBody = { data: { attributes, type: this.name, id: id.toString() } };
+
+    return this.httpRequester.query<Data>({
+      method: 'put',
+      path: `/forest/${this.name as string}/${id.toString()}`,
+      body: requestBody,
+    });
+  }
 }
