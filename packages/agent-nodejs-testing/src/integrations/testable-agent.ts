@@ -2,7 +2,7 @@ import type { HttpRequester } from './http-requester';
 import type { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
-import { DistributionChart, ValueChart } from '@forestadmin/datasource-toolkit';
+import { DistributionChart, PercentageChart, ValueChart } from '@forestadmin/datasource-toolkit';
 import fs from 'fs';
 
 import TestableCollection from './testable-collection';
@@ -64,6 +64,10 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> {
   }
 
   async distributionChart(chartName: string): Promise<DistributionChart> {
+    return this.dashboardChart(chartName);
+  }
+
+  async percentageChart(chartName: string): Promise<PercentageChart> {
     return this.dashboardChart(chartName);
   }
 
