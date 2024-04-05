@@ -21,13 +21,9 @@ export const CURRENT_USER: UserInfo = {
 
 export default class ForestAdminClientMock implements ForestAdminClient {
   readonly chartHandler: ChartHandlerInterface;
-
   readonly contextVariablesInstantiator: ContextVariablesInstantiatorInterface;
-
   readonly modelCustomizationService: ModelCustomizationService;
-
   readonly permissionService: any;
-
   readonly authService: any;
 
   constructor() {

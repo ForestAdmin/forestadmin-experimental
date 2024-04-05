@@ -12,11 +12,8 @@ import TestableCollection from './testable-collection';
  */
 export default class TestableAgent<TypingsSchema extends TSchema = TSchema> extends TestableChart {
   private readonly agent: Agent<TypingsSchema>;
-
   private schema?: ForestSchema;
-
   private readonly port: number;
-
   private readonly agentOptions: AgentOptions;
 
   constructor({

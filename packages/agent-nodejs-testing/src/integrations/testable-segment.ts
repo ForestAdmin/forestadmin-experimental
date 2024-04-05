@@ -5,9 +5,7 @@ import QuerySerializer from './query-serializer';
 
 export default class TestableSegment<TypingsSchema> {
   private readonly name: string;
-
   private readonly collectionName: keyof TypingsSchema;
-
   private readonly httpRequester: HttpRequester;
 
   constructor(name: string, collectionName: keyof TypingsSchema, httpRequester: HttpRequester) {

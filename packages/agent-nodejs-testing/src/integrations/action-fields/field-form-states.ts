@@ -5,15 +5,10 @@ import { HttpRequester } from '../http-requester';
 
 export default class FieldFormStates<TypingsSchema> {
   private readonly fields: FieldGetter[];
-
   private readonly actionName: string;
-
   private readonly actionPath: string;
-
   private readonly collectionName: keyof TypingsSchema;
-
   private readonly httpRequester: HttpRequester;
-
   private readonly ids: string[];
 
   constructor(
