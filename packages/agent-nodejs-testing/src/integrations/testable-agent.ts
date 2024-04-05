@@ -2,7 +2,7 @@ import type { HttpRequester } from './http-requester';
 import type { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
-import fs from 'fs';
+import fs from 'fs/promises';
 
 import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
@@ -38,19 +38,13 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> exte
 
   async stop(): Promise<void> {
     await this.agent.stop();
-
-    // try to remove the typings and schema files
-    try {
-      fs.unlinkSync(this.agentOptions.typingsPath);
-      fs.unlinkSync(this.agentOptions.schemaPath);
-    } catch (error) {
-      /* empty */
-    }
+    await fs.rm(this.agentOptions.typingsPath, { force: true });
+    await fs.rm(this.agentOptions.schemaPath, { force: true });
   }
 
   async start(): Promise<void> {
     await this.agent.mountOnStandaloneServer(this.port).start();
-    this.schema = JSON.parse(fs.readFileSync(this.agentOptions.schemaPath, 'utf8'));
+    this.schema = JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8'));
   }
 
   collection(name: keyof TypingsSchema): TestableCollection<TypingsSchema> {
