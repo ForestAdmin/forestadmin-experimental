@@ -29,6 +29,11 @@ describe('replaceFieldWriting', () => {
     });
   };
 
+  beforeEach(async () => {
+    // reset the database
+    await sequelize.sync({ force: true });
+  });
+
   const createTable = async () => {
     sequelize = await buildSequelizeInstance({ dialect: 'sqlite', storage }, logger);
 
@@ -62,9 +67,19 @@ describe('replaceFieldWriting', () => {
     expect(user.lastName).toEqual('Doe');
   });
 
+  it('should update a user with the first name and last name', async () => {
+    const createdUser = await testableAgent
+      .collection('users')
+      .create<{ id: string }>({ fullName: 'John Doe' });
+
+    await testableAgent.collection('users').update(createdUser.id, { fullName: 'Al Berto' });
+
+    const [user] = await testableAgent.collection('users').list<{ firstName; lastName }>();
+    expect(user.firstName).toEqual('Al');
+    expect(user.lastName).toEqual('Berto');
+  });
+
   it('should count the created users', async () => {
-    // reset the database
-    await sequelize.sync({ force: true });
     // create a user
     await testableAgent.collection('users').create({ fullName: 'John Doe' });
     await testableAgent.collection('users').create({ fullName: 'John Doe' });
