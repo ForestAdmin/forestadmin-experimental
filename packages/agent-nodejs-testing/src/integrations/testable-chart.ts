@@ -25,6 +25,10 @@ export default abstract class TestableChart {
     return this.dashboardChart(chartName);
   }
 
+  async leaderboardChart<Data = unknown>(chartName: string): Promise<Data> {
+    return this.dashboardChart(chartName);
+  }
+
   private dashboardChart<Data = unknown>(chartName: string): Promise<Data> {
     return this.httpRequester.query<Data>({
       method: 'get',
