@@ -3,6 +3,7 @@ import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
 import fs from 'fs/promises';
 
+import Benchmark from './benchmark';
 import { createHttpRequester } from './http-requester';
 import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
@@ -45,5 +46,9 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> exte
 
   collection(name: keyof TypingsSchema): TestableCollection<TypingsSchema> {
     return new TestableCollection<TypingsSchema>(name, this.httpRequester, this.schema);
+  }
+
+  benchmark(): Benchmark {
+    return new Benchmark();
   }
 }
