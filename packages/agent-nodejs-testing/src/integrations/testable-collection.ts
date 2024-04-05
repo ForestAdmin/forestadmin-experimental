@@ -9,9 +9,7 @@ import TestableSegment from './testable-segment';
 
 export default class TestableCollection<TypingsSchema> {
   private readonly name: keyof TypingsSchema;
-
   private readonly httpRequester: HttpRequester;
-
   private readonly schema?: ForestSchema;
 
   constructor(name: keyof TypingsSchema, httpRequester: HttpRequester, schema: ForestSchema) {

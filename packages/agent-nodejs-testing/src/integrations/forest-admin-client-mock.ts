@@ -7,15 +7,23 @@ import type {
   UserInfo,
 } from '@forestadmin/forestadmin-client';
 
+export const CURRENT_USER: UserInfo = {
+  id: 1,
+  email: 'forest@forest.com',
+  firstName: 'forest',
+  lastName: 'admin',
+  team: 'admin',
+  renderingId: 1,
+  role: 'Admin',
+  permissionLevel: 'admin',
+  tags: {},
+};
+
 export default class ForestAdminClientMock implements ForestAdminClient {
   readonly chartHandler: ChartHandlerInterface;
-
   readonly contextVariablesInstantiator: ContextVariablesInstantiatorInterface;
-
   readonly modelCustomizationService: ModelCustomizationService;
-
   readonly permissionService: any;
-
   readonly authService: any;
 
   constructor() {
@@ -35,19 +43,7 @@ export default class ForestAdminClientMock implements ForestAdminClient {
     };
     this.authService = {
       init: () => Promise.resolve(undefined),
-      getUserInfo: () =>
-        Promise.resolve<UserInfo>({
-          id: 1,
-          email: 'forest@forest.com',
-          firstName: 'forest',
-          lastName: 'admin',
-          team: 'admin',
-          renderingId: 1,
-          role: 'Admin',
-          permissionLevel: 'admin',
-          tags: {},
-        }),
-
+      getUserInfo: () => Promise.resolve<UserInfo>(CURRENT_USER),
       generateAuthorizationUrl: () => Promise.resolve(undefined),
       generateTokens: () => Promise.resolve({ accessToken: 'AUTH-TOKEN' }),
     };

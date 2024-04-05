@@ -5,11 +5,8 @@ import QuerySerializer from './query-serializer';
 
 export default class TestableRelation<TypingsSchema> {
   private readonly name: string;
-
   private readonly collectionName: keyof TypingsSchema;
-
   private readonly parentId: string | number;
-
   private readonly httpRequester: HttpRequester;
 
   constructor(

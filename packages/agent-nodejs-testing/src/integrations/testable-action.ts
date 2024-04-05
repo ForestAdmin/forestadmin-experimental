@@ -19,15 +19,10 @@ export type BaseActionContext = {
 
 export default class TestableAction<TypingsSchema> {
   private readonly name: string;
-
   private readonly collectionName: keyof TypingsSchema;
-
   private readonly schema?: ForestSchema;
-
   private readonly httpRequester: HttpRequester;
-
   private readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
-
   private readonly ids: string[];
 
   constructor(

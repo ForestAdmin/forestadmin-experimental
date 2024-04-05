@@ -4,6 +4,8 @@ import { Deserializer } from 'jsonapi-serializer';
 import jsonwebtoken from 'jsonwebtoken';
 import superagent from 'superagent';
 
+import { CURRENT_USER } from './forest-admin-client-mock';
+
 export class HttpRequester {
   private readonly deserializer: Deserializer;
 
@@ -65,19 +67,14 @@ export class HttpRequester {
   }
 }
 
-export async function createHttpRequester({
+export function createHttpRequester({
   agentOptions,
   port,
 }: {
   agentOptions: AgentOptions;
   port: number;
-}): Promise<HttpRequester> {
-  const token = jsonwebtoken.sign(
-    // getUserInfo is mocked
-    await agentOptions.forestAdminClient.authService.getUserInfo(0, ''),
-    agentOptions.authSecret,
-    { expiresIn: '1 hours' },
-  );
+}): HttpRequester {
+  const token = jsonwebtoken.sign(CURRENT_USER, agentOptions.authSecret, { expiresIn: '1 hours' });
 
   return new HttpRequester(token, port, agentOptions);
 }
