@@ -2,7 +2,6 @@ import { Agent, AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import getAvailablePort from './get-port';
-import { createHttpRequester } from './http-requester';
 import TestableAgent from './testable-agent';
 import { TestableAgentOptions } from './types';
 
@@ -34,7 +33,5 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
 
   customizer(agent);
 
-  const httpRequester = await createHttpRequester({ agentOptions, port });
-
-  return new TestableAgent<TypingsSchema>({ agent, httpRequester, agentOptions, port });
+  return new TestableAgent<TypingsSchema>({ agent, agentOptions, port });
 }

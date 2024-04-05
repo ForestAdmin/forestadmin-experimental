@@ -1,9 +1,9 @@
-import type { HttpRequester } from './http-requester';
 import type { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
 import fs from 'fs/promises';
 
+import { createHttpRequester } from './http-requester';
 import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
 
@@ -22,14 +22,13 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> exte
   constructor({
     agent,
     agentOptions,
-    httpRequester,
     port,
   }: {
     agent: Agent<TypingsSchema>;
     agentOptions: AgentOptions;
-    httpRequester: HttpRequester;
     port: number;
   }) {
+    const httpRequester = createHttpRequester({ agentOptions, port });
     super({ httpRequester });
     this.agent = agent;
     this.port = port;
