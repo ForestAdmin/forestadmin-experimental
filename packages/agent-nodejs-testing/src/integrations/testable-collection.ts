@@ -44,6 +44,10 @@ export default class TestableCollection<TypingsSchema> {
     return new TestableRelation<TypingsSchema>(name, this.name, parentId, this.httpRequester);
   }
 
+  async search<Data = unknown>(content: string): Promise<Data[]> {
+    return this.list({ search: content });
+  }
+
   async list<Data = unknown>(options?: TestableBaseOptions): Promise<Data[]> {
     return this.httpRequester.query<Data[]>({
       method: 'get',
