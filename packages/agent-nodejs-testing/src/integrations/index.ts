@@ -1,7 +1,10 @@
-import { Agent, AgentOptions, TSchema, createAgent } from '@forestadmin/agent';
+import { Agent, TSchema, createAgent } from '@forestadmin/agent';
+import { tmpdir } from 'os';
+import path from 'path';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import getAvailablePort from './get-port';
+import SchemaPathManager from './schema-path-manager';
 import TestableAgent from './testable-agent';
 import { TestableAgentOptions } from './types';
 
@@ -14,15 +17,14 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
   options?: TestableAgentOptions,
 ): Promise<TestableAgent<TypingsSchema>> {
   const port = options?.port || (await getAvailablePort());
-  // we don't want to pass the port to the agent because the port is not a valid agent option
-  delete options?.port;
 
-  const agentOptions: AgentOptions = {
+  const agentOptions = {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     logger: () => {},
-    typingsPath: `/tmp/typings-test-${port}.ts`,
-    schemaPath: `/tmp/schema-test-${port}.json`,
-    ...options,
+    schemaPath: SchemaPathManager.generateSchemaPath(port),
+    isProduction: false,
+    ...(options || {}),
+    port,
     forestAdminClient: new ForestAdminClientMock(),
     authSecret: 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
     envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
@@ -33,5 +35,5 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
 
   customizer(agent);
 
-  return new TestableAgent<TypingsSchema>({ agent, agentOptions, port });
+  return new TestableAgent<TypingsSchema>({ agent, agentOptions });
 }

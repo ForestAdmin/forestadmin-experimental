@@ -1,12 +1,14 @@
-import type { Agent, AgentOptions, TSchema } from '@forestadmin/agent';
+import type { Agent, TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
 import fs from 'fs/promises';
 
 import Benchmark from './benchmark';
 import { createHttpRequester } from './http-requester';
+import SchemaPathManager from './schema-path-manager';
 import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
+import { TestableAgentOptions } from './types';
 
 /**
  * This class can be used to do integration tests on an agent.
@@ -14,33 +16,31 @@ import TestableCollection from './testable-collection';
 export default class TestableAgent<TypingsSchema extends TSchema = TSchema> extends TestableChart {
   private readonly agent: Agent<TypingsSchema>;
   private schema?: ForestSchema;
-  private readonly port: number;
-  private readonly agentOptions: AgentOptions;
+  private readonly agentOptions: TestableAgentOptions;
 
   constructor({
     agent,
     agentOptions,
-    port,
   }: {
     agent: Agent<TypingsSchema>;
-    agentOptions: AgentOptions;
-    port: number;
+    agentOptions: TestableAgentOptions;
   }) {
-    const httpRequester = createHttpRequester({ agentOptions, port });
+    const httpRequester = createHttpRequester({ agentOptions });
     super({ httpRequester });
     this.agent = agent;
-    this.port = port;
     this.agentOptions = agentOptions;
   }
 
   async stop(): Promise<void> {
     await this.agent.stop();
-    if (this.agentOptions.typingsPath) await fs.rm(this.agentOptions.typingsPath, { force: true });
-    if (this.agentOptions.schemaPath) await fs.rm(this.agentOptions.schemaPath, { force: true });
+
+    if (SchemaPathManager.isTemporarySchemaPath(this.agentOptions.schemaPath)) {
+      await fs.rm(this.agentOptions.schemaPath, { force: true });
+    }
   }
 
   async start(): Promise<void> {
-    await this.agent.mountOnStandaloneServer(this.port).start();
+    await this.agent.mountOnStandaloneServer(this.agentOptions.port).start();
     if (!this.agentOptions.schemaPath) throw new Error('schemaPath is required');
 
     this.schema = JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8'));
