@@ -1,7 +1,7 @@
-import type { HttpRequester } from './http-requester';
-import type { TestableBaseOptions } from './types';
+import type { HttpRequester } from '../http-requester';
+import type { TestableBaseOptions } from '../types';
 
-import QuerySerializer from './query-serializer';
+import QuerySerializer from '../query-serializer';
 
 export default class TestableRelation<TypingsSchema> {
   private readonly name: string;

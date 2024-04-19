@@ -1,11 +1,11 @@
-import type { HttpRequester } from './http-requester';
-import type { TestableBaseOptions } from './types';
+import type { HttpRequester } from '../http-requester';
+import type { TestableBaseOptions } from '../types';
 import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
-import QuerySerializer from './query-serializer';
 import TestableAction, { BaseActionContext } from './testable-action';
 import TestableRelation from './testable-relation';
 import TestableSegment from './testable-segment';
+import QuerySerializer from '../query-serializer';
 
 export default class TestableCollection<TypingsSchema> {
   private readonly name: keyof TypingsSchema;

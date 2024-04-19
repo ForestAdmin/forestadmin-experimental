@@ -1,4 +1,4 @@
-import { createHistogram, performance } from 'node:perf_hooks';
+import { performance } from 'node:perf_hooks';
 
 export default class Benchmark {
   private _times = 1;

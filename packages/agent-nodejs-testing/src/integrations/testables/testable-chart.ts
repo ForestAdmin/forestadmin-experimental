@@ -1,4 +1,4 @@
-import type { HttpRequester } from './http-requester';
+import type { HttpRequester } from '../http-requester';
 
 import { DistributionChart, PercentageChart, ValueChart } from '@forestadmin/datasource-toolkit';
 
