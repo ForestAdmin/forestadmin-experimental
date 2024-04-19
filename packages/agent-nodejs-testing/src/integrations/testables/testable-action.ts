@@ -1,16 +1,16 @@
-import type { HttpRequester } from './http-requester';
+import type { HttpRequester } from '../http-requester';
 import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
-import FieldFormStates from './action-fields/field-form-states';
-import TestableActionFieldCheckbox from './action-fields/testable-action-field-checkbox';
-import TestableActionFieldCheckboxGroup from './action-fields/testable-action-field-checkbox-group';
-import TestableActionFieldColorPicker from './action-fields/testable-action-field-color-picker';
-import TestableActionFieldDate from './action-fields/testable-action-field-date';
-import TestableActionFieldDropdown from './action-fields/testable-action-field-dropdown';
-import TestableActionFieldEnum from './action-fields/testable-action-field-enum';
-import TestableActionFieldNumber from './action-fields/testable-action-field-number';
-import TestableActionFieldRadioGroup from './action-fields/testable-action-field-radio-group';
-import TestableActionFieldString from './action-fields/testable-action-field-string';
+import FieldFormStates from '../action-fields/field-form-states';
+import TestableActionFieldCheckbox from '../action-fields/testable-action-field-checkbox';
+import TestableActionFieldCheckboxGroup from '../action-fields/testable-action-field-checkbox-group';
+import TestableActionFieldColorPicker from '../action-fields/testable-action-field-color-picker';
+import TestableActionFieldDate from '../action-fields/testable-action-field-date';
+import TestableActionFieldDropdown from '../action-fields/testable-action-field-dropdown';
+import TestableActionFieldEnum from '../action-fields/testable-action-field-enum';
+import TestableActionFieldNumber from '../action-fields/testable-action-field-number';
+import TestableActionFieldRadioGroup from '../action-fields/testable-action-field-radio-group';
+import TestableActionFieldString from '../action-fields/testable-action-field-string';
 
 export type BaseActionContext = {
   recordId?: string | number;

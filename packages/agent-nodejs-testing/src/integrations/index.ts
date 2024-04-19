@@ -1,11 +1,9 @@
 import { Agent, TSchema, createAgent } from '@forestadmin/agent';
-import { tmpdir } from 'os';
-import path from 'path';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import getAvailablePort from './get-port';
 import SchemaPathManager from './schema-path-manager';
-import TestableAgent from './testable-agent';
+import TestableAgent from './testables/testable-agent';
 import { TestableAgentOptions } from './types';
 
 export { TestableAgent };

@@ -3,12 +3,12 @@ import type { ForestSchema } from '@forestadmin/forestadmin-client/';
 
 import fs from 'fs/promises';
 
-import Benchmark from './benchmark';
-import { createHttpRequester } from './http-requester';
-import SchemaPathManager from './schema-path-manager';
 import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
-import { TestableAgentOptions } from './types';
+import Benchmark from '../benchmark';
+import { createHttpRequester } from '../http-requester';
+import SchemaPathManager from '../schema-path-manager';
+import { TestableAgentOptions } from '../types';
 
 /**
  * This class can be used to do integration tests on an agent.
