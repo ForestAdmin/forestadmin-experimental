@@ -4,6 +4,6 @@ export default class TestableActionFieldNumber<
   TypingsSchema,
 > extends TestableActionField<TypingsSchema> {
   async fill(value: number | string) {
-    await this.fieldsFormStates.setFieldValue(this.name, value.toString());
+    await this.fieldsFormStates.setFieldValue(this.name, Number(value));
   }
 }
