@@ -9,8 +9,10 @@ import TestableActionFieldDate from '../action-fields/testable-action-field-date
 import TestableActionFieldDropdown from '../action-fields/testable-action-field-dropdown';
 import TestableActionFieldEnum from '../action-fields/testable-action-field-enum';
 import TestableActionFieldNumber from '../action-fields/testable-action-field-number';
+import TestableActionFieldNumberList from '../action-fields/testable-action-field-number-list';
 import TestableActionFieldRadioGroup from '../action-fields/testable-action-field-radio-group';
 import TestableActionFieldString from '../action-fields/testable-action-field-string';
+import TestableActionFieldStringList from '../action-fields/testable-action-field-string-list';
 
 export type BaseActionContext = {
   recordId?: string | number;
@@ -77,8 +79,16 @@ export default class TestableAction<TypingsSchema> {
     return new TestableActionFieldNumber<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
-  getFieldString(fieldName: string): TestableActionFieldNumber<TypingsSchema> {
+  getFieldNumberList(fieldName: string): TestableActionFieldNumberList<TypingsSchema> {
+    return new TestableActionFieldNumberList<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getFieldString(fieldName: string): TestableActionFieldString<TypingsSchema> {
     return new TestableActionFieldString<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getFieldStringList(fieldName: string): TestableActionFieldStringList<TypingsSchema> {
+    return new TestableActionFieldStringList<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
   getDropdownField(fieldName: string): TestableActionFieldDropdown<TypingsSchema> {
