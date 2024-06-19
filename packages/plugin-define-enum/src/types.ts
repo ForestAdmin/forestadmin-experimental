@@ -9,7 +9,7 @@ export type Options<
   N extends TCollectionName<S> = TCollectionName<S>,
 > = {
   /** Target field to turn into an enum, for example a status stored as a number */
-  field: TFieldName<S, N>; // or TColumnName
+  fieldName: TFieldName<S, N>; // or TColumnName
 
   /** The object with enum descriptors as keys, and real values as... values. */
   enumObject: Record<string, unknown>;
