@@ -3,8 +3,10 @@ The plugin allows you to create fields based on enums when your database stores 
 
 ```javascript
 import { createAgent } from '@forestadmin/agent';
+import { Schema } from './typings';
 
 import defineEnum from '@forestadmin-experimental/plugin-define-enum';
+import type { DefineEnumOption } from '@forestadmin-experimental/plugin-define-enum';
 
 const BandStatus = {
   JustCreated: 0,
@@ -14,8 +16,8 @@ const BandStatus = {
 
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
-  .customizeCollection('Users', usersCollection => {
-    .use<Option<Schema, 'Users'>>(defineEnum, {
+  .customizeCollection('users', usersCollection => {
+    .use<DefineEnumOption<Schema, 'users'>>(defineEnum, {
       fieldName: 'bandStatus',
       enumObject: BandStatus,
     })
