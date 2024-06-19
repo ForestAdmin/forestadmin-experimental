@@ -16,7 +16,7 @@ await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   .customizeCollection('Users', usersCollection => {
     .use<Option<Schema, 'Users'>>(defineEnum, {
-      field: 'bandStatus',
+      fieldName: 'bandStatus',
       enumObject: BandStatus,
     })
   })
