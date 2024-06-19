@@ -19,7 +19,7 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
-    "publish:package": "semantic-release --dry-run"
+    "publish:package": "semantic-release"
   },
   "peerDependencies": {
     "@forestadmin/datasource-customizer": "^1.44.3",
