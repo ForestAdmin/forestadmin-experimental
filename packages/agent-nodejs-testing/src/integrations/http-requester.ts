@@ -48,6 +48,8 @@ export class HttpRequester {
         return response.body as Data;
       }
     } catch (error) {
+      if (!error.response) throw error;
+
       throw new Error(
         JSON.stringify(
           {
