@@ -409,16 +409,16 @@
     superagent "^8.0.6"
     uuid "^9.0.0"
 
-"@forestadmin/agent@^1.38.7":
-  version "1.38.7"
-  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.38.7.tgz#0088a9c1aab5c4a1c5a003d4137c7fef3cf36ab0"
-  integrity sha512-VTt2Gz2L5+uySAyJcf+z70/8ZlYINg0cP8N5KzCWP8GoJRo60Vd4A5IPxNn2i0i/XG2FEjyPpF4UdTBJzNJFJQ==
+"@forestadmin/agent@^1.41.1":
+  version "1.41.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.41.1.tgz#c35a337bed95aa66435c8b868778621753e36460"
+  integrity sha512-LNWk0rV2yos6TDU5dkvHuUG79yAApjGXfZaOVztVYauyoXAPpdMbWOLiH3C/Lf8sV2hkfXGuSi8LFOI2ZMxgKQ==
   dependencies:
     "@fast-csv/format" "^4.3.5"
     "@fastify/express" "^1.1.0"
-    "@forestadmin/datasource-customizer" "1.43.6"
-    "@forestadmin/datasource-toolkit" "1.32.2"
-    "@forestadmin/forestadmin-client" "1.25.12"
+    "@forestadmin/datasource-customizer" "1.45.0"
+    "@forestadmin/datasource-toolkit" "1.34.0"
+    "@forestadmin/forestadmin-client" "1.27.3"
     "@koa/cors" "^5.0.0"
     "@koa/router" "^12.0.0"
     "@types/koa__router" "^12.0.0"
@@ -445,12 +445,12 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
-"@forestadmin/datasource-customizer@1.43.6", "@forestadmin/datasource-customizer@^1.43.6":
-  version "1.43.6"
-  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.43.6.tgz#8b722ce700dda8ce6854441e353de1d79782880b"
-  integrity sha512-Wo8stxCm3H4d4Uh0KnNUDAc+ZOuRd4NNaA4QFOQrNvdNFrpRA+nTRml2pCoQiqYy0bgD/CYeiuxYsF4gGCE5DQ==
+"@forestadmin/datasource-customizer@1.45.0", "@forestadmin/datasource-customizer@^1.44.3", "@forestadmin/datasource-customizer@^1.45.0":
+  version "1.45.0"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.45.0.tgz#11921023d22b905451d650a0c56fff1ecb1be843"
+  integrity sha512-K3X/4ETkTflwt5ywSQfipmQYUfz1mtURjnryN6jODujoV0/8uXqHier3YeMWVRBh8yx/vNl4bY51DzUCwrMuaw==
   dependencies:
-    "@forestadmin/datasource-toolkit" "1.32.2"
+    "@forestadmin/datasource-toolkit" "1.34.0"
     antlr4 "^4.13.1-patch-1"
     file-type "^16.5.4"
     luxon "^3.2.1"
@@ -476,12 +476,12 @@
   dependencies:
     "@forestadmin/datasource-toolkit" "1.29.1"
 
-"@forestadmin/datasource-sequelize@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-sequelize/-/datasource-sequelize-1.7.1.tgz#c6fc4c8398ad27333e45f196c76d03c4d0943c99"
-  integrity sha512-wOsYGuze0BotxAP9Dugv8oEg/eBN0UReTinjApzuAsaTw9amC+qo413MvHDXv0hAk52QXty372hfrptfli/JBw==
+"@forestadmin/datasource-sequelize@1.8.3":
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-sequelize/-/datasource-sequelize-1.8.3.tgz#146e4aad5d97b845abd6f5f9af7a2cfc5d70d192"
+  integrity sha512-YI+94sDEHxqZHInzbb80txNtm+GCw+Yph+yjeBz36JkY1MJT3UzGijGUWRK9VN+8iXGWJLen7nyC6oHNyIUP/w==
   dependencies:
-    "@forestadmin/datasource-toolkit" "1.32.2"
+    "@forestadmin/datasource-toolkit" "1.34.0"
 
 "@forestadmin/datasource-sql@1.7.43", "@forestadmin/datasource-sql@^1.6.7":
   version "1.7.43"
@@ -496,13 +496,13 @@
     socks "^2.7.1"
     ssh2 "^1.14.0"
 
-"@forestadmin/datasource-sql@^1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-sql/-/datasource-sql-1.10.0.tgz#a8b12c2a7eb73756af3608f281ecc5452344eb96"
-  integrity sha512-XTAal3IbkQ2VM3iEI0c47JVAs6/Al28ZwqmGoHFaSvUaF4g4AJPxc/6zDwSSxfp+D0SST9rbzfUmQOkhmWh1Kg==
+"@forestadmin/datasource-sql@^1.14.2":
+  version "1.14.2"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-sql/-/datasource-sql-1.14.2.tgz#b1981d77cbe7138e952b2e1305d2c4d8110e8e20"
+  integrity sha512-HfHIerLl6/PT0QiOPHQPcaUDAeqsaXKhY0Osn2fxzawYsuGREYbOUW+79kCJf9/TfrChVgEuCc8QL+W2Mo/AOw==
   dependencies:
-    "@forestadmin/datasource-sequelize" "1.7.1"
-    "@forestadmin/datasource-toolkit" "1.32.2"
+    "@forestadmin/datasource-sequelize" "1.8.3"
+    "@forestadmin/datasource-toolkit" "1.34.0"
     "@types/ssh2" "^1.11.11"
     pluralize "^8.0.0"
     sequelize "^6.28.0"
@@ -518,26 +518,14 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
-"@forestadmin/datasource-toolkit@1.32.2", "@forestadmin/datasource-toolkit@^1.32.2":
-  version "1.32.2"
-  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.32.2.tgz#d12215bca2a9d9913be9eeaf38dc7bd63e325901"
-  integrity sha512-JB6lbfdLiq5FwyrpW+bALCBlD5VwktIvWymGIIO4UVfZyLpqiKGT7fN6OYmYcRT3ctxSY6c/AEdbR3SG99jUrQ==
+"@forestadmin/datasource-toolkit@1.34.0", "@forestadmin/datasource-toolkit@^1.33.0", "@forestadmin/datasource-toolkit@^1.34.0":
+  version "1.34.0"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.34.0.tgz#c58a0b508894bfa658f97cf96830f83aa72f06a1"
+  integrity sha512-ua5QjL1yhqdlaaUTbBKZJvmVueaZsNBIZBTLtK7G0aVEdXpmRqcehd+/enBN4MxICqF7j60vuVsDbWzrHj2ZRw==
   dependencies:
     luxon "^3.2.1"
     object-hash "^3.0.0"
     uuid "^9.0.0"
-
-"@forestadmin/forestadmin-client@1.25.12", "@forestadmin/forestadmin-client@^1.25.12":
-  version "1.25.12"
-  resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.25.12.tgz#bd15e912e80b29bbd804515f75254c11b17350f7"
-  integrity sha512-wPHJ9FhhwP0dc8Dyg2y4y6aImWGG2JBoNWYQ7hjszGoWiJl5ICoTLRajmVFav7I0o0MTtAWw88cQFy64UzkAeQ==
-  dependencies:
-    eventsource "2.0.2"
-    json-api-serializer "^2.6.6"
-    jsonwebtoken "^9.0.0"
-    object-hash "^3.0.0"
-    openid-client "^5.6.4"
-    superagent "^8.0.6"
 
 "@forestadmin/forestadmin-client@1.25.3":
   version "1.25.3"
@@ -549,6 +537,18 @@
     jsonwebtoken "^9.0.0"
     object-hash "^3.0.0"
     openid-client "^5.3.1"
+    superagent "^8.0.6"
+
+"@forestadmin/forestadmin-client@1.27.3", "@forestadmin/forestadmin-client@^1.27.3":
+  version "1.27.3"
+  resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.27.3.tgz#9b5e056915430ff8cfa471dd9d358ca0871dfacd"
+  integrity sha512-wTylzsCjF+EGBDc4C2Ha2mkE7jsqthWDV28SXvTB1s4DbiZNLLSuNb9JNgtQAV4W0A+OjQoFXJUUr4mdEdm4Vg==
+  dependencies:
+    eventsource "2.0.2"
+    json-api-serializer "^2.6.6"
+    jsonwebtoken "^9.0.0"
+    object-hash "^3.0.0"
+    openid-client "^5.6.4"
     superagent "^8.0.6"
 
 "@gar/promisify@^1.0.1", "@gar/promisify@^1.1.3":

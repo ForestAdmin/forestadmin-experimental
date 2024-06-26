@@ -41,6 +41,7 @@ export default class TestableAgent<TypingsSchema extends TSchema = TSchema> exte
 
   async start(): Promise<void> {
     await this.agent.mountOnStandaloneServer(this.agentOptions.port).start();
+    this.agentOptions.port = this.agent.standaloneServerPort;
     if (!this.agentOptions.schemaPath) throw new Error('schemaPath is required');
 
     this.schema = JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8'));
