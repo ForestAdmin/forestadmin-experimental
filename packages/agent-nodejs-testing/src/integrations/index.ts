@@ -19,6 +19,7 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
     schemaPath: SchemaPathManager.generateSchemaPath(),
     isProduction: false,
     ...(options || {}),
+    // 0 is a random port
     port: options?.port || 0,
     forestAdminClient: new ForestAdminClientMock(),
     authSecret: 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
