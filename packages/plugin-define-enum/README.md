@@ -1,7 +1,7 @@
 The plugin allows you to create fields based on enums when your database stores technical values (0, 1, 2, 3).
 
 
-```javascript
+```typescript
 import { createAgent } from '@forestadmin/agent';
 import { Schema } from './typings';
 
