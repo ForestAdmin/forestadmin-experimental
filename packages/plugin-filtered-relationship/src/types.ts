@@ -1,7 +1,7 @@
 import type {
+  CollectionCustomizationContext,
   TCollectionName,
   TConditionTree,
-  TFieldName,
   TSchema,
 } from '@forestadmin/datasource-customizer';
 
@@ -19,9 +19,9 @@ export type Options<
   /** Target foreign collection */
   foreignCollection: N;
 
-  /** Target foreign collection key */
-  foreignCollectionKey: TFieldName<S, N>;
-
-  /** Filter condition on the relation */
-  conditionTree: TConditionTree<S, N>;
+  /** Handler to generate  */
+  handler: (
+    value: string | number,
+    context: CollectionCustomizationContext<S, N>,
+  ) => Promise<TConditionTree<S, N>>;
 };
