@@ -25,15 +25,14 @@ export default function filteredOneToMany<
 
   foreignForestCollection.addField(newFieldName, {
     columnType: 'Number',
-    dependencies: ['id'],
+    dependencies: [foreignPk],
     getValues: () => [],
   });
 
   foreignForestCollection.replaceFieldOperator(newFieldName, 'Equal', async (_id, context) => {
-    const records = await foreignForestCollection.list(
-      { conditionTree: await handler(_id, context) },
-      [foreignPk],
-    );
+    const records = await context.dataSource
+      .getCollection(foreignCollection)
+      .list({ conditionTree: await handler(_id, context) }, [foreignPk]);
 
     return { field: foreignPk, operator: 'In', value: records.map(r => r[foreignPk]) };
   });
