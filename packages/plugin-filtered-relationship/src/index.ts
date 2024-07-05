@@ -4,7 +4,7 @@ import { SchemaUtils } from '@forestadmin/datasource-toolkit';
 
 import { Options } from './types';
 
-export { Options as filteredOneToManyOptions };
+export { Options as FilteredOneToManyOptions };
 
 export default function filteredOneToMany<
   S extends TSchema = TSchema,

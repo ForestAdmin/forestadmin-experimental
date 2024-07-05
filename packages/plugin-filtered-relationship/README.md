@@ -6,12 +6,12 @@ import { createAgent } from '@forestadmin/agent';
 import { Schema } from './typings';
 
 import filteredRelationship from '@forestadmin-experimental/plugin-filtered-relationship';
-import type { DefineEnumOption } from '@forestadmin-experimental/plugin-filtered-relationship';
+import type { FilteredOneToManyOptions } from '@forestadmin-experimental/plugin-filtered-relationship';
 
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   .customizeCollection('plan', usersCollection => {
-    collection.use<DefineEnumOption<Schema, 'subscription'>>(filteredRelationship, {
+    collection.use<FilteredOneToManyOptions<Schema, 'subscription'>>(filteredRelationship, {
       relationName: 'activeSubscriptions',
       foreignCollection: 'subscription',
       handler: (id, context) => ({
