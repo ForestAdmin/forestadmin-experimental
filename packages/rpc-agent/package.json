@@ -12,9 +12,7 @@
     "directory": "packages/agent"
   },
   "dependencies": {
-    "@koa/cors": "^5.0.0",
-    "@koa/router": "^12.0.0",
-    "koa-bodyparser": "^4.3.0"
+    "@koa/router": "^12.0.0"
   },
   "peerDependencies": {
     "@forestadmin/agent": "^1.41.1",

@@ -1,8 +1,8 @@
 import {
   BaseRoute,
   AgentOptionsWithDefaults as Options,
+  ROOT_ROUTES_CTOR,
   ForestAdminHttpDriverServices as Services,
-  getRootRoutes,
 } from '@forestadmin/agent';
 import { DataSource } from '@forestadmin/datasource-toolkit';
 
@@ -24,6 +24,10 @@ export const RPC_COLLECTION_ROUTES_CTOR = [
   RpcChartRoute,
   RpcActionRoute,
 ];
+
+export function getRootRoutes(options: Options, services: Services): BaseRoute[] {
+  return ROOT_ROUTES_CTOR.map(Route => new Route(services, options));
+}
 
 function getRpcCollectionsRoutes(
   dataSource: DataSource,
