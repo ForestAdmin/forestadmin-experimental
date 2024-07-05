@@ -19,9 +19,14 @@ export type Options<
   /** Target foreign collection */
   foreignCollection: N;
 
-  /** Handler to generate  */
+  /**
+   * Function to generate a dynamic ConditionTree to filter records of the foreign collection
+   * 
+   * @param originId - id of the record from the origin collection on which the filtered relation is created
+   * @param context contains the foreign collection as well as the dataSource 
+   */
   handler: (
-    value: string | number,
+    originId: string | number,
     context: CollectionCustomizationContext<S, N>,
   ) => Promise<TConditionTree<S, N>>;
 };

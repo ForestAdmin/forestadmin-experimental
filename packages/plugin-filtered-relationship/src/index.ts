@@ -4,7 +4,7 @@ import { SchemaUtils } from '@forestadmin/datasource-toolkit';
 
 import { Options } from './types';
 
-export { Options as DefineEnumOption };
+export { Options as filteredOneToManyOptions };
 
 export default function filteredOneToMany<
   S extends TSchema = TSchema,
@@ -20,7 +20,7 @@ export default function filteredOneToMany<
   if (pks.length > 1) {
     throw new Error('filteredOneToMany does not support collections with composite Primary Keys.');
   }
-  
+
   const [foreignPk] = pks;
 
   foreignForestCollection.addField(newFieldName, {
