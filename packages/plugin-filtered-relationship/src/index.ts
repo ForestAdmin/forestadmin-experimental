@@ -1,6 +1,6 @@
 import type { Plugin, TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
 
-import { SchemaUtils } from '@forestadmin/datasource-toolkit';
+import { CollectionUtils, ColumnSchema, SchemaUtils } from '@forestadmin/datasource-toolkit';
 
 import { Options } from './types';
 
@@ -22,9 +22,10 @@ export default function filteredOneToMany<
   }
 
   const [foreignPk] = pks;
+  const pkType = CollectionUtils.getFieldSchema(foreignForestCollection, foreignPk) as ColumnSchema;
 
   foreignForestCollection.addField(newFieldName, {
-    columnType: 'Number',
+    columnType: pkType.columnType,
     dependencies: [foreignPk],
     getValues: () => [],
   });
