@@ -6,7 +6,7 @@ import { createAgent } from '@forestadmin/agent';
 import { Schema } from './typings';
 
 import filteredRelationship from '@forestadmin-experimental/plugin-filtered-relationship';
-import type { filteredOneToManyOptions } from '@forestadmin-experimental/plugin-filtered-relationship';
+import type { FilteredOneToManyOptions } from '@forestadmin-experimental/plugin-filtered-relationship';
 
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
