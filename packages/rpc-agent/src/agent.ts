@@ -1,4 +1,5 @@
-import { Agent, ForestAdminHttpDriverServices } from '@forestadmin/agent';
+import { Agent } from '@forestadmin/agent';
+import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
 import { TSchema } from '@forestadmin/datasource-customizer';
 import { DataSource } from '@forestadmin/datasource-toolkit';
 

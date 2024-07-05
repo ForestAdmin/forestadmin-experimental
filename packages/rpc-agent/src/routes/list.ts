@@ -1,4 +1,5 @@
-import { CollectionRoute, QueryStringParser } from '@forestadmin/agent';
+import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
+import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import {
   ConditionTreeFactory,
   Page,

@@ -1,4 +1,6 @@
-import { CollectionRoute, HttpCode, QueryStringParser } from '@forestadmin/agent';
+import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
+import { HttpCode } from '@forestadmin/agent/dist/types';
+import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import { ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 

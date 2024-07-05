@@ -1,9 +1,6 @@
-import {
-  AgentOptionsWithDefaults,
-  BaseRoute,
-  ForestAdminHttpDriverServices,
-  RouteType,
-} from '@forestadmin/agent';
+import BaseRoute from '@forestadmin/agent/dist/routes/base-route';
+import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
+import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/types';
 import { DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 

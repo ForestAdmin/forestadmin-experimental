@@ -1,9 +1,7 @@
-import {
-  BaseRoute,
-  AgentOptionsWithDefaults as Options,
-  ROOT_ROUTES_CTOR,
-  ForestAdminHttpDriverServices as Services,
-} from '@forestadmin/agent';
+import { ROOT_ROUTES_CTOR } from '@forestadmin/agent/dist/routes';
+import BaseRoute from '@forestadmin/agent/dist/routes/base-route';
+import { ForestAdminHttpDriverServices as Services } from '@forestadmin/agent/dist/services';
+import { AgentOptionsWithDefaults as Options } from '@forestadmin/agent/dist/types';
 import { DataSource } from '@forestadmin/datasource-toolkit';
 
 import RpcActionRoute from './action';
