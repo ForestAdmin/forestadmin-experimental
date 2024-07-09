@@ -170,7 +170,8 @@ export default class RpcCollection extends BaseCollection {
   }
 
   override async renderChart(caller: Caller, name: string, recordId: CompositeId) {
-    const url = `${this.rpcCollectionUri}/chart?timezone=${caller.timezone}&chart=${name}&recordId=${recordId}`;
+    const { timezone: tz } = caller;
+    const url = `${this.rpcCollectionUri}/chart?timezone=${tz}&chart=${name}&recordId=${recordId}`;
 
     this.logger(
       'Debug',

@@ -31,7 +31,7 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
-    "lint": "eslint src test",
-    "test": "jest"
+    "lint": "eslint src",
+    "publish:package": "semantic-release"
   }
 }
