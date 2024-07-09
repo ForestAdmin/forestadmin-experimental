@@ -1,5 +1,4 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
-import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import {
   ConditionTreeFactory,
   Page,
@@ -15,10 +14,9 @@ export default class RpcListRoute extends CollectionRoute {
   }
 
   public async handleList(context: any) {
-    await this.services.authorization.assertCanBrowse(context, this.collection.name);
-
     const projection = context.query.projection as string;
     const queryFilter = JSON.parse(context.query.filter as string);
+    const caller = JSON.parse(context.query.caller as string);
 
     const paginatedFilter = new PaginatedFilter({
       ...queryFilter,
@@ -30,7 +28,7 @@ export default class RpcListRoute extends CollectionRoute {
     });
 
     const records = await this.collection.list(
-      QueryStringParser.parseCaller(context),
+      caller,
       paginatedFilter,
       new Projection(...projection.split(',')),
     );

@@ -1,10 +1,10 @@
 import { BaseDataSource, Logger } from '@forestadmin/datasource-toolkit';
 
 import RpcCollection from './collection';
-import { RpcDataSourceOptions, RpcSchema } from './types';
+import { RpcDataSourceOptionsWithToken, RpcSchema } from './types';
 
 export default class RpcDataSource extends BaseDataSource {
-  constructor(logger: Logger, options: RpcDataSourceOptions, introspection: RpcSchema) {
+  constructor(logger: Logger, options: RpcDataSourceOptionsWithToken, introspection: RpcSchema) {
     super();
 
     logger(

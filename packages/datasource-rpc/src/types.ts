@@ -5,6 +5,11 @@ export type RpcSchema = {
 };
 
 export type RpcDataSourceOptions = {
-  uri: string;
   authSecret: string;
+  envSecret: string;
+  uri: string;
+};
+
+export type RpcDataSourceOptionsWithToken = RpcDataSourceOptions & {
+  token: string;
 };

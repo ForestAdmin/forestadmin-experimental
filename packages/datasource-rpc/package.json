@@ -12,8 +12,7 @@
     "directory": "packages/datasource-rpc"
   },
   "dependencies": {
-    "superagent": "^8.0.6",
-    "jsonwebtoken": "^9.0.0"
+    "superagent": "^8.0.6"
   },
   "devDependencies": {
     "@forestadmin/datasource-customizer": "^1.45.1",

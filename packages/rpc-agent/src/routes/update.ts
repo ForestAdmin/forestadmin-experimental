@@ -1,6 +1,5 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
 import { HttpCode } from '@forestadmin/agent/dist/types';
-import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import { ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
@@ -10,9 +9,8 @@ export default class RpcUpdateRoute extends CollectionRoute {
   }
 
   public async handleUpdate(context: any) {
-    await this.services.authorization.assertCanEdit(context, this.collection.name);
-
     const queryFilter = JSON.parse(context.query.filter as string);
+    const caller = JSON.parse(context.query.caller as string);
 
     const filter = new Filter({
       ...queryFilter,
@@ -21,11 +19,7 @@ export default class RpcUpdateRoute extends CollectionRoute {
         : undefined,
     });
 
-    await this.collection.update(
-      QueryStringParser.parseCaller(context),
-      filter,
-      context.request.body,
-    );
+    await this.collection.update(caller, filter, context.request.body);
 
     context.response.status = HttpCode.NoContent;
   }

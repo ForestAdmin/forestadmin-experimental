@@ -1,5 +1,4 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
-import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import { ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
@@ -12,6 +11,7 @@ export default class RpcActionRoute extends CollectionRoute {
   public async handleExecute(context: any) {
     const action = context.query.action as string;
     const queryFilter = JSON.parse(context.query.filter as string);
+    const caller = JSON.parse(context.query.caller as string);
 
     const filter = new Filter({
       ...queryFilter,
@@ -21,7 +21,7 @@ export default class RpcActionRoute extends CollectionRoute {
     });
 
     const actionResult = await this.collection.execute(
-      QueryStringParser.parseCaller(context),
+      caller,
       action,
       context.request.body,
       filter,
@@ -39,6 +39,7 @@ export default class RpcActionRoute extends CollectionRoute {
     const action = context.query.action as string;
     const queryFilter = JSON.parse(context.query.filter as string);
     const metas = JSON.parse(context.query.metas as string);
+    const caller = JSON.parse(context.query.caller as string);
 
     const filter = new Filter({
       ...queryFilter,
@@ -48,7 +49,7 @@ export default class RpcActionRoute extends CollectionRoute {
     });
 
     const actionFields = await this.collection.getForm(
-      QueryStringParser.parseCaller(context),
+      caller,
       action,
       context.request.body,
       filter,

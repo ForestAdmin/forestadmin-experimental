@@ -1,5 +1,4 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
-import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import { RecordData } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
@@ -9,12 +8,9 @@ export default class RpcCreateRoute extends CollectionRoute {
   }
 
   public async handleCreate(context: any) {
-    await this.services.authorization.assertCanAdd(context, this.collection.name);
+    const caller = JSON.parse(context.query.caller as string);
 
-    const records = await this.collection.create(
-      QueryStringParser.parseCaller(context),
-      context.request.body as RecordData[],
-    );
+    const records = await this.collection.create(caller, context.request.body as RecordData[]);
 
     context.response.body = records;
   }

@@ -1,5 +1,4 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
-import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import { CompositeId } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
@@ -9,16 +8,11 @@ export default class RpcChartRoute extends CollectionRoute {
   }
 
   public async handleChart(context: any) {
-    await this.services.authorization.assertCanBrowse(context, this.collection.name);
-
     const chart = context.query.chart as string;
     const recordId = context.query.recordId as CompositeId;
+    const caller = JSON.parse(context.query.caller as string);
 
-    const chartResult = await this.collection.renderChart(
-      QueryStringParser.parseCaller(context),
-      chart,
-      recordId,
-    );
+    const chartResult = await this.collection.renderChart(caller, chart, recordId);
 
     context.response.body = chartResult;
   }

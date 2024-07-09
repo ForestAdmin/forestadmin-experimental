@@ -1,5 +1,4 @@
 import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
-import jsonwebtoken from 'jsonwebtoken';
 import superagent from 'superagent';
 
 import RpcDataSource from './datasource';
@@ -8,9 +7,12 @@ import { RpcDataSourceOptions } from './types';
 // eslint-disable-next-line import/prefer-default-export
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {
   return async (logger: Logger) => {
-    const { authSecret, uri } = options;
+    const { authSecret, envSecret, uri } = options;
 
-    const token = jsonwebtoken.sign({}, authSecret, { expiresIn: '1m' });
+    const authRq = superagent.post(`${uri}/forest/authentication`);
+    const authResp = await authRq.send({ envSecret, authSecret });
+
+    const { token } = authResp.body;
 
     logger('Info', `Getting schema from Rpc agent on ${uri}.`);
 
@@ -20,6 +22,6 @@ export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFa
 
     const introspection = introResp.body;
 
-    return new RpcDataSource(logger, options, introspection.schema);
+    return new RpcDataSource(logger, { ...options, token }, introspection.schema);
   };
 }

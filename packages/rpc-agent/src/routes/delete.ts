@@ -1,6 +1,5 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
 import { HttpCode } from '@forestadmin/agent/dist/types';
-import QueryStringParser from '@forestadmin/agent/dist/utils/query-string';
 import { ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
@@ -10,9 +9,8 @@ export default class RpcDeleteRoute extends CollectionRoute {
   }
 
   public async handleDelete(context: any) {
-    await this.services.authorization.assertCanDelete(context, this.collection.name);
-
     const queryFilter = JSON.parse(context.query.filter as string);
+    const caller = JSON.parse(context.query.caller as string);
 
     const filter = new Filter({
       ...queryFilter,
@@ -21,7 +19,7 @@ export default class RpcDeleteRoute extends CollectionRoute {
         : undefined,
     });
 
-    await this.collection.delete(QueryStringParser.parseCaller(context), filter);
+    await this.collection.delete(caller, filter);
 
     context.response.status = HttpCode.NoContent;
   }

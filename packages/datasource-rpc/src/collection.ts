@@ -12,20 +12,19 @@ import {
   Projection,
   RecordData,
 } from '@forestadmin/datasource-toolkit';
-import jsonwebtoken from 'jsonwebtoken';
 import superagent from 'superagent';
 
-import { RpcDataSourceOptions } from './types';
+import { RpcDataSourceOptionsWithToken } from './types';
 
 export default class RpcCollection extends BaseCollection {
   private readonly logger: Logger;
-  private readonly options: RpcDataSourceOptions;
+  private readonly options: RpcDataSourceOptionsWithToken;
   private readonly rpcCollectionUri: string;
 
   constructor(
     logger: Logger,
     datasource: DataSource,
-    options: RpcDataSourceOptions,
+    options: RpcDataSourceOptionsWithToken,
     name: string,
     schema: CollectionSchema,
   ) {
@@ -57,17 +56,15 @@ export default class RpcCollection extends BaseCollection {
     this.addSegments(schema.segments);
   }
 
-  private getToken(caller: Caller) {
-    return jsonwebtoken.sign(caller, this.options.authSecret);
-  }
-
   async create(caller: Caller, data: RecordData[]) {
-    const url = `${this.rpcCollectionUri}/create?timezone=${caller.timezone}`;
+    const url = `${this.rpcCollectionUri}/create?timezone=${
+      caller.timezone
+    }&caller=${JSON.stringify(caller)}`;
 
     this.logger('Debug', `Forwarding '${this.name}' creation call to the Rpc agent on ${url}.`);
 
     const request = superagent.post(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     const response = await request.send(data);
 
     return response.body;
@@ -76,12 +73,12 @@ export default class RpcCollection extends BaseCollection {
   async list(caller: Caller, filter: PaginatedFilter, projection: Projection) {
     const url = `${this.rpcCollectionUri}/list?timezone=${caller.timezone}&filter=${JSON.stringify(
       filter,
-    )}&projection=${projection}`;
+    )}&projection=${projection}&caller=${JSON.stringify(caller)}`;
 
     this.logger('Debug', `Forwarding '${this.name}' list call to the Rpc agent on ${url}.`);
 
     const request = superagent.get(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     const response = await request.send();
 
     return response.body;
@@ -90,36 +87,38 @@ export default class RpcCollection extends BaseCollection {
   async update(caller: Caller, filter: Filter, patch: RecordData) {
     const url = `${this.rpcCollectionUri}/update?timezone=${
       caller.timezone
-    }&filter=${JSON.stringify(filter)}`;
+    }&filter=${JSON.stringify(filter)}&caller=${JSON.stringify(caller)}`;
 
     this.logger('Debug', `Forwarding '${this.name}' update call to the Rpc agent on ${url}.`);
 
     const request = superagent.put(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     await request.send(patch);
   }
 
   async delete(caller: Caller, filter: Filter) {
     const url = `${this.rpcCollectionUri}/delete?timezone=${
       caller.timezone
-    }&filter=${JSON.stringify(filter)}`;
+    }&filter=${JSON.stringify(filter)}&caller=${JSON.stringify(caller)}`;
 
     this.logger('Debug', `Forwarding '${this.name}' deletion call to the Rpc agent on ${url}.`);
 
     const request = superagent.delete(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     await request.send();
   }
 
   async aggregate(caller: Caller, filter: Filter, aggregation: Aggregation, limit?: number) {
     const url = `${this.rpcCollectionUri}/aggregate?timezone=${
       caller.timezone
-    }&filter=${JSON.stringify(filter)}&aggregation=${JSON.stringify(aggregation)}&limit=${limit}`;
+    }&filter=${JSON.stringify(filter)}&aggregation=${JSON.stringify(
+      aggregation,
+    )}&limit=${limit}&caller=${JSON.stringify(caller)}`;
 
     this.logger('Debug', `Forwarding '${this.name}' aggragation call to the Rpc agent on ${url}.`);
 
     const request = superagent.get(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     const response = await request.send();
 
     return response.body;
@@ -128,7 +127,7 @@ export default class RpcCollection extends BaseCollection {
   override async execute(caller: Caller, name: string, formValues: RecordData, filter?: Filter) {
     const url = `${this.rpcCollectionUri}/action-execute?timezone=${
       caller.timezone
-    }&action=${name}&filter=${JSON.stringify(filter)}`;
+    }&action=${name}&filter=${JSON.stringify(filter)}&caller=${JSON.stringify(caller)}`;
 
     this.logger(
       'Debug',
@@ -136,7 +135,7 @@ export default class RpcCollection extends BaseCollection {
     );
 
     const request = superagent.post(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     const response = await request.send(formValues);
 
     response.body.invalidated = new Set(response.body.invalidated);
@@ -155,7 +154,9 @@ export default class RpcCollection extends BaseCollection {
   ) {
     const url = `${this.rpcCollectionUri}/action-form?timezone=${
       caller.timezone
-    }&action=${name}&filter=${JSON.stringify(filter)}&metas=${JSON.stringify(metas)}`;
+    }&action=${name}&filter=${JSON.stringify(filter)}&metas=${JSON.stringify(
+      metas,
+    )}&caller=${JSON.stringify(caller)}`;
 
     this.logger(
       'Debug',
@@ -163,7 +164,7 @@ export default class RpcCollection extends BaseCollection {
     );
 
     const request = superagent.post(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     const response = await request.send(formValues);
 
     return response.body;
@@ -171,7 +172,9 @@ export default class RpcCollection extends BaseCollection {
 
   override async renderChart(caller: Caller, name: string, recordId: CompositeId) {
     const { timezone: tz } = caller;
-    const url = `${this.rpcCollectionUri}/chart?timezone=${tz}&chart=${name}&recordId=${recordId}`;
+    const url = `${
+      this.rpcCollectionUri
+    }/chart?timezone=${tz}&chart=${name}&recordId=${recordId}&caller=${JSON.stringify(caller)}`;
 
     this.logger(
       'Debug',
@@ -179,7 +182,7 @@ export default class RpcCollection extends BaseCollection {
     );
 
     const request = superagent.get(url);
-    request.auth(this.getToken(caller), { type: 'bearer' });
+    request.auth(this.options.token, { type: 'bearer' });
     const response = await request.send();
 
     return response.body;
