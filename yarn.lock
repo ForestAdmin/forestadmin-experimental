@@ -385,18 +385,19 @@
     express "^4.17.1"
     fastify-plugin "^3.0.0"
 
-"@forestadmin/agent@^1.11.0":
-  version "1.36.12"
-  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.36.12.tgz#f5bcc01e163788d35c0d90044ffe0b3ce8046a13"
-  integrity sha512-SOQy3mBW/gFl2gjyQLaSJ0F0VQ4Z+aZmMTLIIwUtCo4Xto35hHSMVONP9K/1JVZ2fwNuwfkpwbyedY7deCVPvw==
+"@forestadmin/agent@^1.11.0", "@forestadmin/agent@^1.41.1":
+  version "1.41.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.41.1.tgz#c35a337bed95aa66435c8b868778621753e36460"
+  integrity sha512-LNWk0rV2yos6TDU5dkvHuUG79yAApjGXfZaOVztVYauyoXAPpdMbWOLiH3C/Lf8sV2hkfXGuSi8LFOI2ZMxgKQ==
   dependencies:
     "@fast-csv/format" "^4.3.5"
     "@fastify/express" "^1.1.0"
-    "@forestadmin/datasource-customizer" "1.40.0"
-    "@forestadmin/datasource-toolkit" "1.29.1"
-    "@forestadmin/forestadmin-client" "1.25.3"
+    "@forestadmin/datasource-customizer" "1.45.0"
+    "@forestadmin/datasource-toolkit" "1.34.0"
+    "@forestadmin/forestadmin-client" "1.27.3"
     "@koa/cors" "^5.0.0"
     "@koa/router" "^12.0.0"
+    "@types/koa__router" "^12.0.0"
     forest-ip-utils "^1.0.1"
     json-api-serializer "^2.6.6"
     json-stringify-pretty-compact "^3.0.0"
@@ -409,16 +410,16 @@
     superagent "^8.0.6"
     uuid "^9.0.0"
 
-"@forestadmin/agent@^1.41.1":
-  version "1.41.1"
-  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.41.1.tgz#c35a337bed95aa66435c8b868778621753e36460"
-  integrity sha512-LNWk0rV2yos6TDU5dkvHuUG79yAApjGXfZaOVztVYauyoXAPpdMbWOLiH3C/Lf8sV2hkfXGuSi8LFOI2ZMxgKQ==
+"@forestadmin/agent@^1.41.2":
+  version "1.41.2"
+  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.41.2.tgz#f94a976a14f2932c7cb7ce700ef3aaf263ee869c"
+  integrity sha512-rHiMz2QghEqbLQnw6hkzqLKjc7pcbXbE6W1/JPFSsaPMouFR5/BSdEchIfFYi9BK8av2rhJaJ4/Ze8OiTYYtuQ==
   dependencies:
     "@fast-csv/format" "^4.3.5"
     "@fastify/express" "^1.1.0"
-    "@forestadmin/datasource-customizer" "1.45.0"
-    "@forestadmin/datasource-toolkit" "1.34.0"
-    "@forestadmin/forestadmin-client" "1.27.3"
+    "@forestadmin/datasource-customizer" "1.45.1"
+    "@forestadmin/datasource-toolkit" "1.34.1"
+    "@forestadmin/forestadmin-client" "1.27.4"
     "@koa/cors" "^5.0.0"
     "@koa/router" "^12.0.0"
     "@types/koa__router" "^12.0.0"
@@ -451,6 +452,18 @@
   integrity sha512-K3X/4ETkTflwt5ywSQfipmQYUfz1mtURjnryN6jODujoV0/8uXqHier3YeMWVRBh8yx/vNl4bY51DzUCwrMuaw==
   dependencies:
     "@forestadmin/datasource-toolkit" "1.34.0"
+    antlr4 "^4.13.1-patch-1"
+    file-type "^16.5.4"
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "^9.0.0"
+
+"@forestadmin/datasource-customizer@1.45.1", "@forestadmin/datasource-customizer@^1.45.1":
+  version "1.45.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.45.1.tgz#5fa577a4616fdf1a8b0e6c52f36ebc586f71ea83"
+  integrity sha512-EjBG6DXKVrhCItYq+Cd7szTih2i91ARdEGdr1bKam34Vvkrb1nwa5ZlzTASOpS+HFnZMvmGeq8wAhuJt3h9CMQ==
+  dependencies:
+    "@forestadmin/datasource-toolkit" "1.34.1"
     antlr4 "^4.13.1-patch-1"
     file-type "^16.5.4"
     luxon "^3.2.1"
@@ -527,22 +540,31 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
-"@forestadmin/forestadmin-client@1.25.3":
-  version "1.25.3"
-  resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.25.3.tgz#1924a8c3e52e18282d633c2aa92137519ca9ce30"
-  integrity sha512-c/0igkHStVem+7SVgQGmiPR3HR6WGjQBknFdBlHUypb7qADdBeMh81meMsaq5rT74czafdb5u4VWUDu29i7f5Q==
+"@forestadmin/datasource-toolkit@1.34.1", "@forestadmin/datasource-toolkit@^1.34.1":
+  version "1.34.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.34.1.tgz#6d5e887ff9a8af5ce7fb625db1579de1ac760f9a"
+  integrity sha512-lyuNRleN8y1A+yo6exMZ0eDsYeHthD0NrvsjdRstP1aMMNHt57xmOWBGrfwVi2SvRx+TZzJp+rrK2JfSEqAebg==
   dependencies:
-    eventsource "2.0.2"
-    json-api-serializer "^2.6.6"
-    jsonwebtoken "^9.0.0"
+    luxon "^3.2.1"
     object-hash "^3.0.0"
-    openid-client "^5.3.1"
-    superagent "^8.0.6"
+    uuid "^9.0.0"
 
 "@forestadmin/forestadmin-client@1.27.3", "@forestadmin/forestadmin-client@^1.27.3":
   version "1.27.3"
   resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.27.3.tgz#9b5e056915430ff8cfa471dd9d358ca0871dfacd"
   integrity sha512-wTylzsCjF+EGBDc4C2Ha2mkE7jsqthWDV28SXvTB1s4DbiZNLLSuNb9JNgtQAV4W0A+OjQoFXJUUr4mdEdm4Vg==
+  dependencies:
+    eventsource "2.0.2"
+    json-api-serializer "^2.6.6"
+    jsonwebtoken "^9.0.0"
+    object-hash "^3.0.0"
+    openid-client "^5.6.4"
+    superagent "^8.0.6"
+
+"@forestadmin/forestadmin-client@1.27.4", "@forestadmin/forestadmin-client@^1.27.4":
+  version "1.27.4"
+  resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.27.4.tgz#e1f1bd286cd157f8200f70cd6ee350edc22e18f0"
+  integrity sha512-ezDb+g/jJ9vemt6S/axyiUJPMnad29JuB84yt01xpLbJRAg773xjFE68y1NW9nnfTjjSH/1t/vmXqchrQY+zIA==
   dependencies:
     eventsource "2.0.2"
     json-api-serializer "^2.6.6"
@@ -5524,11 +5546,6 @@ jest@^29.7.0:
     import-local "^3.0.2"
     jest-cli "^29.7.0"
 
-jose@^4.15.4:
-  version "4.15.4"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.4.tgz#02a9a763803e3872cf55f29ecef0dfdcc218cc03"
-  integrity sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==
-
 jose@^4.15.5:
   version "4.15.5"
   resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.5.tgz#6475d0f467ecd3c630a1b5dadd2735a7288df706"
@@ -7082,16 +7099,6 @@ open@^8.4.0:
     define-lazy-prop "^2.0.0"
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
-
-openid-client@^5.3.1:
-  version "5.6.4"
-  resolved "https://registry.yarnpkg.com/openid-client/-/openid-client-5.6.4.tgz#b2c25e6d5338ba3ce00e04341bb286798a196177"
-  integrity sha512-T1h3B10BRPKfcObdBklX639tVz+xh34O7GjofqrqiAQdm7eHsQ00ih18x6wuJ/E6FxdtS2u3FmUGPDeEcMwzNA==
-  dependencies:
-    jose "^4.15.4"
-    lru-cache "^6.0.0"
-    object-hash "^2.2.0"
-    oidc-token-hash "^5.0.3"
 
 openid-client@^5.6.4:
   version "5.6.5"
