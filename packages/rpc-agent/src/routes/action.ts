@@ -37,9 +37,11 @@ export default class RpcActionRoute extends CollectionRoute {
 
   public async handleForm(context: any) {
     const action = context.query.action as string;
-    const queryFilter = JSON.parse(context.query.filter as string);
-    const metas = JSON.parse(context.query.metas as string);
-    const caller = JSON.parse(context.query.caller as string);
+
+    // All this things can be null when asking form fo FA schema generation
+    const queryFilter = JSON.parse(context.query?.filter || '{}');
+    const metas = JSON.parse(context.query?.metas || '{}');
+    const caller = JSON.parse(context.query?.caller || '{}');
 
     const filter = new Filter({
       ...queryFilter,

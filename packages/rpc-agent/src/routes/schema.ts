@@ -1,7 +1,7 @@
 import BaseRoute from '@forestadmin/agent/dist/routes/base-route';
 import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
 import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/types';
-import { DataSource } from '@forestadmin/datasource-toolkit';
+import { Collection, DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
 export default class RpcSchemaRoute extends BaseRoute {
@@ -23,26 +23,23 @@ export default class RpcSchemaRoute extends BaseRoute {
     router.get('/rpc-schema', this.handleRpc.bind(this));
   }
 
-  handleRpc(context: any) {
+  async buildCollection(collection: Collection) {
+    const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
+      fileds[name] = {
+        ...schema,
+        filterOperators: Array.from(schema.type === 'Column' ? schema.filterOperators : []),
+      };
+
+      return fileds;
+    }, {});
+
+    return { name: collection.name, ...collection.schema, fields };
+  }
+
+  async handleRpc(context: any) {
     context.response.body = {
       schema: {
-        collections: this.dataSource.collections.reduce((collections, collection) => {
-          const fields = Object.entries(collection.schema.fields).reduce(
-            (fileds, [name, schema]) => {
-              fileds[name] = {
-                ...schema,
-                filterOperators: Array.from(schema.type === 'Column' ? schema.filterOperators : []),
-              };
-
-              return fileds;
-            },
-            {},
-          );
-
-          collections[collection.name] = { ...collection.schema, fields };
-
-          return collections;
-        }, {}),
+        collections: await Promise.all(this.dataSource.collections.map(this.buildCollection)),
       },
     };
   }

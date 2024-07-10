@@ -1,7 +1,7 @@
 import type { CollectionSchema } from '@forestadmin/datasource-toolkit';
 
 export type RpcSchema = {
-  collections: Record<string, CollectionSchema>;
+  collections: (CollectionSchema & { name: string })[];
 };
 
 export type RpcDataSourceOptions = {

@@ -40,7 +40,7 @@ export default class RpcCollection extends BaseCollection {
     if (schema.searchable) this.enableSearch();
 
     Object.entries(schema.actions).forEach(([actionName, actionSchema]) => {
-      this.addAction(actionName, { ...actionSchema, staticForm: false });
+      this.addAction(actionName, actionSchema);
     });
 
     schema.charts.forEach(chart => this.addChart(chart));
@@ -152,11 +152,14 @@ export default class RpcCollection extends BaseCollection {
     filter?: Filter,
     metas?: GetFormMetas,
   ) {
-    const url = `${this.rpcCollectionUri}/action-form?timezone=${
-      caller.timezone
-    }&action=${name}&filter=${JSON.stringify(filter)}&metas=${JSON.stringify(
-      metas,
-    )}&caller=${JSON.stringify(caller)}`;
+    let url = `${this.rpcCollectionUri}/action-form?action=${name}`;
+
+    // Caller can be null for the FA schema generation
+    if (caller) {
+      url += `&timezone=${caller.timezone}&filter=${JSON.stringify(filter)}&metas=${JSON.stringify(
+        metas,
+      )}&caller=${JSON.stringify(caller)}`;
+    }
 
     this.logger(
       'Debug',
@@ -165,7 +168,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     request.auth(this.options.token, { type: 'bearer' });
-    const response = await request.send(formValues);
+    const response = await request.send(formValues || {});
 
     return response.body;
   }

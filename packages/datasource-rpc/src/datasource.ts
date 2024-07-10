@@ -12,8 +12,8 @@ export default class RpcDataSource extends BaseDataSource {
       `Building Rpc Datasource with ${Object.keys(introspection.collections).length} collections.`,
     );
 
-    Object.entries(introspection.collections).forEach(([name, schema]) =>
-      this.addCollection(new RpcCollection(logger, this, options, name, schema)),
+    introspection.collections.forEach(schema =>
+      this.addCollection(new RpcCollection(logger, this, options, schema.name, schema)),
     );
   }
 }
