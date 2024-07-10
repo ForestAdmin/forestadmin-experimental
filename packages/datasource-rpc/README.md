@@ -3,7 +3,7 @@ The RPC data source allows get and proxify data from a RPC agent.
 # Installation
 
 - install the package `@forestadmin-experimental/datasource-rpc`.
-- give the URI, FOREST_ENV_SECRET & FOREST_AUTH_SECRET 
+- give the URI, FOREST_ENV_SECRET & FOREST_AUTH_SECRET
 
 ```javascript
 const { createAgent } = require('@forestadmin/agent');
