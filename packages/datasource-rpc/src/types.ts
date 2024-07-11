@@ -7,7 +7,6 @@ export type RpcSchema = {
 
 export type RpcDataSourceOptions = {
   authSecret: string;
-  envSecret: string;
   uri: string;
 };
 

@@ -7,10 +7,10 @@ import { RpcDataSourceOptions } from './types';
 // eslint-disable-next-line import/prefer-default-export
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {
   return async (logger: Logger) => {
-    const { authSecret, envSecret, uri } = options;
+    const { authSecret, uri } = options;
 
     const authRq = superagent.post(`${uri}/forest/authentication`);
-    const authResp = await authRq.send({ envSecret, authSecret });
+    const authResp = await authRq.send({ authSecret });
 
     const { token } = authResp.body;
 
