@@ -38,9 +38,8 @@ export default class RpcSchemaRoute extends BaseRoute {
 
   async handleRpc(context: any) {
     context.response.body = {
-      schema: {
-        collections: await Promise.all(this.dataSource.collections.map(this.buildCollection)),
-      },
+      collections: await Promise.all(this.dataSource.collections.map(this.buildCollection)),
+      charts: this.dataSource.schema.charts,
     };
   }
 }

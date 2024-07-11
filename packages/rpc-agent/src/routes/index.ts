@@ -11,6 +11,7 @@ import RpcAggregateRoute from './aggregate';
 import AuthenticationRoute from './authentication';
 import RpcChartRoute from './chart';
 import RpcCreateRoute from './create';
+import RpcDatasourceChartRoute from './datasource-chart';
 import RpcDeleteRoute from './delete';
 import RpcListRoute from './list';
 import RpcSchemaRoute from './schema';
@@ -64,6 +65,7 @@ export function makeRpcRoutes(
     ...getRootRoutes(options, services),
     new RpcSchemaRoute(services, options, dataSource),
     ...getRpcCollectionsRoutes(dataSource, options, services),
+    new RpcDatasourceChartRoute(services, options, dataSource),
   ];
 
   // Ensure routes and middlewares are loaded in the right order.
