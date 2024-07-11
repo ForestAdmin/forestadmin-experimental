@@ -2,6 +2,7 @@ import type { CollectionSchema } from '@forestadmin/datasource-toolkit';
 
 export type RpcSchema = {
   collections: (CollectionSchema & { name: string })[];
+  charts: string[];
 };
 
 export type RpcDataSourceOptions = {

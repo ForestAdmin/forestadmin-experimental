@@ -22,6 +22,6 @@ export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFa
 
     const introspection = introResp.body;
 
-    return new RpcDataSource(logger, { ...options, token }, introspection.schema);
+    return new RpcDataSource(logger, { ...options, token }, introspection);
   };
 }
