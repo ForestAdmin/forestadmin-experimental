@@ -21,7 +21,7 @@ export default class Authentication extends BaseRoute {
   private async handleAuthentication(context: any): Promise<void> {
     const { body } = context.request;
 
-    if (body.envSecret !== this.options.envSecret || body.authSecret !== this.options.authSecret) {
+    if (body.authSecret !== this.options.authSecret) {
       throw new AuthenticationError({
         name: 'Authentication credentials error',
         error_description: 'Invalid credentials.',

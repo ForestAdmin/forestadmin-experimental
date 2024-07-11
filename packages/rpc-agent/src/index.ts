@@ -1,9 +1,19 @@
 import { AgentOptions } from '@forestadmin/agent';
 import { TSchema } from '@forestadmin/datasource-customizer';
+import * as crypto from 'crypto';
 
 import RpcAgent from './agent';
 
-// eslint-disable-next-line import/prefer-default-export
-export function createRpcAgent<S extends TSchema = TSchema>(options: AgentOptions): RpcAgent<S> {
-  return new RpcAgent(options);
+export type RpcAgentOptions = Omit<
+  AgentOptions,
+  'envSecret' | 'instantCacheRefresh' | 'forestAdminClient'
+>;
+
+export function createRpcAgent<S extends TSchema = TSchema>(options: RpcAgentOptions): RpcAgent<S> {
+  return new RpcAgent({
+    ...options,
+    envSecret: crypto.randomBytes(32).toString('hex'),
+    instantCacheRefresh: false,
+    forestAdminClient: null,
+  });
 }
