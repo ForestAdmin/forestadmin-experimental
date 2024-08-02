@@ -1,4 +1,5 @@
 import { Operator } from "@forestadmin/datasource-toolkit/dist/src/interfaces/query/condition-tree/nodes/operators";
+//TODO fix this type, we are taking operators from deals but it is not the only collection from hubspot
 import { FilterOperatorEnum } from "@hubspot/api-client/lib/codegen/crm/deals";
 
 class NotSupportedOperatorError extends Error {
@@ -21,14 +22,14 @@ function stringifyValues(value: any | any[]): string[] {
 }
 
 const OPERATOR_MAP_TRANSFORMER: { [key in Operator]: Converter} = {
-  Equal: (value: any) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.Eq }),
-  NotEqual: (value: any) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.Neq }),
-  LessThan: (value: number) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.Lt }),
-  GreaterThan: (value: number) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.Gt }),
-  In: (value: any[]) => ({ values: stringifyValues(value), operator: FilterOperatorEnum.In }),
-  After: (value: Date) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.Gt }),
-  Before: (value: Date) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.Lt }),
-  Blank: (value: any) => ({ value: stringifyValue(value), operator: FilterOperatorEnum.NotHasProperty }),
+  Equal: (value: any) => ({ value: stringifyValue(value), operator: 'EQ' }),
+  NotEqual: (value: any) => ({ value: stringifyValue(value), operator: 'NEQ' }),
+  LessThan: (value: number) => ({ value: stringifyValue(value), operator: 'LT' }),
+  GreaterThan: (value: number) => ({ value: stringifyValue(value), operator: 'GT' }),
+  In: (value: any[]) => ({ values: stringifyValues(value), operator: 'IN' }),
+  After: (value: Date) => ({ value: stringifyValue(value), operator: 'GT' }),
+  Before: (value: Date) => ({ value: stringifyValue(value), operator: 'LT' }),
+  Blank: (value: any) => ({ value: stringifyValue(value), operator: 'NOT_HAS_PROPERTY' }),
   Contains: (value: any) => { throw new NotSupportedOperatorError('Contains') },
   NotContains: (value: any) => { throw new NotSupportedOperatorError('NotContains') },
   AfterXHoursAgo: (value: any) => { throw new NotSupportedOperatorError('AfterXHoursAgo') },
@@ -36,7 +37,7 @@ const OPERATOR_MAP_TRANSFORMER: { [key in Operator]: Converter} = {
   IContains: (value: any) => { throw new NotSupportedOperatorError('IContains') },
   ILike: (value: any) => { throw new NotSupportedOperatorError('ILike') },
   IEndsWith: (value: any) => { throw new NotSupportedOperatorError('IEndsWith') },
-  EndsWith: (value: string) => ({ value: stringifyValue(`*${value}`), operator: FilterOperatorEnum.Eq }),
+  EndsWith: (value: string) => ({ value: stringifyValue(`*${value}`), operator: 'EQ' }),
   Future: (value: any) => { throw new NotSupportedOperatorError('Future') },
   Like: (value: any) => { throw new NotSupportedOperatorError('Like') },
   IncludesAll: (value: any) => { throw new NotSupportedOperatorError('IncludesAll') },
@@ -60,7 +61,7 @@ const OPERATOR_MAP_TRANSFORMER: { [key in Operator]: Converter} = {
   PreviousXDaysToDate: (value: any) => { throw new NotSupportedOperatorError('PreviousXDaysToDate') },
   PreviousYear: (value: any) => { throw new NotSupportedOperatorError('PreviousYearToDate') },
   PreviousYearToDate: (value: any) => { throw new NotSupportedOperatorError('PreviousYearToDate') },
-  StartsWith: (value: string) => ({ value: stringifyValue(`${value}*`), operator: FilterOperatorEnum.Eq }),
+  StartsWith: (value: string) => ({ value: stringifyValue(`${value}*`), operator: 'EQ' }),
   Today: (value: any) => { throw new NotSupportedOperatorError('Today') },
   Yesterday: (value: any) => { throw new NotSupportedOperatorError('Yesterday') },
 }
