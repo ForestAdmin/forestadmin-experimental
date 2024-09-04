@@ -11,8 +11,6 @@ export async function createElasticsearchIndex(
 
   const exists = await client.indices.exists({ index });
 
-  console.log('exists', exists);
-
   if (!exists) {
     await client.indices.create({
       index,

@@ -123,7 +123,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           name: templateName,
         });
 
-        const templateInformation = template.body[templateName];
+        const templateInformation = template[templateName];
 
         const indexPatterns = templateInformation.index_patterns;
         const aliases = Object.keys(templateInformation.aliases);

@@ -48,11 +48,11 @@ export default class Introspector {
 
       const indexPatterns = templateInformation.index_patterns;
       const aliases = Object.keys(templateInformation.aliases);
-      const mapping = templateInformation.mappings;
+      const { mappings } = templateInformation;
       // settings refresh_interval?
 
       results.push(
-        new ModelElasticsearch(elasticsearchClient, name, indexPatterns, aliases, mapping),
+        new ModelElasticsearch(elasticsearchClient, name, indexPatterns, aliases, mappings),
       );
     }
 
