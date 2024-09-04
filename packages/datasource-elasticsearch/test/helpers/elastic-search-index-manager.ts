@@ -5,7 +5,7 @@ import ELASTICSEARCH_URL from './connection-details';
 export async function createElasticsearchIndex(
   index: string,
   data?: object[],
-  createBody?: estypes.IndicesCreateRequest,
+  mappings?: estypes.MappingTypeMapping,
 ) {
   const client = new Client({ node: ELASTICSEARCH_URL });
 
@@ -14,7 +14,7 @@ export async function createElasticsearchIndex(
   if (!exists) {
     await client.indices.create({
       index,
-      body: createBody,
+      mappings,
     });
   }
 
