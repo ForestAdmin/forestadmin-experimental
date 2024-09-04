@@ -30,6 +30,6 @@
   "devDependencies": {
     "@forestadmin/datasource-toolkit": "^1.29.0",
     "@elastic/elasticsearch": "^8.15.0",
-    "@elastic/elasticsearch-mock": "1.0.0"
+    "@elastic/elasticsearch-mock": "2.0.0"
   }
 }
