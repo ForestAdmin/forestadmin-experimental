@@ -1,4 +1,4 @@
-import { Client } from '@elastic/elasticsearch';
+import { Client, estypes } from '@elastic/elasticsearch';
 
 import ELASTICSEARCH_URL from './connection-details';
 
@@ -6,26 +6,24 @@ type Data = Record<string, unknown> & { index: string };
 
 export async function createElasticsearchTemplate(
   template: string,
-  config: { indexPattern: string; mapping: unknown; alias: string },
+  config: { indexPattern: string; mapping: estypes.MappingTypeMapping; alias: string },
   data?: Data[],
 ) {
   const client = new Client({ node: ELASTICSEARCH_URL });
 
   await client.indices.putTemplate({
     name: template,
-    body: {
-      index_patterns: [config.indexPattern],
-      mappings: config.mapping,
-      aliases: {
-        [config.alias]: {},
-      },
+    index_patterns: [config.indexPattern],
+    mappings: config.mapping,
+    aliases: {
+      [config.alias]: {},
     },
   });
 
   if (data) {
-    const body = data.flatMap(({ index, ...doc }) => [{ index: { _index: index } }, doc]);
+    const operations = data.flatMap(({ index, ...doc }) => [{ index: { _index: index } }, doc]);
 
-    return { client, items: (await client.bulk({ refresh: true, body })).body.items };
+    return { client, items: (await client.bulk({ refresh: true, operations })).items };
   }
 
   return { client, items: [] };
@@ -45,7 +43,7 @@ export async function deleteElasticsearchTemplate(template: string, indexPattern
     format: 'json',
   });
 
-  const indicesToDelete = indicesResponse.body.map(indices => indices.index);
+  const indicesToDelete = indicesResponse.map(indices => indices.index).filter(Boolean) as string[];
 
   await Promise.all(indicesToDelete.map(name => client.indices.delete({ index: name })));
 }
