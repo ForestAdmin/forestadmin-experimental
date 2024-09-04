@@ -89,7 +89,10 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
   }: ElasticsearchCollectionFromIndexOptions): this {
     this.collectionsPromises.push(
       (async () => {
-        const template = await this.elasticsearchClient.indices.getMapping({
+        const mapping = await this.elasticsearchClient.indices.getMapping({
+          index: indexName,
+        });
+        const alias = await this.elasticsearchClient.indices.getAlias({
           index: indexName,
         });
 
@@ -97,8 +100,8 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           this.elasticsearchClient,
           name,
           [indexName],
-          template.body[indexName].aliases, // aliases
-          template.body[indexName].mappings,
+          Object.keys(alias[indexName].aliases), // aliases
+          mapping[indexName].mappings,
           () => indexName,
           overrideTypeConverter,
         );

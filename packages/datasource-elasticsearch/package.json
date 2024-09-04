@@ -20,7 +20,7 @@
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
     "lint": "eslint src test",
-    "test": "docker-compose up -d; sleep 5 && jest",
+    "test": "docker compose up -d; sleep 5 && jest",
     "publish:package": "semantic-release"
   },
   "peerDependencies": {

@@ -30,7 +30,7 @@ export default class Introspector {
     /**
      * Remove elasticsearch templates - TODO make this optional
      */
-    const userTemplates = allTemplates.body.filter(
+    const userTemplates = allTemplates.filter(
       ({ name }) =>
         !/^(ilm-history|synthetics|metrics|logs|.+_audit_log|.+-index-template|\..+)$/.test(name),
     );
@@ -43,9 +43,8 @@ export default class Introspector {
       const template = await elasticsearchClient.indices.getTemplate({
         name: userTemplate.name,
       });
-      const name = Object.keys(template.body)[0];
-
-      const templateInformation = template.body[name];
+      const name = Object.keys(template)[0];
+      const templateInformation = template[name];
 
       const indexPatterns = templateInformation.index_patterns;
       const aliases = Object.keys(templateInformation.aliases);
