@@ -1,12 +1,11 @@
-import { Client } from '@elastic/elasticsearch';
-import { MappingProperty } from '@elastic/elasticsearch/api/types';
+import { Client, estypes } from '@elastic/elasticsearch';
 import { FieldSchema } from '@forestadmin/datasource-toolkit';
 
 import ModelElasticsearch from '../model-builder/model';
 
 export type OverrideTypeConverter = (field: {
   fieldName: string;
-  attribute: MappingProperty;
+  attribute: estypes.MappingProperty;
   generatedFieldSchema: FieldSchema;
 }) => void | FieldSchema;
 

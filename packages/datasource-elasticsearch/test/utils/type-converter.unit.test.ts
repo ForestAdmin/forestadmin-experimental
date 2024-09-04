@@ -1,4 +1,4 @@
-import { MappingFieldType } from '@elastic/elasticsearch/api/types';
+import { estypes } from '@elastic/elasticsearch';
 import { ColumnType, Operator } from '@forestadmin/datasource-toolkit';
 
 import TypeConverter from '../../src/utils/type-converter';
@@ -14,7 +14,7 @@ describe('Utils > TypeConverter', () => {
   });
   describe('fromDataType', () => {
     it('should throw with an unknown column type', () => {
-      expect(() => TypeConverter.fromDataType('__unknown__' as MappingFieldType)).toThrow(
+      expect(() => TypeConverter.fromDataType('__unknown__' as estypes.MappingFieldType)).toThrow(
         'Unsupported data type: "__unknown__"',
       );
     });
@@ -50,7 +50,9 @@ describe('Utils > TypeConverter', () => {
       ['date_range', 'Json'],
       ['ip_range', 'Json'],
     ])('should return a PrimitiveTypes when known for type "%s"', (dataType, primitiveType) => {
-      expect(TypeConverter.fromDataType(dataType as MappingFieldType)).toEqual(primitiveType);
+      expect(TypeConverter.fromDataType(dataType as estypes.MappingFieldType)).toEqual(
+        primitiveType,
+      );
     });
 
     it.each([
@@ -67,7 +69,7 @@ describe('Utils > TypeConverter', () => {
       ['percolator'],
       ['completion'],
     ])('should throw an error with an unsupported data type %s', dataType => {
-      expect(() => TypeConverter.fromDataType(dataType as MappingFieldType)).toThrow(
+      expect(() => TypeConverter.fromDataType(dataType as estypes.MappingFieldType)).toThrow(
         `Unsupported data type: "${dataType}"`,
       );
     });

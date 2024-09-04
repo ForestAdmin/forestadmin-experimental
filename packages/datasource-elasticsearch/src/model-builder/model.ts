@@ -1,6 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import { Client } from '@elastic/elasticsearch';
-import { MappingTypeMapping } from '@elastic/elasticsearch/api/types';
+import { Client, estypes } from '@elastic/elasticsearch';
 import { RecordData } from '@forestadmin/datasource-toolkit';
 
 import { OverrideTypeConverter } from '../introspection/builder';
@@ -30,7 +29,7 @@ export default class ModelElasticsearch {
    *
    * https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-types.html
    */
-  private mapping: MappingTypeMapping;
+  private mapping: estypes.MappingTypeMapping;
 
   private generateIndexName: (record?: unknown) => string;
 
@@ -45,7 +44,7 @@ export default class ModelElasticsearch {
     name: string,
     indexPatterns: string[],
     aliases: string[],
-    mapping: MappingTypeMapping,
+    mapping: estypes.MappingTypeMapping,
     generateIndexName?: (record?: unknown) => string,
     overrideTypeConverter?: OverrideTypeConverter,
     enableCount?: boolean,
@@ -72,7 +71,7 @@ export default class ModelElasticsearch {
       });
     }
 
-    const body = data.flatMap(newRecord => [
+    const operations = data.flatMap(newRecord => [
       {
         // Strategies
         // - create fails if a document with the same ID already exists in the target
@@ -84,11 +83,11 @@ export default class ModelElasticsearch {
     ]);
 
     const bulkResponse = await this.elasticsearchClient.bulk({
-      body,
+      operations,
       refresh: true,
     });
 
-    return bulkResponse.body.items.map((item, index) =>
+    return bulkResponse.items.map((item, index) =>
       Serializer.serialize({
         _id: item.index._id,
         ...data[index],
@@ -107,7 +106,7 @@ export default class ModelElasticsearch {
       _source: false,
     });
 
-    const body = recordsToUpdate.reduce<Array<unknown>>((acc, { _id: id, _index: index }) => {
+    const operations = recordsToUpdate.reduce<Array<unknown>>((acc, { _id: id, _index: index }) => {
       acc.push({
         update: {
           _index: index,
@@ -122,7 +121,7 @@ export default class ModelElasticsearch {
     }, []);
 
     await this.elasticsearchClient.bulk({
-      body,
+      operations,
       refresh: true,
     });
   }
@@ -138,7 +137,7 @@ export default class ModelElasticsearch {
       _source: false,
     });
 
-    const body = recordsToUpdate.map(({ _id: id, _index: index }) => ({
+    const operations = recordsToUpdate.map(({ _id: id, _index: index }) => ({
       delete: {
         _index: index,
         _id: id,
@@ -146,7 +145,7 @@ export default class ModelElasticsearch {
     }));
 
     await this.elasticsearchClient.bulk({
-      body,
+      operations,
       refresh: true,
     });
   }
@@ -167,7 +166,7 @@ export default class ModelElasticsearch {
       size: limit,
     });
 
-    return response.body.hits.hits.map(hit => {
+    return response.hits.hits.map(hit => {
       return Serializer.serialize({
         _id: hit._id,
         _index: hit._index,
@@ -187,7 +186,7 @@ export default class ModelElasticsearch {
       body: searchBody,
     });
 
-    return response.body.aggregations;
+    return response.aggregations;
   }
 
   // INTERNAL USAGES

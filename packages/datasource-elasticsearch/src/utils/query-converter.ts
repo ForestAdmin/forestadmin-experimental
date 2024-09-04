@@ -1,8 +1,4 @@
-import {
-  QueryDslBoolQuery,
-  QueryDslQueryContainer,
-  SortCombinations,
-} from '@elastic/elasticsearch/api/types';
+import { estypes } from '@elastic/elasticsearch';
 import {
   ConditionTree,
   ConditionTreeBranch,
@@ -20,7 +16,7 @@ export default class QueryConverter {
     field: string,
     operator: Operator,
     value?: unknown,
-  ): QueryDslQueryContainer {
+  ): estypes.QueryDslQueryContainer {
     const values = Array.isArray(value) ? value : [value];
 
     switch (operator) {
@@ -137,7 +133,7 @@ export default class QueryConverter {
 
   private getQueryDslQueryContainersFromConditionTree(
     conditionTree?: ConditionTree,
-  ): QueryDslQueryContainer {
+  ): estypes.QueryDslQueryContainer {
     if ((conditionTree as ConditionTreeBranch).aggregator !== undefined) {
       const { aggregator, conditions } = conditionTree as ConditionTreeBranch;
 
@@ -175,15 +171,15 @@ export default class QueryConverter {
 
   public getBoolQueryFromConditionTree(
     conditionTree?: ConditionTree,
-  ): QueryDslBoolQuery | QueryDslQueryContainer {
+  ): estypes.QueryDslBoolQuery | estypes.QueryDslQueryContainer {
     if (!conditionTree) return { match_all: {} };
 
     return this.getQueryDslQueryContainersFromConditionTree(conditionTree);
   }
 
-  public getOrderFromSort(sort?: Sort): SortCombinations[] {
+  public getOrderFromSort(sort?: Sort): estypes.SortCombinations[] {
     return (sort ?? []).map(
-      ({ field, ascending }: { field: string; ascending: boolean }): SortCombinations => {
+      ({ field, ascending }: { field: string; ascending: boolean }): estypes.SortCombinations => {
         const path = field.replace(/:/g, '.');
 
         return { [path]: { order: ascending ? 'asc' : 'desc' } };
