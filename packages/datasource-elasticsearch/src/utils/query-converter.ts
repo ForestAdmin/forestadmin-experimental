@@ -182,6 +182,8 @@ export default class QueryConverter {
       ({ field, ascending }: { field: string; ascending: boolean }): estypes.SortCombinations => {
         const path = field.replace(/:/g, '.');
 
+        if (path === '_id') throw new Error('Unsupported sorting on _id');
+
         return { [path]: { order: ascending ? 'asc' : 'desc' } };
       },
     );
