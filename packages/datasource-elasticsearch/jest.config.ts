@@ -5,4 +5,6 @@ export default {
   ...jestConfig,
   collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
   testMatch: ['<rootDir>/test/**/*.test.ts'],
+  testTimeout: 10_000,
+  maxWorkers: 1,
 };
