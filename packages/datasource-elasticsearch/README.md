@@ -13,7 +13,7 @@ For example, all 8.15+ clients will work with a @forestadmin-experimental/dataso
 | Elasticsearch Version | Supported by |
 | --------------------- | ------------ |
 | 8.x                   | 1.x          |
-| 7.x                   | 0.x         |
+| 7.x                   | 0.x          |
 
 
 ## Usage
