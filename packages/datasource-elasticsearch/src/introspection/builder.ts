@@ -74,6 +74,9 @@ export interface ElasticsearchDatasourceOptionsBuilder {
   }: ElasticsearchCollectionFromTemplateOptions): this;
 }
 
+/**
+ * Builder pattern to ease adding collection from Elastic search
+ */
 export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOptionsBuilder {
   private readonly elasticsearchClient: Client;
 
@@ -135,6 +138,9 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
     return this;
   }
 
+  /**
+   * Internal usages only the client only sees ElasticsearchDatasourceOptionsBuilder interface
+   */
   public async createCollectionsFromConfiguration() {
     return Promise.all(this.collectionsPromises);
   }
