@@ -1,6 +1,7 @@
 import { Client, estypes } from '@elastic/elasticsearch';
 import { FieldSchema } from '@forestadmin/datasource-toolkit';
 
+import introspectTemplate from './template-introspector';
 import ModelElasticsearch from '../model-builder/model';
 
 export type OverrideTypeConverter = (field: {
@@ -119,25 +120,15 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
   }: ElasticsearchCollectionFromTemplateOptions): this {
     this.collectionsPromises.push(
       (async () => {
-        const template = await this.elasticsearchClient.indices.getTemplate({
-          name: templateName,
-        });
-
-        const templateInformation = template[templateName];
-
-        const indexPatterns = templateInformation.index_patterns;
-        const aliases = Object.keys(templateInformation.aliases);
-        const { mappings } = templateInformation;
-
-        return new ModelElasticsearch(
+        const modelFromTemplate = await introspectTemplate(
           this.elasticsearchClient,
+          templateName,
           name,
-          indexPatterns,
-          aliases,
-          mappings,
           typeof generateIndexName === 'string' ? () => generateIndexName : generateIndexName,
           overrideTypeConverter,
         );
+
+        return modelFromTemplate;
       })(),
     );
 

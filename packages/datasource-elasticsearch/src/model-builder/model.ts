@@ -31,9 +31,9 @@ export default class ModelElasticsearch {
    */
   private mapping: estypes.MappingTypeMapping;
 
-  private generateIndexName: (record?: unknown) => string;
-
   private elasticsearchClient: Client;
+
+  public generateIndexName: (record?: unknown) => string;
 
   public overrideTypeConverter?: OverrideTypeConverter;
 

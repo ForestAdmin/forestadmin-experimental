@@ -1,7 +1,9 @@
+/* eslint-disable no-await-in-loop */
 // eslint-disable-next-line max-classes-per-file
 import { Client } from '@elastic/elasticsearch';
 import { Logger } from '@forestadmin/datasource-toolkit';
 
+import introspectTemplate from './template-introspector';
 import ModelElasticsearch from '../model-builder/model';
 
 export default class Introspector {
@@ -32,31 +34,26 @@ export default class Introspector {
      */
     const userTemplates = allTemplates.filter(
       ({ name }) =>
-        !/^(ilm-history|synthetics|metrics|logs|.+_audit_log|.+-index-template|\..+)$/.test(name),
+        // eslint-disable-next-line max-len
+        !/^((ilm-history|synthetics|metrics|logs|.+_audit_log|.+-index-template|\.|elastic-connectors|apm-source-map|traces-apm).*|entities_v1_index_template|search-acl-filter|behavioral_analytics-events-default)$/.test(
+          name,
+        ),
     );
 
     /**
      * Get all templates information
      */
     for (const userTemplate of userTemplates) {
-      // eslint-disable-next-line no-await-in-loop
-      const template = await elasticsearchClient.indices.getTemplate({
-        name: userTemplate.name,
-      });
-      const name = Object.keys(template)[0];
-      const templateInformation = template[name];
-
-      const indexPatterns = templateInformation.index_patterns;
-      const aliases = Object.keys(templateInformation.aliases);
-      const { mappings } = templateInformation;
-      // settings refresh_interval?
-
-      results.push(
-        new ModelElasticsearch(elasticsearchClient, name, indexPatterns, aliases, mappings),
-      );
+      const modelFromTemplate = await introspectTemplate(elasticsearchClient, userTemplate.name);
+      results.push(modelFromTemplate);
     }
 
-    logger?.('Info', 'Introspector - All templates loaded');
+    logger?.(
+      'Info',
+      `Introspector - The following templates have been loaded: ${userTemplates
+        .map(({ name }) => name)
+        .join(',')}`,
+    );
 
     return results;
   }

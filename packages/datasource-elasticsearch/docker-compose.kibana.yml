@@ -1,0 +1,20 @@
+# KIBANA - Kibana is a useful tools that lets you visualize your Elasticsearch data.
+# How to use it ?
+# docker compose -f docker-compose.yml -f docker-compose.kibana.yml up -d
+# or just
+# docker compose -f docker-compose.kibana.yml up -d
+services:
+  kibana_test:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: forest_kibana_test
+    ports:
+      - 5602:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch_test:9200
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch_test:9200"]'
+    networks:
+      - elastic-network-test
+
+networks:
+  elastic-network-test:
+    driver: bridge
