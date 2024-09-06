@@ -178,14 +178,17 @@ export default class QueryConverter {
   }
 
   public getOrderFromSort(sort?: Sort): estypes.SortCombinations[] {
-    return (sort ?? []).map(
-      ({ field, ascending }: { field: string; ascending: boolean }): estypes.SortCombinations => {
-        const path = field.replace(/:/g, '.');
+    return (sort ?? [])
+      .map(
+        ({ field, ascending }: { field: string; ascending: boolean }): estypes.SortCombinations => {
+          const path = field.replace(/:/g, '.');
 
-        if (path === '_id') throw new Error('Unsupported sorting on _id');
+          // In this case it should use the default sort of the index settings
+          if (path === '_id') return null;
 
-        return { [path]: { order: ascending ? 'asc' : 'desc' } };
-      },
-    );
+          return { [path]: { order: ascending ? 'asc' : 'desc' } };
+        },
+      )
+      .filter(Boolean);
   }
 }
