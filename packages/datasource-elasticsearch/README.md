@@ -2,9 +2,24 @@ The elastic search data source allows importing collections from an elastic sear
 
 To make everything work as expected, you need to install the package `@forestadmin-experimental/datasource-elasticsearch`.
 
+## Compatibility
+
+Language clients are forward compatible; meaning that clients support
+communicating with greater or equal minor versions of Elasticsearch without
+breaking. Elasticsearch language clients are only backwards
+compatible with default distributions and without guarantees made.
+For example, all 8.15+ clients will work with a @forestadmin-experimental/datasource-elasticsearch v1.0.
+
+| Elasticsearch Version | Supported by |
+| --------------------- | ------------ |
+| 8.x                   | 1.x          |
+| 7.x                   | 0.x         |
+
+
+## Usage
+
 Note that:
 
-- It has been developed with version 7 in mind. Support for elastic search v8 will come later.
 - Joins are not supported at the moment
 - Object (sub-model in models) are not supported at the moment
 - Points are not supported at the moment
