@@ -29,5 +29,6 @@ export async function createElasticsearchIndex(
 
 export async function deleteElasticsearchIndex(index: string) {
   const client = new Client({ node: ELASTICSEARCH_URL });
-  await client.indices.delete({ index });
+
+  if (await client.indices.exists({ index })) await client.indices.delete({ index });
 }

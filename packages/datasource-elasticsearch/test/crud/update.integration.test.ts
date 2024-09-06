@@ -82,8 +82,15 @@ describe('Collection > CRUD > update', () => {
         new Projection('_id', 'user', 'text'),
       );
 
-      results.forEach(result =>
-        expect(result).toMatchObject(expect.objectContaining({ text: 'Update everything' })),
+      expect(results).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ text: 'Update everything', user: 'jon' }),
+          expect.objectContaining({ text: 'Update everything', user: 'ned' }),
+          expect.objectContaining({ text: 'Update everything', user: 'tyrion' }),
+          expect.objectContaining({ text: 'Update everything', user: 'daenerys' }),
+          expect.objectContaining({ text: 'Update everything', user: 'arya' }),
+          expect.objectContaining({ text: 'Update everything', user: 'ilyn' }),
+        ]),
       );
     });
   });
