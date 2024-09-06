@@ -1,9 +1,5 @@
 /* eslint-disable max-len */
-import {
-  MappingFieldType,
-  MappingJoinProperty,
-  MappingProperty,
-} from '@elastic/elasticsearch/api/types';
+import { estypes } from '@elastic/elasticsearch';
 import {
   CollectionSchema,
   ColumnSchema,
@@ -54,7 +50,7 @@ export default class ModelToCollectionSchemaConverter {
 
   private static convertAssociations(
     modelName: string,
-    associations: MappingJoinProperty,
+    associations: estypes.MappingJoinProperty,
     logger: Logger,
   ): CollectionSchema['fields'] {
     const schemaAssociations = {};
@@ -73,8 +69,8 @@ export default class ModelToCollectionSchemaConverter {
     return schemaAssociations;
   }
 
-  private static convertAttribute(attribute: MappingProperty): FieldSchema {
-    const elasticsearchColumnType = attribute.type as MappingFieldType;
+  private static convertAttribute(attribute: estypes.MappingProperty): FieldSchema {
+    const elasticsearchColumnType = attribute.type as estypes.MappingFieldType;
     const columnType = TypeConverter.fromDataType(elasticsearchColumnType);
     const filterOperators = TypeConverter.operatorsForColumnType(columnType);
     const isSortable = TypeConverter.isSortable(elasticsearchColumnType);
@@ -93,7 +89,7 @@ export default class ModelToCollectionSchemaConverter {
 
   private static convertAttributes(
     modelName: string,
-    attributes: Record<string, MappingProperty>,
+    attributes: Record<string, estypes.MappingProperty>,
     overrideTypeConverter: OverrideTypeConverter,
     logger: Logger,
   ): CollectionSchema['fields'] {
@@ -103,7 +99,11 @@ export default class ModelToCollectionSchemaConverter {
       try {
         if (attribute.type === 'join') {
           Object.assign(fields, {
-            ...this.convertAssociations(modelName, attribute as MappingJoinProperty, logger),
+            ...this.convertAssociations(
+              modelName,
+              attribute as estypes.MappingJoinProperty,
+              logger,
+            ),
           });
         } else {
           fields[name] = this.getFieldSchemaOrOverride(name, attribute, overrideTypeConverter);
@@ -135,7 +135,7 @@ export default class ModelToCollectionSchemaConverter {
 
   private static getFieldSchemaOrOverride(
     fieldName: string,
-    attribute: MappingProperty,
+    attribute: estypes.MappingProperty,
     overrideTypeConverter?: OverrideTypeConverter,
   ): FieldSchema {
     const field = ModelToCollectionSchemaConverter.convertAttribute(attribute);

@@ -1,15 +1,15 @@
-import { MappingFieldType } from '@elastic/elasticsearch/api/types';
+import { estypes } from '@elastic/elasticsearch';
 import { ColumnType, Operator, PrimitiveTypes } from '@forestadmin/datasource-toolkit';
 
 export default class TypeConverter {
-  public static fromDataType(dataType: MappingFieldType): ColumnType {
+  public static fromDataType(dataType: estypes.MappingFieldType): ColumnType {
     return TypeConverter.getColumnTypeFromDataType(dataType);
   }
 
   /**
    * https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-types.html#mapping-types
    */
-  private static getColumnTypeFromDataType(dataType: MappingFieldType): PrimitiveTypes {
+  private static getColumnTypeFromDataType(dataType: estypes.MappingFieldType): PrimitiveTypes {
     switch (dataType) {
       case 'boolean':
         return 'Boolean';
@@ -63,7 +63,7 @@ export default class TypeConverter {
     }
   }
 
-  public static isSortable(dataType: MappingFieldType): boolean {
+  public static isSortable(dataType: estypes.MappingFieldType): boolean {
     return dataType !== 'text';
   }
 

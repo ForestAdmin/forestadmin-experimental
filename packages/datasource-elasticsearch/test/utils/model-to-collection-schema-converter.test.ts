@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Client } from '@elastic/elasticsearch';
-import { MappingProperty } from '@elastic/elasticsearch/api/types';
+import { Client, estypes } from '@elastic/elasticsearch';
 import MockClient from '@elastic/elasticsearch-mock';
 import { CollectionSchema, ColumnSchema } from '@forestadmin/datasource-toolkit';
 
@@ -12,7 +11,7 @@ describe('Utils > ModelToCollectionSchemaConverter', () => {
   describe('convert', () => {
     const logger = () => {};
 
-    const setup = (properties: Record<string, MappingProperty> = {}) => {
+    const setup = (properties: Record<string, estypes.MappingProperty> = {}) => {
       const mockClient = new MockClient();
       const client = new Client({
         node: 'http://localhost:9200',

@@ -18,24 +18,24 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.14.0
+          node-version: 18.20.1
       - name: Install
-        run: yarn 
+        run: yarn
       - name: Lint, Test & Build on branch
-        if: github.ref != 'refs/heads/main' 
+        if: github.ref != 'refs/heads/main'
         run: npx nx affected --base=origin/main -t lint test build
       - name: Lint, Test & Build on main
         if: |
-          github.event_name == 'push' 
+          github.event_name == 'push'
           && (
-            github.ref == 'refs/heads/main' 
+            github.ref == 'refs/heads/main'
           )
         run: npx nx affected --base=HEAD~1 -t lint test build
       - name: Publish from main
         if: |
-          github.event_name == 'push' 
+          github.event_name == 'push'
           && (
-            github.ref == 'refs/heads/main' 
+            github.ref == 'refs/heads/main'
           )
         run: npx nx affected --base=HEAD~1 -t publish:package
         env:

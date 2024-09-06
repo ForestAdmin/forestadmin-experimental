@@ -1,12 +1,12 @@
-import { Client } from '@elastic/elasticsearch';
-import { MappingProperty } from '@elastic/elasticsearch/api/types';
+import { Client, estypes } from '@elastic/elasticsearch';
 import { FieldSchema } from '@forestadmin/datasource-toolkit';
 
+import introspectTemplate from './template-introspector';
 import ModelElasticsearch from '../model-builder/model';
 
 export type OverrideTypeConverter = (field: {
   fieldName: string;
-  attribute: MappingProperty;
+  attribute: estypes.MappingProperty;
   generatedFieldSchema: FieldSchema;
 }) => void | FieldSchema;
 
@@ -90,7 +90,10 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
   }: ElasticsearchCollectionFromIndexOptions): this {
     this.collectionsPromises.push(
       (async () => {
-        const template = await this.elasticsearchClient.indices.getMapping({
+        const mapping = await this.elasticsearchClient.indices.getMapping({
+          index: indexName,
+        });
+        const alias = await this.elasticsearchClient.indices.getAlias({
           index: indexName,
         });
 
@@ -98,8 +101,8 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           this.elasticsearchClient,
           name,
           [indexName],
-          template.body[indexName].aliases, // aliases
-          template.body[indexName].mappings,
+          Object.keys(alias[indexName].aliases), // aliases
+          mapping[indexName].mappings,
           () => indexName,
           overrideTypeConverter,
         );
@@ -117,25 +120,15 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
   }: ElasticsearchCollectionFromTemplateOptions): this {
     this.collectionsPromises.push(
       (async () => {
-        const template = await this.elasticsearchClient.indices.getTemplate({
-          name: templateName,
-        });
-
-        const templateInformation = template.body[templateName];
-
-        const indexPatterns = templateInformation.index_patterns;
-        const aliases = Object.keys(templateInformation.aliases);
-        const { mappings } = templateInformation;
-
-        return new ModelElasticsearch(
+        const modelFromTemplate = await introspectTemplate(
           this.elasticsearchClient,
+          templateName,
           name,
-          indexPatterns,
-          aliases,
-          mappings,
           typeof generateIndexName === 'string' ? () => generateIndexName : generateIndexName,
           overrideTypeConverter,
         );
+
+        return modelFromTemplate;
       })(),
     );
 

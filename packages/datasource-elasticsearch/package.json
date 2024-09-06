@@ -25,11 +25,11 @@
   },
   "peerDependencies": {
     "@forestadmin/datasource-toolkit": "^1.29.0",
-    "@elastic/elasticsearch": ">= 7.16.0 < 8"
+    "@elastic/elasticsearch": ">= 8.15.0 < 9"
   },
   "devDependencies": {
     "@forestadmin/datasource-toolkit": "^1.29.0",
-    "@elastic/elasticsearch": "^7.16.0",
-    "@elastic/elasticsearch-mock": "1.0.0"
+    "@elastic/elasticsearch": "^8.15.0",
+    "@elastic/elasticsearch-mock": "2.0.0"
   }
 }

@@ -1,28 +1,27 @@
-import { Client } from '@elastic/elasticsearch';
-import { RequestBody } from '@elastic/elasticsearch/lib/Transport';
+import { Client, estypes } from '@elastic/elasticsearch';
 
 import ELASTICSEARCH_URL from './connection-details';
 
 export async function createElasticsearchIndex(
   index: string,
   data?: object[],
-  createBody?: RequestBody,
+  mappings?: estypes.MappingTypeMapping,
 ) {
   const client = new Client({ node: ELASTICSEARCH_URL });
 
   const exists = await client.indices.exists({ index });
 
-  if (!exists.body) {
+  if (!exists) {
     await client.indices.create({
       index,
-      body: createBody,
+      mappings,
     });
   }
 
   if (data) {
-    const body = data.flatMap(doc => [{ index: { _index: index } }, doc]);
+    const operations = data.flatMap(doc => [{ index: { _index: index } }, doc]);
 
-    return { client, items: (await client.bulk({ refresh: true, body })).body.items };
+    return { client, items: (await client.bulk({ refresh: true, operations })).items };
   }
 
   return { client, items: [] };

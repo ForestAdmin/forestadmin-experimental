@@ -1,4 +1,4 @@
-import { AggregationsAggregationContainer, double } from '@elastic/elasticsearch/api/types';
+import { estypes } from '@elastic/elasticsearch';
 import {
   AggregateResult,
   Aggregation,
@@ -32,7 +32,7 @@ export default class AggregationUtils {
     aggregation: Aggregation,
     filter: unknown,
     limit?: number,
-  ): Record<string, AggregationsAggregationContainer> {
+  ): Record<string, estypes.AggregationsAggregationContainer> {
     const metricsAggregations = this.computeValue(aggregation, filter);
     const groupsAggregations = this.computeGroups(aggregation, limit);
 
@@ -49,7 +49,7 @@ export default class AggregationUtils {
   private static computeValue(
     aggregation: Aggregation,
     filter?: unknown,
-  ): AggregationsAggregationContainer {
+  ): estypes.AggregationsAggregationContainer {
     if (!aggregation.field) {
       // TODO TEST: Rework -> doc_count is computed in every search responses no need
       // to put back the filter in here
@@ -112,7 +112,7 @@ export default class AggregationUtils {
         key_as_string: string;
         key: string;
         doc_count: number;
-        operation?: { doc_count: number; value: number | double };
+        operation?: { doc_count: number; value: number | estypes.double };
       }[];
     };
 
@@ -136,7 +136,7 @@ export default class AggregationUtils {
         return (aggregationResults as { doc_count: number })?.doc_count;
 
       default:
-        return (aggregationResults as { value: number | double })?.value;
+        return (aggregationResults as { value: number | estypes.double })?.value;
     }
   }
 }
