@@ -17,8 +17,6 @@ services:
         hard: -1
     networks:
       - elastic-network-test
-    volumes:
-      - /Users/morganperre/snap:/usr/share/elasticsearch/snap
 
 networks:
   elastic-network-test:
