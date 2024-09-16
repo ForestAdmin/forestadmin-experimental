@@ -1,5 +1,4 @@
 import type { ActionContext, CollectionCustomizerFunction, TestableAction } from './types';
-import type { DynamicField } from '@forestadmin/datasource-customizer/';
 
 export function getAddedAction(
   collectionCustomizerFunction: CollectionCustomizerFunction,
@@ -21,15 +20,51 @@ export function getAddedAction(
   return action;
 }
 
-export function getFormFieldAction(action: TestableAction, label: string): DynamicField<any> {
-  return action.definition.form.find(field => field.label === label) as DynamicField<any>;
+export function getFormFieldAction<T>(action: TestableAction, label: string): T {
+  if (!action.definition.form) return null;
+
+  if (action.definition.form instanceof Function) {
+    throw new Error('Use getDynamicFormFieldAction function helper');
+  }
+
+  return action.definition.form.find(field => field.label === label) as unknown as T;
+}
+
+export async function getDynamicFormFieldAction<T>(
+  action: TestableAction,
+  label: string,
+  actionContext: ActionContext,
+): Promise<T> {
+  if (!action.definition.form) return null;
+
+  if (!(action.definition.form instanceof Function)) {
+    throw new Error('Use getFormFieldAction function helper');
+  }
+
+  return (await action.definition.form(actionContext)).find(
+    field => field.label === label,
+  ) as unknown as T;
 }
 
 export function getFormFieldValueAction<ReturnType>(
   action: TestableAction,
   label: string,
 ): (actionContext: ActionContext) => Promise<ReturnType> {
-  return getFormFieldAction(action, label).value as (
-    actionContext: ActionContext,
-  ) => Promise<ReturnType>;
+  return (
+    getFormFieldAction(action, label) as {
+      value: (actionContext: ActionContext) => Promise<ReturnType>;
+    }
+  ).value;
+}
+
+export async function getDynamicFormFieldValueAction<ReturnType>(
+  action: TestableAction,
+  label: string,
+  actionContext: ActionContext,
+): Promise<(actionContext: ActionContext) => Promise<ReturnType>> {
+  return (
+    (await getDynamicFormFieldAction(action, label, actionContext)) as {
+      value: (actionContext: ActionContext) => Promise<ReturnType>;
+    }
+  ).value;
 }
