@@ -1,5 +1,8 @@
 import type { ActionContext, CollectionCustomizerFunction, TestableAction } from './types';
 
+/**
+ * Return a TestableAction allowing you to unit test action definition
+ */
 export function getAddedAction(
   collectionCustomizerFunction: CollectionCustomizerFunction,
   ...args: any[]
