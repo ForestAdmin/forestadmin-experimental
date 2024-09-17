@@ -59,6 +59,12 @@ export function getFormFieldValueAction<ReturnType>(
   action: TestableAction,
   label: string,
 ): (actionContext: ActionContext) => Promise<ReturnType> {
+  if (!action.definition.form) return null;
+
+  if (action.definition.form instanceof Function) {
+    throw new Error('Use getDynamicFormFieldValueAction function helper');
+  }
+
   return (
     getFormFieldAction(action, label) as {
       value: (actionContext: ActionContext) => Promise<ReturnType>;
@@ -71,6 +77,12 @@ export async function getDynamicFormFieldValueAction<ReturnType>(
   label: string,
   actionContext: ActionContext,
 ): Promise<(actionContext: ActionContext) => Promise<ReturnType>> {
+  if (!action.definition.form) return null;
+
+  if (!(action.definition.form instanceof Function)) {
+    throw new Error('Use getFormFieldValueAction function helper');
+  }
+
   return (
     (await getDynamicFormFieldAction(action, label, actionContext)) as {
       value: (actionContext: ActionContext) => Promise<ReturnType>;
