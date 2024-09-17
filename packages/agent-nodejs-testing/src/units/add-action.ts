@@ -23,6 +23,9 @@ export function getAddedAction(
   return action;
 }
 
+/**
+ * Static Form field accessor
+ */
 export function getFormFieldAction<T>(action: TestableAction, label: string): T {
   if (!action.definition.form) return null;
 
@@ -33,6 +36,9 @@ export function getFormFieldAction<T>(action: TestableAction, label: string): T 
   return action.definition.form.find(field => field.label === label) as unknown as T;
 }
 
+/**
+ * Dynamic Form field accessor
+ */
 export async function getDynamicFormFieldAction<T>(
   action: TestableAction,
   label: string,
