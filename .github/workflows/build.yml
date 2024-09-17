@@ -11,19 +11,28 @@ jobs:
   build:
     name: Installing & Building
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
         with:
           fetch-depth: 0
+          persist-credentials: false # GITHUB_TOKEN must not be set for the semantic release
+          # https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/ci-configurations/github-actions.md#pushing-packagejson-changes-to-your-repository
       - uses: actions/setup-node@v3
         with:
           node-version: 18.20.1
+
       - name: Install
         run: yarn
+
       - name: Lint, Test & Build on branch
         if: github.ref != 'refs/heads/main'
         run: npx nx affected --base=origin/main -t lint test build
+
       - name: Lint, Test & Build on main
         if: |
           github.event_name == 'push'
@@ -31,6 +40,7 @@ jobs:
             github.ref == 'refs/heads/main'
           )
         run: npx nx affected --base=HEAD~1 -t lint test build
+
       - name: Publish from main
         if: |
           github.event_name == 'push'
