@@ -1,5 +1,11 @@
 import type { ActionContext, CollectionCustomizerFunction, TestableAction } from './types';
 
+import { ActionContextSingle, DynamicField, TSchema } from '@forestadmin/datasource-customizer';
+
+function getFieldId(field: DynamicField<ActionContextSingle<TSchema, string>>) {
+  return 'id' in field && field.id ? field.id : field.label;
+}
+
 /**
  * Return a TestableAction allowing you to unit test action definition
  */
@@ -26,14 +32,14 @@ export function getAddedAction(
 /**
  * Static Form field accessor
  */
-export function getFormFieldAction<T>(action: TestableAction, label: string): T {
+export function getFormFieldAction<T>(action: TestableAction, id: string): T {
   if (!action.definition.form) return null;
 
   if (action.definition.form instanceof Function) {
     throw new Error('Use getDynamicFormFieldAction function helper');
   }
 
-  return action.definition.form.find(field => field.label === label) as unknown as T;
+  return action.definition.form.find(field => getFieldId(field) === id) as unknown as T;
 }
 
 /**
@@ -41,7 +47,7 @@ export function getFormFieldAction<T>(action: TestableAction, label: string): T 
  */
 export async function getDynamicFormFieldAction<T>(
   action: TestableAction,
-  label: string,
+  id: string,
   actionContext: ActionContext,
 ): Promise<T> {
   if (!action.definition.form) return null;
@@ -51,13 +57,13 @@ export async function getDynamicFormFieldAction<T>(
   }
 
   return (await action.definition.form(actionContext)).find(
-    field => field.label === label,
+    field => getFieldId(field) === id,
   ) as unknown as T;
 }
 
 export function getFormFieldValueAction<ReturnType>(
   action: TestableAction,
-  label: string,
+  id: string,
 ): (actionContext: ActionContext) => Promise<ReturnType> {
   if (!action.definition.form) return null;
 
@@ -66,7 +72,7 @@ export function getFormFieldValueAction<ReturnType>(
   }
 
   return (
-    getFormFieldAction(action, label) as {
+    getFormFieldAction(action, id) as {
       value: (actionContext: ActionContext) => Promise<ReturnType>;
     }
   ).value;
@@ -74,7 +80,7 @@ export function getFormFieldValueAction<ReturnType>(
 
 export async function getDynamicFormFieldValueAction<ReturnType>(
   action: TestableAction,
-  label: string,
+  id: string,
   actionContext: ActionContext,
 ): Promise<(actionContext: ActionContext) => Promise<ReturnType>> {
   if (!action.definition.form) return null;
@@ -84,7 +90,7 @@ export async function getDynamicFormFieldValueAction<ReturnType>(
   }
 
   return (
-    (await getDynamicFormFieldAction(action, label, actionContext)) as {
+    (await getDynamicFormFieldAction(action, id, actionContext)) as {
       value: (actionContext: ActionContext) => Promise<ReturnType>;
     }
   ).value;
