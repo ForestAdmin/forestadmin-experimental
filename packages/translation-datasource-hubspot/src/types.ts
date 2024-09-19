@@ -1,14 +1,15 @@
-export interface HubSpotDataSourceOptions {
-  hubSpotToken: string,
-}
+import type { Property } from '@hubspot/api-client/lib/codegen/crm/properties';
 
-export const HUBSPOT_COMMON_COLLECTIONS_TO_API = {
-  companies: 'companies',
-  contacts: 'contacts',
-  deals: 'deals',
-  feedback_submissions: 'feedbackSubmissions',
-  line_items: 'lineItems',
-  products: 'products',
-  quotes:'quotes',
-  tickets: 'tickets',
-}
+export type Introspection = {
+  [collectionName: string]: CollectionIntrospection;
+};
+
+export type CollectionIntrospection = {
+  apiPath: string;
+  fields: FieldsIntrospection;
+  isCustom: boolean;
+};
+
+export type FieldsIntrospection = Property[];
+
+export type HubSpotOptions = { accessToken: string; collections: { [name: string]: string[] } };

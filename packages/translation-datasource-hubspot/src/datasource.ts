@@ -1,19 +1,26 @@
-import {BaseDataSource, type DataSourceFactory, Logger} from '@forestadmin/datasource-toolkit';
+import type { CollectionIntrospection, Introspection } from './types';
+
+import { BaseDataSource, Logger } from '@forestadmin/datasource-toolkit';
 import { Client } from '@hubspot/api-client';
-import UsersCollection from "./collections/users";
-import HubspotClient from "./services/hubspot-client";
-import errorHandler from "./utils/error-handler";
-import CommonCollection from "./collections/common";
-import { HubSpotDataSourceOptions } from "./types";
+
+import HubSpotCommonCollection from './collection/common';
+import HubSpotCustomCollection from './collection/custom';
+import HubSpotOwnerCollection from './collection/owner';
 
 export default class HubSpotDatasource extends BaseDataSource {
-  constructor(options: HubSpotDataSourceOptions, schema: { [key: string]: any[]}, logger?: Logger) {
+  constructor(client: Client, schema: Introspection, logger: Logger) {
     super();
 
-    const hubspotClient = new Client({ accessToken: options.hubSpotToken })
-    this.addCollection(new UsersCollection(this, hubspotClient));
-    Object.keys(schema).forEach(collectionName => this.addCollection(new CommonCollection(this, collectionName, schema[collectionName], logger)))
+    Object.entries(schema).forEach(([collectionName, s]: [string, CollectionIntrospection]) => {
+      const CollectionCtor = s.isCustom ? HubSpotCustomCollection : HubSpotCommonCollection;
 
-    logger?.('Info', 'HubSpot DataSource - Built');
+      this.addCollection(
+        new CollectionCtor(this, client, collectionName, s.apiPath, s.fields, logger),
+      );
+    });
+
+    this.addCollection(new HubSpotOwnerCollection(this, client, 'owners', null, null, logger));
+
+    logger('Info', 'HubSpot DataSource - Built');
   }
 }

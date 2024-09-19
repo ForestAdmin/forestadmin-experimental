@@ -1,0 +1,161 @@
+import {
+  AggregateResult,
+  BaseCollection,
+  Caller,
+  ColumnType,
+  ConditionTreeLeaf,
+  DataSource,
+  FieldSchema,
+  Logger,
+  PaginatedFilter,
+  Projection,
+  RecordData,
+} from '@forestadmin/datasource-toolkit';
+import { Client } from '@hubspot/api-client';
+import { PublicObjectSearchRequest } from '@hubspot/api-client/lib/codegen/crm/objects';
+
+import Converter from '../filter-converter';
+import HubSpotClient from '../hs-client';
+import { FieldsIntrospection } from '../types';
+
+const TYPE_MAPPING: { [key: string]: ColumnType } = {
+  bool: 'Boolean',
+  enumeration: 'Enum',
+  date: 'Dateonly',
+  datetime: 'Date',
+  phone_number: 'String',
+  string: 'String',
+  number: 'Number',
+  json: 'Json',
+};
+
+export default class HubSpotCommonCollection extends BaseCollection {
+  logger: Logger;
+
+  client: HubSpotClient;
+
+  hubSpotApiPath: string;
+
+  converter: Converter;
+
+  constructor(
+    dataSource: DataSource,
+    client: Client,
+    collectionName: string,
+    hubSpotApiPath: string,
+    schema: FieldsIntrospection,
+    logger: Logger,
+  ) {
+    super(`hubspot__${collectionName}`, dataSource);
+    this.client = new HubSpotClient(client, logger);
+    this.logger = logger;
+    this.hubSpotApiPath = hubSpotApiPath;
+
+    this.createFields(schema);
+
+    this.converter = new Converter(this.schema, logger);
+  }
+
+  protected createFields(schema: FieldsIntrospection) {
+    this.addField('hs_object_id', {
+      type: 'Column',
+      columnType: 'Number',
+      isPrimaryKey: true,
+      isReadOnly: true,
+      isSortable: true,
+      filterOperators: Converter.getOperatorsByType('Number'),
+    });
+
+    schema.forEach(field => {
+      const faField: FieldSchema = {
+        type: 'Column',
+        columnType: TYPE_MAPPING[field.type],
+        isReadOnly: true,
+        isSortable: true,
+        filterOperators: Converter.getOperatorsByType(TYPE_MAPPING[field.type]),
+      };
+
+      const options = field.options.map(option => option.value);
+
+      if (faField.columnType === 'Enum') {
+        if (options.length > 0) {
+          faField.enumValues = options;
+        } else {
+          faField.columnType = 'String';
+          this.logger(
+            'Debug',
+            `No options found for field ${field.name} 
+            on collection ${this.name}, setting type to string.`,
+          );
+        }
+      }
+
+      if (field.referencedObjectType) {
+        this.logger(
+          'Debug',
+          `Not supported relation ${field.referencedObjectType} 
+          for ${field.name} on collection ${this.name}, 
+          please make it manually using our relation API.`,
+        );
+      }
+
+      this.addField(field.name, faField);
+    });
+  }
+
+  protected async search(publicObjectSearchRequest: PublicObjectSearchRequest) {
+    return this.client.searchOnCommonHubspotCollection(
+      this.hubSpotApiPath,
+      publicObjectSearchRequest,
+    );
+  }
+
+  protected async getOne(id: number, projection?: string[]) {
+    return this.client.getOneOnCommonHubspotCollection(this.hubSpotApiPath, `${id}`, projection);
+  }
+
+  override async list(
+    caller: Caller,
+    filter: PaginatedFilter,
+    projection: Projection,
+  ): Promise<RecordData[]> {
+    const publicObjectSearchRequest = this.converter.convertFiltersToHubSpotProperties(
+      filter,
+      projection,
+    );
+
+    let results: Record<string, string>[];
+
+    if (!this.converter.isGetByIdRequest(filter)) {
+      results = await this.search(publicObjectSearchRequest);
+    } else {
+      results = await this.getOne(
+        Number((filter.conditionTree as ConditionTreeLeaf).value),
+        projection,
+      );
+    }
+
+    // Ignoring pagination emulation for now
+    return projection.apply(results);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  override create(): Promise<RecordData[]> {
+    throw new Error('Method not implemented.');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  override update(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  override delete(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  override aggregate(): Promise<AggregateResult[]> {
+    throw new Error('Method not implemented.');
+  }
+}
