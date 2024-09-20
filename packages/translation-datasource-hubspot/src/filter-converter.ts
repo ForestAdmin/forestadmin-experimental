@@ -72,46 +72,46 @@ export default class Converter {
     switch (operator) {
       case 'Equal':
         if (type === 'Dateonly') {
-          return { operator: 'EQ', value: `${+new Date(value)}` };
+          return { operator: FilterOperatorEnum.Eq, value: `${+new Date(value)}` };
         }
 
-        return { operator: 'EQ', value };
+        return { operator: FilterOperatorEnum.Eq, value };
       case 'NotEqual':
         if (type === 'Dateonly') {
-          return { operator: 'NEQ', value: `${+new Date(value)}` };
+          return { operator: FilterOperatorEnum.Neq, value: `${+new Date(value)}` };
         }
 
-        return { operator: 'NEQ', value };
+        return { operator: FilterOperatorEnum.Neq, value };
       case 'Present':
-        return { operator: 'HAS_PROPERTY', value };
+        return { operator: FilterOperatorEnum.HasProperty, value };
       case 'LessThan':
         if (type === 'Dateonly') {
-          return { operator: 'LT', value: `${+new Date(value)}` };
+          return { operator: FilterOperatorEnum.Lt, value: `${+new Date(value)}` };
         }
 
-        return { operator: 'LT', value };
+        return { operator: FilterOperatorEnum.Gt, value };
 
       case 'GreaterThan':
         if (type === 'Dateonly') {
-          return { operator: 'GT', value: `${+new Date(value)}` };
+          return { operator: FilterOperatorEnum.Gt, value: `${+new Date(value)}` };
         }
 
-        return { operator: 'GT', value };
+        return { operator: FilterOperatorEnum.Gt, value };
       case 'In':
         return {
-          operator: 'IN',
+          operator: FilterOperatorEnum.In,
           values: value.filter(v => Boolean(v) && v !== ''),
         };
       case 'Blank':
-        return { operator: 'NOT_HAS_PROPERTY', value };
+        return { operator: FilterOperatorEnum.NotHasProperty, value };
       case 'StartsWith':
-        return { operator: 'EQ', value: `${value}*` };
+        return { operator: FilterOperatorEnum.Eq, value: `${value}*` };
       case 'EndsWith':
-        return { operator: 'EQ', value: `*${value}` };
+        return { operator: FilterOperatorEnum.Eq, value: `*${value}` };
       case 'Contains':
-        return { operator: 'EQ', value: `*${value}*` };
+        return { operator: FilterOperatorEnum.Eq, value: `*${value}*` };
       case 'NotContains':
-        return { operator: 'NEQ', value: `*${value}*` };
+        return { operator: FilterOperatorEnum.Neq, value: `*${value}*` };
       default:
         throw new Error(`Unsupported operator ${operator}`);
     }
@@ -156,7 +156,7 @@ export default class Converter {
       sorts: [sort],
       properties: [...projection],
       limit: limit || 100,
-      after: 0,
+      after: '0',
     };
 
     return publicObjectSearchRequest;
