@@ -2,6 +2,7 @@ import {
   AggregateResult,
   BaseCollection,
   Caller,
+  ColumnSchema,
   ColumnType,
   ConditionTreeLeaf,
   DataSource,
@@ -124,7 +125,7 @@ export default class HubSpotCommonCollection extends BaseCollection {
       projection,
     );
 
-    let results: Record<string, string>[];
+    let results: Record<string, string | number>[];
 
     if (!this.converter.isGetByIdRequest(filter)) {
       results = await this.search(publicObjectSearchRequest);
@@ -136,7 +137,17 @@ export default class HubSpotCommonCollection extends BaseCollection {
     }
 
     // Ignoring pagination emulation for now
-    return projection.apply(results);
+    const projectedResult = projection.apply(results);
+
+    projectedResult.forEach(r => {
+      Object.entries(r).forEach(([key, value]) => {
+        if ((this.schema.fields[key] as ColumnSchema).columnType === 'Number') {
+          r[key] = Number(value);
+        }
+      });
+    });
+
+    return projectedResult;
   }
 
   // eslint-disable-next-line class-methods-use-this
