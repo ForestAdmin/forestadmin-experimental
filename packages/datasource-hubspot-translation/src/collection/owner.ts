@@ -1,4 +1,5 @@
 import { PublicObjectSearchRequest } from '@hubspot/api-client/lib/codegen/crm/objects';
+
 import HubSpotCommonCollection from './common';
 
 export default class HubSpotOwnerCollection extends HubSpotCommonCollection {
