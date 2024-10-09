@@ -14,7 +14,6 @@ export default function renameAllField(
   collection: CollectionCustomizer<any>,
   options?: Options,
 ) {
-  if (collection) throw new Error('renameAllField may only be use() on a agent.');
   if (!options) throw new Error('Options must be provided.');
 
   if (collection) {
