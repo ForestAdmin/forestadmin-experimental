@@ -1,5 +1,5 @@
 /**
  * Handler to rename collection.
- * Example: snake2camelCase, ...
+ * Example: snakeToCamelCase, snakeToPascalCase, ...
  */
 export type Options = (string) => string;
