@@ -29,7 +29,7 @@ export default function renameAllField(
   }
 }
 
-export type DefineEnumType = Plugin<Options>;
+export type RenameAllFieldType = Plugin<Options>;
 
 /**
  * Some example already exported to simplify users life
