@@ -35,11 +35,11 @@ export type DefineEnumType = Plugin<Options>;
  * Some example already exported to simplify users life
  */
 
-export function snakeToCamelCase(string) {
+export function snakeToCamelCase(string: string): string {
   return string.replace(/_(\w)/g, ($, $1) => $1.toUpperCase());
 }
 
-export function snakeToPascalCase(string) {
+export function snakeToPascalCase(string: string): string {
   const s = snakeToCamelCase(string);
 
   return `${s.charAt(0).toUpperCase()}${s.substr(1)}`;
