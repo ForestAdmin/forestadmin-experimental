@@ -22,11 +22,9 @@
     "publish:package": "semantic-release"
   },
   "devDependencies": {
-    "@forestadmin/datasource-customizer": "^1.44.3",
-    "@forestadmin/datasource-toolkit": "^1.33.0"
+    "@forestadmin/datasource-customizer": "^1.44.3"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-customizer": "^1.44.3",
-    "@forestadmin/datasource-toolkit": "^1.33.0"
+    "@forestadmin/datasource-customizer": "^1.44.3"
   }
 }

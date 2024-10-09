@@ -8,7 +8,7 @@ import { Schema } from './typings';
 import renameAllField from '@forestadmin-experimental/plugin-rename-all-fields';
 import type { RenameAllFieldOption } from '@forestadmin-experimental/plugin-rename-all-fields';
 
-function snake2CamelCase(string) {
+function snakeToCamelCase(string) {
   return string
     .replace(
       /_(\w)/g,
@@ -19,7 +19,7 @@ function snake2CamelCase(string) {
 
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
-  .use<RenameAllFieldOption>(renameAllField, snake2CamelCase);
+  .use<RenameAllFieldOption>(renameAllField, snakeToCamelCase);
 ```
 
 It can also be use on a unique collection.
@@ -27,6 +27,6 @@ It can also be use on a unique collection.
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   .customizeCollection('users', usersCollection => {
-    .use<RenameAllFieldOption>(renameAllField, snake2CamelCase)
+    .use<RenameAllFieldOption>(renameAllField, snakeToCamelCase)
   })
 ```
