@@ -7,15 +7,15 @@ We export 2 native renaming handlers: `snakeToCamelCase`, `snakeToPascalCase`
 import { createAgent } from '@forestadmin/agent';
 import { Schema } from './typings';
 
-import renameAllField, {
+import renameAllFields, {
   snakeToCamelCase,
 } from '@forestadmin-experimental/plugin-rename-all-fields';
-import type { RenameAllFieldOption } from '@forestadmin-experimental/plugin-rename-all-fields';
+import type { RenameAllFieldsOption } from '@forestadmin-experimental/plugin-rename-all-fields';
 
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   // WARNING: This must be done after all addDataSource
-  .use<RenameAllFieldOption>(renameAllField, snakeToCamelCase);
+  .use<RenameAllFieldsOption>(renameAllFields, snakeToCamelCase);
 ```
 
 It can also be use on a unique collection.
@@ -28,6 +28,6 @@ function myCustomRenameFunction(fieldName) {
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   .customizeCollection('users', usersCollection => {
-    .use<RenameAllFieldOption>(renameAllField, myCustomRenameFunction)
+    .use<RenameAllFieldsOption>(renameAllFields, myCustomRenameFunction)
   })
 ```

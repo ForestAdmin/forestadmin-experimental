@@ -7,32 +7,32 @@ import type {
 
 import { Options } from './types';
 
-export { Options as RenameAllFieldOption };
+export { Options as RenameAllFieldsOption };
 
-export default function renameAllField(
+export default function renameAllFields(
   dataSource: DataSourceCustomizer<any>,
   collection: CollectionCustomizer<any>,
-  options?: Options,
+  transformer: Options,
 ) {
-  if (!options) throw new Error('Options must be provided.');
+  if (!transformer) throw new Error('Options must be provided.');
 
   if (collection) {
     Object.keys(collection.schema.fields).forEach(fieldName =>
-      collection.renameField(fieldName, options(fieldName)),
+      collection.renameField(fieldName, transformer(fieldName)),
     );
   } else {
     dataSource.collections.forEach(dsCollection => {
       Object.keys(dsCollection.schema.fields).forEach(fieldName =>
-        dsCollection.renameField(fieldName, options(fieldName)),
+        dsCollection.renameField(fieldName, transformer(fieldName)),
       );
     });
   }
 }
 
-export type RenameAllFieldType = Plugin<Options>;
+export type RenameAllFieldsType = Plugin<Options>;
 
 /**
- * Some example already exported to simplify users life
+ * Some examples already exported to simplify users life
  */
 
 export function snakeToCamelCase(string: string): string {
