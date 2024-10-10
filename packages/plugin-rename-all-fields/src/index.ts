@@ -9,7 +9,7 @@ import { Options } from './types';
 
 export { Options as RenameAllFieldsOption };
 
-export default function renameAllFields(
+export default async function renameAllFields(
   dataSource: DataSourceCustomizer<any>,
   collection: CollectionCustomizer<any>,
   transformer: Options,
@@ -17,15 +17,19 @@ export default function renameAllFields(
   if (!transformer) throw new Error('Options must be provided.');
 
   if (collection) {
-    Object.keys(collection.schema.fields).forEach(fieldName =>
-      collection.renameField(fieldName, transformer(fieldName)),
+    await Promise.all(
+      Object.keys(collection.schema.fields).map(async fieldName =>
+        collection.renameField(fieldName, await transformer(fieldName)),
+      ),
     );
   } else {
-    dataSource.collections.forEach(dsCollection => {
-      Object.keys(dsCollection.schema.fields).forEach(fieldName =>
-        dsCollection.renameField(fieldName, transformer(fieldName)),
-      );
-    });
+    await Promise.all(
+      dataSource.collections.flatMap(dsCollection =>
+        Object.keys(dsCollection.schema.fields).map(async fieldName =>
+          dsCollection.renameField(fieldName, await transformer(fieldName)),
+        ),
+      ),
+    );
   }
 }
 
