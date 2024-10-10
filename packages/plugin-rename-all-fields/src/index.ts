@@ -5,14 +5,15 @@ import type {
   Plugin,
 } from '@forestadmin/datasource-customizer';
 
-import { Options } from './types';
-
-export { Options as RenameAllFieldsOption };
-
+/**
+ * Allow to rename all fields or the fields of a specific collection using a transformer function
+ *
+ * @param transformer handler to rename fields (Example: snakeToCamelCase, snakeToPascalCase, ...)
+ */
 export default async function renameAllFields(
   dataSource: DataSourceCustomizer<any>,
   collection: CollectionCustomizer<any>,
-  transformer: Options,
+  transformer: (string) => string | Promise<string>,
 ) {
   if (!transformer) throw new Error('Options must be provided.');
 
@@ -33,7 +34,7 @@ export default async function renameAllFields(
   }
 }
 
-export type RenameAllFieldsType = Plugin<Options>;
+export type RenameAllFieldsType = Plugin<(string) => string | Promise<string>>;
 
 /**
  * Some examples already exported to simplify users life
