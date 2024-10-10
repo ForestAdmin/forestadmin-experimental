@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-rename-all-fields@1.0.0...plugin-rename-all-fields@1.0.1) (2024-10-10)
+
+
+### Bug Fixes
+
+* improve plugin experience ([#113](https://github.com/ForestAdmin/forestadmin-experimental/issues/113)) ([7ce2843](https://github.com/ForestAdmin/forestadmin-experimental/commit/7ce2843eaddeb1b8ee79b6f9a605eb7231b26dd3))
+
 # 1.0.0 (2024-10-10)
 
 
