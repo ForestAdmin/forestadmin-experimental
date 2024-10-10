@@ -1,0 +1,30 @@
+{
+  "name": "@forestadmin-experimental/plugin-rename-all-fields",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/plugin-rename-all-fields"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "publish:package": "semantic-release"
+  },
+  "devDependencies": {
+    "@forestadmin/datasource-customizer": "^1.44.3"
+  },
+  "peerDependencies": {
+    "@forestadmin/datasource-customizer": "^1.44.3"
+  }
+}
