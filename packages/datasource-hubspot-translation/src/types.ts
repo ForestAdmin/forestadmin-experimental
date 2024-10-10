@@ -12,4 +12,8 @@ export type CollectionIntrospection = {
 
 export type FieldsIntrospection = Property[];
 
-export type HubSpotOptions = { accessToken: string; collections: { [name: string]: string[] } };
+export type HubSpotOptions = {
+  accessToken: string;
+  collections: { [name: string]: string[] };
+  excludeOwnerCollection: boolean;
+};

@@ -32,6 +32,21 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
             false,
           );
 
+          const fields = [];
+          options.collections[collectionName].forEach(fieldOption => {
+            const field = results.find(r => r.name === fieldOption);
+
+            if (field) {
+              fields.push(field);
+            } else {
+              logger(
+                'Warn',
+                `The field '${fieldOption}' does not exist in the collection '${collectionName}'.` +
+                  ` Please chose one of these fields:\n${results.map(r => r.name).join(', ')}`,
+              );
+            }
+          });
+
           fieldsByCollection[collectionName] = {
             fields: results.filter(r => options.collections[collectionName].includes(r.name)),
             apiPath: HUBSPOT_COMMON_COLLECTIONS_TO_API[collectionName],
@@ -45,10 +60,17 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
 
     const customCollections = await hubSpotClient.crm.schemas.coreApi.getAll();
     customCollections.results.forEach(cc => {
-      fieldsByCollection[cc.name].apiPath = cc.objectTypeId;
-      fieldsByCollection[cc.name].isCustom = true;
+      if (fieldsByCollection[cc.name]) {
+        fieldsByCollection[cc.name].apiPath = cc.objectTypeId;
+        fieldsByCollection[cc.name].isCustom = true;
+      }
     });
 
-    return new HubSpotDatasource(hubSpotClient, fieldsByCollection, logger);
+    return new HubSpotDatasource(
+      hubSpotClient,
+      fieldsByCollection,
+      options.excludeOwnerCollection,
+      logger,
+    );
   };
 }

@@ -21,6 +21,7 @@ agent
         projects: ['number_of_users', 'project_id', 'project_name', 'cs_owner'],
         //...
       },
+      excludeOwnerCollection: false, // we handle automatically the owner collection, but you can exclude it if you want.
     }),
   )
 

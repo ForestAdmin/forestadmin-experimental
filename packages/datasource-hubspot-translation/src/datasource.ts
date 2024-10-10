@@ -8,7 +8,12 @@ import HubSpotCustomCollection from './collection/custom';
 import HubSpotOwnerCollection from './collection/owner';
 
 export default class HubSpotDatasource extends BaseDataSource {
-  constructor(client: Client, schema: Introspection, logger: Logger) {
+  constructor(
+    client: Client,
+    schema: Introspection,
+    excludeOwnerCollection: boolean,
+    logger: Logger,
+  ) {
     super();
 
     Object.entries(schema).forEach(([collectionName, s]: [string, CollectionIntrospection]) => {
@@ -19,7 +24,8 @@ export default class HubSpotDatasource extends BaseDataSource {
       );
     });
 
-    this.addCollection(new HubSpotOwnerCollection(this, client, 'owners', null, null, logger));
+    if (!excludeOwnerCollection)
+      this.addCollection(new HubSpotOwnerCollection(this, client, 'owners', null, null, logger));
 
     logger('Info', 'HubSpot DataSource - Built');
   }
