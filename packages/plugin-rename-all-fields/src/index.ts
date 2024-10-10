@@ -9,6 +9,13 @@ import type {
  * Allow to rename all fields or the fields of a specific collection using a transformer function
  *
  * @param transformer handler to rename fields (Example: snakeToCamelCase, snakeToPascalCase, ...)
+ *
+ * @example
+ * import renameAllFields, {
+ *   snakeToCamelCase,
+ * } from '@forestadmin-experimental/plugin-rename-all-fields';
+ *
+ * agent.use(renameAllFields, snakeToCamelCase);
  */
 export default async function renameAllFields(
   dataSource: DataSourceCustomizer<any>,
