@@ -127,7 +127,7 @@ export default class Converter {
     filter.conditionTree?.forEachLeaf(leaf => {
       if (properties.length >= 5) {
         this.logger(
-          'Debug',
+          'Warn',
           // eslint-disable-next-line max-len
           'Too many fields to search for the Hubspot API (More than 5 criterias). Searched fields truncated.',
         );

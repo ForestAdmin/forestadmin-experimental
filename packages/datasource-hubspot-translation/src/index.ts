@@ -48,7 +48,7 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
           });
 
           fieldsByCollection[collectionName] = {
-            fields: results.filter(r => options.collections[collectionName].includes(r.name)),
+            fields,
             apiPath: HUBSPOT_COMMON_COLLECTIONS_TO_API[collectionName],
             isCustom: false,
           };
