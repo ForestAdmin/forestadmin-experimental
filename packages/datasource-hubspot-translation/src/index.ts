@@ -41,8 +41,8 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
             } else {
               logger(
                 'Warn',
-                `The field '${fieldOption}' does not exist in the collection '${collectionName}'.` +
-                  ` Please chose one of these fields:\n${results.map(r => r.name).join(', ')}`,
+                `The field '${fieldOption}' does not exist on the collection '${collectionName}'.` +
+                  ` Please choose one of these fields:\n${results.map(r => r.name).join(', ')}`,
               );
             }
           });
