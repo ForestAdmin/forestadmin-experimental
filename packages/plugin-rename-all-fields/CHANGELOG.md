@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-rename-all-fields@1.0.1...plugin-rename-all-fields@1.1.0) (2024-10-22)
+
+
+### Bug Fixes
+
+* **datasource hubspot:** fix release ([d4b49e5](https://github.com/ForestAdmin/forestadmin-experimental/commit/d4b49e58de8a03896678402026f2389338299144))
+
+
+### Features
+
+* add translation hubspot datasource ([#98](https://github.com/ForestAdmin/forestadmin-experimental/issues/98)) ([c18f3a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/c18f3a0542c4fd7b1f321446ef1cb260d0b04cb9))
+
 ## [1.0.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-rename-all-fields@1.0.0...plugin-rename-all-fields@1.0.1) (2024-10-10)
 
 
