@@ -53,7 +53,10 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
             isCustom: false,
           };
         } catch (e) {
-          logger('Debug', `${e}`);
+          logger(
+            'Warn',
+            `Could not introspect the collection '${collectionName}': ${e?.body?.message}`,
+          );
         }
       }),
     );
