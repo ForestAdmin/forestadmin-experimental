@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.0.0...datasource-hubspot-translation@1.0.1) (2024-10-25)
+
+
+### Bug Fixes
+
+* **datasource hubspot:** change log on introspection ([6669e5f](https://github.com/ForestAdmin/forestadmin-experimental/commit/6669e5fb07200a7952537cfb87c84eeab97471b7))
+
 # 1.0.0 (2024-10-22)
 
 
