@@ -38,8 +38,7 @@ export default class TestableAction<TypingsSchema> {
     this.collectionName = collectionName;
     this.schema = schema;
     this.httpRequester = httpRequester;
-    this.ids =
-      actionContext?.recordIds || actionContext?.recordId ? [`${actionContext?.recordId}`] : [];
+    this.ids = (actionContext?.recordIds ?? [actionContext?.recordId]).filter(Boolean).map(String);
 
     this.fieldsFormStates = new FieldFormStates(
       this.name,
