@@ -108,7 +108,7 @@ describe('addAction', () => {
     it('should add a comment and a rating', async () => {
       const action = await testableAgent
         .collection('restaurants')
-        .action('Leave a review', { recordId: restaurantId });
+        .action('Leave a review', { recordIds: [restaurantId] });
       expect(action.doesFieldExist('Put a comment')).toEqual(false);
 
       const fieldRating = action.getFieldNumber('rating');
