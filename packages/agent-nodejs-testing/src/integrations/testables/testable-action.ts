@@ -13,7 +13,7 @@ import TestableActionFieldNumberList from '../action-fields/testable-action-fiel
 import TestableActionFieldRadioGroup from '../action-fields/testable-action-field-radio-group';
 import TestableActionFieldString from '../action-fields/testable-action-field-string';
 import TestableActionFieldStringList from '../action-fields/testable-action-field-string-list';
-import TestableActionRootLayout from '../action-layout/testable-action-root-layout';
+import TestableActionLayoutRoot from '../action-layout/testable-action-layout-root';
 
 export type BaseActionContext = {
   recordId?: string | number;
@@ -124,7 +124,7 @@ export default class TestableAction<TypingsSchema> {
   }
 
   getLayout() {
-    return new TestableActionRootLayout(this.fieldsFormStates.getLayout());
+    return new TestableActionLayoutRoot(this.fieldsFormStates.getLayout());
   }
 
   private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {

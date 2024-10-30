@@ -1,13 +1,17 @@
+import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
+
 import { NotFoundElementError, NotRightElementError } from './errors';
 import TestableActionLayoutInput from './testable-action-layout-input';
 
-export default class TestableActionLayoutElement extends TestableActionLayoutInput {
-  isSeparator() {
-    return this.layoutItem?.component === 'separator';
+export default class TestableActionLayoutElement {
+  protected readonly layoutItem: ForestServerActionFormLayoutElement;
+
+  constructor(layoutItem: ForestServerActionFormLayoutElement) {
+    this.layoutItem = layoutItem;
   }
 
-  isRow() {
-    return this.layoutItem?.component === 'row';
+  isSeparator() {
+    return this.layoutItem?.component === 'separator';
   }
 
   isHTMLBlock() {
@@ -20,6 +24,18 @@ export default class TestableActionLayoutElement extends TestableActionLayoutInp
     }
 
     return this.layoutItem.content;
+  }
+
+  isInput() {
+    return this.layoutItem?.component === 'input';
+  }
+
+  getInputId(): string {
+    return new TestableActionLayoutInput(this.layoutItem).getInputId();
+  }
+
+  isRow() {
+    return this.layoutItem?.component === 'row';
   }
 
   rowElement(n: number) {
