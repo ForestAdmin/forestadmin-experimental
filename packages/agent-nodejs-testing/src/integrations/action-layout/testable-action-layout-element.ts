@@ -1,4 +1,7 @@
-import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
+import {
+  ForestServerActionFormElementFieldReference,
+  ForestServerActionFormLayoutElement,
+} from '@forestadmin/forestadmin-client';
 
 import { NotFoundElementError, NotRightElementError } from './errors';
 import TestableActionLayoutInput from './testable-action-layout-input';
@@ -31,7 +34,13 @@ export default class TestableActionLayoutElement {
   }
 
   getInputId(): string {
-    return new TestableActionLayoutInput(this.layoutItem).getInputId();
+    if (!this.isInput()) {
+      throw new NotRightElementError('an input', this.layoutItem);
+    }
+
+    return new TestableActionLayoutInput(
+      this.layoutItem as ForestServerActionFormElementFieldReference,
+    ).getInputId();
   }
 
   isRow() {

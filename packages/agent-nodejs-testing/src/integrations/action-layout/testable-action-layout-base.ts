@@ -3,7 +3,7 @@ import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-cl
 import { NotFoundElementError, NotRightElementError } from './errors';
 import TestableActionLayoutElement from './testable-action-layout-element';
 
-export default abstract class TestableActionLayoutBase {
+export default abstract class TestableActionLayoutElementsContainer {
   protected readonly layout: ForestServerActionFormLayoutElement[];
 
   constructor(layout: ForestServerActionFormLayoutElement[]) {

@@ -1,8 +1,8 @@
 import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
 
-import TestableActionLayoutBase from './testable-action-layout-base';
+import TestableActionLayoutElementsContainer from './testable-action-layout-base';
 
-export default class TestableActionLayoutPage extends TestableActionLayoutBase {
+export default class TestableActionLayoutPage extends TestableActionLayoutElementsContainer {
   readonly nextButtonLabel: string;
   readonly previousButtonLabel: string;
 

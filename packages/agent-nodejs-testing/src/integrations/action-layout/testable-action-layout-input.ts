@@ -1,19 +1,13 @@
-import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
-
-import { NotRightElementError } from './errors';
+import { ForestServerActionFormElementFieldReference } from '@forestadmin/forestadmin-client';
 
 export default class TestableActionLayoutInput {
-  protected readonly layoutItem: ForestServerActionFormLayoutElement;
+  protected readonly layoutItem: ForestServerActionFormElementFieldReference;
 
-  constructor(layoutItem: ForestServerActionFormLayoutElement) {
+  constructor(layoutItem: ForestServerActionFormElementFieldReference) {
     this.layoutItem = layoutItem;
   }
 
   getInputId() {
-    if (this.layoutItem?.component !== 'input') {
-      throw new NotRightElementError('input', this.layoutItem);
-    }
-
     return this.layoutItem.fieldId;
   }
 }
