@@ -1,4 +1,9 @@
-export type ResponseBody = { fields: { field: string }[] };
+import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
+
+export type ResponseBody = {
+  fields: { field: string }[];
+  layout: ForestServerActionFormLayoutElement[];
+};
 
 export type PlainFieldOption = {
   label: string;

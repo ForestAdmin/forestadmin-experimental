@@ -17,37 +17,70 @@ describe('addAction', () => {
       collection.addAction('Leave a review', {
         scope: 'Single',
         form: [
-          { label: 'rating', type: 'Number' },
           {
-            label: 'Put a comment',
-            type: 'String',
-            // Only display this field if the rating is >= 4
-            if: context => Number(context.formValues.rating) >= 4,
-          },
-          {
-            label: 'Would you recommend us?',
-            type: 'String',
-            widget: 'RadioGroup',
-            options: [
-              { value: 'yes', label: 'Yes, absolutely!' },
-              { value: 'no', label: 'Not really...' },
+            type: 'Layout',
+            component: 'Page',
+            nextButtonLabel: 'Next',
+            previousButtonLabel: 'Back',
+            elements: [
+              {
+                component: 'Separator',
+                type: 'Layout',
+              },
+              { component: 'HtmlBlock', content: '<h1>Welcome</h1>', type: 'Layout' },
+              { label: 'rating', type: 'Number' },
+              {
+                label: 'Put a comment',
+                type: 'String',
+                // Only display this field if the rating is >= 4
+                if: context => Number(context.formValues.rating) >= 4,
+              },
+              {
+                label: 'Would you recommend us?',
+                type: 'String',
+                widget: 'RadioGroup',
+                options: [
+                  { value: 'yes', label: 'Yes, absolutely!' },
+                  { value: 'no', label: 'Not really...' },
+                ],
+                defaultValue: 'yes',
+              },
+              {
+                label: 'Why do you like us?',
+                type: 'StringList',
+                widget: 'CheckboxGroup',
+                options: [
+                  { value: 'price', label: 'Good price' },
+                  { value: 'quality', label: 'Build quality' },
+                  { value: 'look', label: 'It looks good' },
+                ],
+              },
+              {
+                label: 'Current id',
+                type: 'Number',
+                defaultValue: async context => Number(await context.getRecordId()),
+              },
             ],
-            defaultValue: 'yes',
           },
+
           {
-            label: 'Why do you like us?',
-            type: 'StringList',
-            widget: 'CheckboxGroup',
-            options: [
-              { value: 'price', label: 'Good price' },
-              { value: 'quality', label: 'Build quality' },
-              { value: 'look', label: 'It looks good' },
+            type: 'Layout',
+            component: 'Page',
+            nextButtonLabel: 'Bye',
+            previousButtonLabel: 'Back',
+            elements: [
+              { component: 'Separator', type: 'Layout' },
+              { type: 'Layout', component: 'HtmlBlock', content: '<h1>Thank you</h1>' },
+              { component: 'Separator', type: 'Layout' },
+              {
+                component: 'Row',
+                type: 'Layout',
+                fields: [
+                  { label: 'Rating again', type: 'Number' },
+                  { label: 'Put a comment again', type: 'String' },
+                ],
+              },
             ],
-          },
-          {
-            label: 'Current id',
-            type: 'Number',
-            defaultValue: async context => Number(await context.getRecordId()),
           },
         ],
         execute: async context => {
@@ -167,5 +200,36 @@ describe('addAction', () => {
     const currentIdField = action.getFieldNumber('Current id');
 
     expect(currentIdField.getValue()).toBe(restaurantId);
+  });
+
+  it('check page 0 layout', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    expect(action.getLayout().page(0).element(0).isSeparator()).toBe(true);
+    expect(action.getLayout().page(0).element(1).isHTMLBlock()).toBe(true);
+    expect(action.getLayout().page(0).element(1).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
+    expect(action.getLayout().page(0).element(1).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
+    expect(action.getLayout().page(0).nextButtonLabel).toBe('Next');
+    expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
+  });
+
+  it('check page 1 layout', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    expect(action.getLayout().page(1).element(0).isSeparator()).toBe(true);
+    expect(action.getLayout().page(1).element(1).isHTMLBlock()).toBe(true);
+    expect(action.getLayout().page(1).element(1).getHtmlBlockContent()).toBe('<h1>Thank you</h1>');
+    expect(action.getLayout().page(1).element(2).isSeparator()).toBe(true);
+    expect(action.getLayout().page(1).nextButtonLabel).toBe('Bye');
+    expect(action.getLayout().page(1).previousButtonLabel).toBe('Back');
+
+    expect(action.getLayout().page(1).element(3).isRow()).toBe(true);
+    expect(action.getLayout().page(1).element(3).rowElement(0).getInputId()).toEqual(
+      'Rating again',
+    );
   });
 });

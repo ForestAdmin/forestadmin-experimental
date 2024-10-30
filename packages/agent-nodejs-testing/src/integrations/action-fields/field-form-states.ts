@@ -1,5 +1,8 @@
+import { ActionLayoutElementWithField } from '@forestadmin/datasource-toolkit';
+import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
+
 import FieldGetter from './field-getter';
-import FieldMultipleChoice from './field-multiple-choice';
+import TestableActionFieldMultipleChoice from './testable-action-field-multiple-choice';
 import { PlainField, ResponseBody } from './types';
 import { HttpRequester } from '../http-requester';
 
@@ -10,6 +13,7 @@ export default class FieldFormStates<TypingsSchema> {
   private readonly collectionName: keyof TypingsSchema;
   private readonly httpRequester: HttpRequester;
   private readonly ids: string[];
+  private readonly layout: ForestServerActionFormLayoutElement[];
 
   constructor(
     actionName: string,
@@ -24,6 +28,7 @@ export default class FieldFormStates<TypingsSchema> {
     this.collectionName = collectionName;
     this.httpRequester = httpRequester;
     this.ids = ids;
+    this.layout = [];
   }
 
   getFieldValues(): Record<string, unknown> {
@@ -34,14 +39,18 @@ export default class FieldFormStates<TypingsSchema> {
     }, {});
   }
 
-  getMultipleChoiceField(name: string): FieldMultipleChoice {
+  getMultipleChoiceField(name: string): TestableActionFieldMultipleChoice {
     const field = this.getField(name);
 
-    return new FieldMultipleChoice(field?.getPlainField());
+    return new TestableActionFieldMultipleChoice(field?.getPlainField());
   }
 
   getField(name: string): FieldGetter | undefined {
     return this.fields.find(f => f.getName() === name);
+  }
+
+  getLayout(): ForestServerActionFormLayoutElement[] {
+    return this.layout;
   }
 
   async setFieldValue(name: string, value: unknown): Promise<void> {
@@ -70,6 +79,7 @@ export default class FieldFormStates<TypingsSchema> {
       body: requestBody,
     });
 
+    this.layout.push(...queryResults.layout);
     this.addFields(queryResults.fields);
   }
 
