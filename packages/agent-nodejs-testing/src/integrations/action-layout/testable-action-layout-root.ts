@@ -1,5 +1,5 @@
 import { NotFoundElementError, NotRightElementError } from './errors';
-import TestableActionLayoutElementsContainer from './testable-action-layout-base';
+import TestableActionLayoutElementsContainer from './testable-action-layout-container';
 import TestableActionLayoutPage from './testable-action-layout-page';
 
 export default class TestableActionLayoutRoot extends TestableActionLayoutElementsContainer {
