@@ -1,3 +1,18 @@
+# [1.3.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.2.0...datasource-rpc@1.3.0) (2024-10-31)
+
+
+### Bug Fixes
+
+* **cd:** datasource hubspot translation ([64d0bff](https://github.com/ForestAdmin/forestadmin-experimental/commit/64d0bffbec9547c3dd2a0104e0ab940ff1d79040))
+* **datasource hubspot:** change log on introspection ([6669e5f](https://github.com/ForestAdmin/forestadmin-experimental/commit/6669e5fb07200a7952537cfb87c84eeab97471b7))
+* **datasource hubspot:** warn typo ([4f80fb1](https://github.com/ForestAdmin/forestadmin-experimental/commit/4f80fb13d65cd79c8bf0ae8c50ded878ce8a3e21))
+* when there are many records to pass to the targeted action  ([#115](https://github.com/ForestAdmin/forestadmin-experimental/issues/115)) ([ebbcbb1](https://github.com/ForestAdmin/forestadmin-experimental/commit/ebbcbb1d9d9c3c1733703553c35864360282fdb4))
+
+
+### Features
+
+* **agent-tester:** allow user to test the layout  ([#116](https://github.com/ForestAdmin/forestadmin-experimental/issues/116)) ([28871a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/28871a0b10d470cd9d853a51bdb410b44bdac450))
+
 # [1.2.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.1.2...datasource-rpc@1.2.0) (2024-10-22)
 
 
