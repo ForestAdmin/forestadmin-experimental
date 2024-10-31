@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.0.1...datasource-hubspot-translation@1.1.0) (2024-10-31)
+
+
+### Bug Fixes
+
+* when there are many records to pass to the targeted action  ([#115](https://github.com/ForestAdmin/forestadmin-experimental/issues/115)) ([ebbcbb1](https://github.com/ForestAdmin/forestadmin-experimental/commit/ebbcbb1d9d9c3c1733703553c35864360282fdb4))
+
+
+### Features
+
+* **agent-tester:** allow user to test the layout  ([#116](https://github.com/ForestAdmin/forestadmin-experimental/issues/116)) ([28871a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/28871a0b10d470cd9d853a51bdb410b44bdac450))
+
 ## [1.0.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.0.0...datasource-hubspot-translation@1.0.1) (2024-10-25)
 
 
