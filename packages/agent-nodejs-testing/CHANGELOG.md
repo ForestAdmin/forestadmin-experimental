@@ -1,3 +1,15 @@
+# [0.20.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.19.1...agent-nodejs-testing@0.20.0) (2024-10-31)
+
+
+### Bug Fixes
+
+* force release because the previous fails ([#117](https://github.com/ForestAdmin/forestadmin-experimental/issues/117)) ([c876afc](https://github.com/ForestAdmin/forestadmin-experimental/commit/c876afc55f885f26d424b72da3f45a7802a15c06))
+
+
+### Features
+
+* **agent-tester:** allow user to test the layout  ([#116](https://github.com/ForestAdmin/forestadmin-experimental/issues/116)) ([28871a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/28871a0b10d470cd9d853a51bdb410b44bdac450))
+
 ## [0.19.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.19.0...agent-nodejs-testing@0.19.1) (2024-10-29)
 
 
