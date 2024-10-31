@@ -202,7 +202,7 @@ describe('addAction', () => {
     expect(currentIdField.getValue()).toBe(restaurantId);
   });
 
-  it('check page 0 layout', async () => {
+  it('check layout on page 0', async () => {
     const action = await testableAgent
       .collection('restaurants')
       .action('Leave a review', { recordId: restaurantId });
@@ -215,7 +215,7 @@ describe('addAction', () => {
     expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
   });
 
-  it('check page 1 layout', async () => {
+  it('check layout on page 1', async () => {
     const action = await testableAgent
       .collection('restaurants')
       .action('Leave a review', { recordId: restaurantId });
