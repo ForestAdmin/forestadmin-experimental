@@ -1,7 +1,7 @@
 import FieldGetter from './field-getter';
 import { PlainFieldOption } from './types';
 
-export default class FieldMultipleChoice extends FieldGetter {
+export default class TestableActionFieldMultipleChoice extends FieldGetter {
   getOptions(): PlainFieldOption[] | undefined {
     return this.getPlainField().widgetEdit?.parameters.static.options;
   }

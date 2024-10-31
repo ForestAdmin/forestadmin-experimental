@@ -1,9 +1,15 @@
 import type { ActionContext, CollectionCustomizerFunction, TestableAction } from './types';
 
-import { ActionContextSingle, DynamicField, TSchema } from '@forestadmin/datasource-customizer';
+import {
+  ActionContextSingle,
+  DynamicFormElementOrPage,
+  TSchema,
+} from '@forestadmin/datasource-customizer';
 
-function getFieldId(field: DynamicField<ActionContextSingle<TSchema, string>>) {
-  return 'id' in field && field.id ? field.id : field.label;
+function getFieldId(field: DynamicFormElementOrPage<ActionContextSingle<TSchema, string>>) {
+  if ('id' in field) return 'id' in field && field.id ? field.id : field.label;
+
+  return undefined;
 }
 
 /**
