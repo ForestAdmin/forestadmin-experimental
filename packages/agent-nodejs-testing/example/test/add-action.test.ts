@@ -2,8 +2,7 @@ import { Agent } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
-import { createTestableAgent } from '../../src';
-import TestableAgent from '../../src/integrations/testables/testable-agent';
+import { TestableAgent, createTestableAgent } from '../../src';
 import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addAction', () => {
