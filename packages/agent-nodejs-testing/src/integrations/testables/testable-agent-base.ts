@@ -1,28 +1,36 @@
-import type { Agent, TSchema } from '@forestadmin/agent';
+import type { TSchema } from '@forestadmin/agent';
 import type { ForestSchema } from '@forestadmin/forestadmin-client/';
-
-import fs from 'fs/promises';
-import * as http from 'node:http';
 
 import TestableChart from './testable-chart';
 import TestableCollection from './testable-collection';
 import Benchmark from '../benchmark';
 import { createHttpRequester } from '../http-requester';
-import { TestableAgentOptions } from '../types';
 
 /**
  * This class can be used to do integration tests on an agent.
  */
+
+export type TestableAgentBaseOptions = {
+  prefix?: string;
+  authSecret: string;
+};
+
 export default class TestableAgentBase<
   TypingsSchema extends TSchema = TSchema,
 > extends TestableChart {
-  protected schema?: ForestSchema;
-  protected readonly agentOptions: TestableAgentOptions;
+  private readonly options: TestableAgentBaseOptions;
+  private schema?: ForestSchema;
+  private port?: number;
 
-  constructor({ agentOptions }: { agentOptions: TestableAgentOptions }) {
-    const httpRequester = createHttpRequester({ agentOptions });
-    super({ httpRequester });
-    this.agentOptions = agentOptions;
+  constructor(options: TestableAgentBaseOptions) {
+    super();
+    this.options = options;
+  }
+
+  init({ schema, port }: { schema: ForestSchema; port: number }): void {
+    this.schema = schema;
+    this.port = port;
+    this.httpRequester = createHttpRequester({ ...this.options, port: this.port });
   }
 
   collection(name: keyof TypingsSchema): TestableCollection<TypingsSchema> {

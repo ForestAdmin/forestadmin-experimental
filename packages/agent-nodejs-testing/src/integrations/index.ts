@@ -1,11 +1,21 @@
 import { Agent, TSchema, createAgent } from '@forestadmin/agent';
+import { ForestSchema } from '@forestadmin/forestadmin-client';
+import {
+  EnvironmentCollectionAccessPermissionsV4,
+  EnvironmentCollectionActionPermissionsV4,
+  EnvironmentCollectionPermissionsV4,
+  EnvironmentPermissionsV4Remote,
+  EnvironmentSmartActionPermissionsV4,
+  RightConditionByRolesV4,
+} from '@forestadmin/forestadmin-client/dist/permissions/types';
 import fs from 'fs/promises';
 import * as http from 'node:http';
+import { fileExists, readFileIfExisting } from 'nx/src/utils/fileutils';
 
 import ForestAdminClientMock, { CURRENT_USER } from './forest-admin-client-mock';
 import SchemaPathManager from './schema-path-manager';
 import TestableAgent from './testables/testable-agent';
-import TestableAgentBase from './testables/testable-agent-base';
+import TestableAgentBase, { TestableAgentBaseOptions } from './testables/testable-agent-base';
 import { TestableAgentOptions } from './types';
 
 export { TestableAgent };
@@ -13,7 +23,6 @@ export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';
 
 export type AgentSandbox = {
-  port: number;
   forestServerUrl: string;
   schemaPath: string;
   authSecret: string;
@@ -21,9 +30,47 @@ export type AgentSandbox = {
   exec: TestableAgentBase;
   down: () => Promise<void>;
   removeSchema: () => Promise<void>;
+  loggerSilent: () => void;
+  connect: (port: number) => Promise<void>;
 };
 
+function transformForestSchemaToEnvironmentPermissionsV4Remote(
+  schema: ForestSchema,
+): EnvironmentPermissionsV4Remote {
+  return {
+    collections: schema.collections.reduce((collectionAcc, collection) => {
+      collectionAcc[collection.name] = {
+        collection: {
+          browseEnabled: true,
+          deleteEnabled: true,
+          editEnabled: true,
+          exportEnabled: true,
+          addEnabled: true,
+          readEnabled: true,
+        } as EnvironmentCollectionAccessPermissionsV4,
+        actions: collection.actions.reduce((actionAcc, action) => {
+          actionAcc[action.name] = {
+            approvalRequired: true,
+            userApprovalEnabled: true,
+            selfApprovalEnabled: true,
+            triggerEnabled: true,
+            triggerConditions: [],
+            userApprovalConditions: [],
+            approvalRequiredConditions: [],
+          } as EnvironmentSmartActionPermissionsV4;
+
+          return actionAcc;
+        }, {}),
+      } as EnvironmentCollectionPermissionsV4;
+
+      return collectionAcc;
+    }, {}),
+  };
+}
+
 export async function createAgentSandbox(options?: { schemaPath?: string }): Promise<AgentSandbox> {
+  const schemaPath = options?.schemaPath ?? SchemaPathManager.generateSchemaPath();
+
   const server = http.createServer((req, res) => {
     try {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -31,11 +78,19 @@ export async function createAgentSandbox(options?: { schemaPath?: string }): Pro
       if (req.url === '/liana/v1/ip-whitelist-rules') {
         res.end(JSON.stringify({ data: { attributes: { use_ip_whitelist: false, rules: [] } } }));
       } else if (req.url === '/liana/v4/permissions/environment') {
-        res.end(JSON.stringify({ collections: [] }));
+        const schema = JSON.parse(readFileIfExisting(schemaPath));
+        const permissionsV4 = transformForestSchemaToEnvironmentPermissionsV4Remote(schema);
+        res.end(JSON.stringify(permissionsV4));
       } else if (req.url === '/liana/v4/permissions/users') {
         res.end(JSON.stringify([CURRENT_USER]));
       } else if (req.url?.startsWith('/liana/v4/permissions/renderings/')) {
-        res.end(JSON.stringify({}));
+        res.end(
+          JSON.stringify({
+            team: { id: 1, name: 'admin' },
+            collections: {},
+            stats: [],
+          }),
+        );
       } else if (req.url === '/liana/model-customizations') {
         res.end(JSON.stringify({}));
       } else if (req.url === '/forest/apimaps/hashcheck') {
@@ -48,7 +103,7 @@ export async function createAgentSandbox(options?: { schemaPath?: string }): Pro
       }
     } catch (error) {
       console.error('Error handling request:', error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   });
@@ -61,22 +116,21 @@ export async function createAgentSandbox(options?: { schemaPath?: string }): Pro
     });
   });
 
-  const agentOptions: TestableAgentOptions = {
-    schemaPath: options.schemaPath ?? SchemaPathManager.generateSchemaPath(),
+  const baseOptions: TestableAgentBaseOptions = {
     authSecret: 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
-    envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
-    isProduction: false,
   };
 
-  const { port } = fakeForestServer.address() as { port: number };
+  const { port: PortFakeServerUrl } = fakeForestServer.address() as { port: number };
+
+  const testableAgent = new TestableAgentBase(baseOptions);
 
   return {
-    forestServerUrl: `http://localhost:${port}`,
-    schemaPath: agentOptions.schemaPath,
-    authSecret: agentOptions.authSecret,
-    envSecret: agentOptions.envSecret,
-    port: (fakeForestServer.address() as { port: number }).port,
-    exec: new TestableAgentBase({ agentOptions }),
+    forestServerUrl: `http://localhost:${PortFakeServerUrl}`,
+    schemaPath,
+    authSecret: baseOptions.authSecret,
+    envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
+    exec: testableAgent,
+    loggerSilent: () => {},
     down: async () => {
       await new Promise((resolve, reject) => {
         fakeForestServer.close(error => {
@@ -85,7 +139,15 @@ export async function createAgentSandbox(options?: { schemaPath?: string }): Pro
         });
       });
     },
-    removeSchema: async () => fs.rm(this.agentOptions.schemaPath, { force: true }),
+    async connect(port: number) {
+      if (!fileExists(schemaPath)) {
+        throw new Error('Please start the agent before initializing the sandbox');
+      }
+
+      const schema = JSON.parse(await fs.readFile(schemaPath, 'utf8'));
+      testableAgent.init({ schema, port });
+    },
+    removeSchema: async () => fs.rm(schemaPath, { force: true }),
   };
 }
 

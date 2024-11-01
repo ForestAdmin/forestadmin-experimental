@@ -10,16 +10,18 @@ export default class TestableAgent<
   TypingsSchema extends TSchema = TSchema,
 > extends TestableAgentBase {
   private readonly agent: Agent<TypingsSchema>;
+  private readonly agentOptions: TestableAgentOptions;
 
   constructor({
     agent,
     agentOptions,
   }: {
     agent: Agent<TypingsSchema>;
-    agentOptions: TestableAgentOptions;
+    agentOptions: TestableAgentOptions & { port: number }; // make port required
   }) {
-    super({ agentOptions });
+    super(agentOptions);
     this.agent = agent;
+    this.agentOptions = agentOptions;
   }
 
   async stop(): Promise<void> {
@@ -32,9 +34,11 @@ export default class TestableAgent<
 
   async start(): Promise<void> {
     await this.agent.mountOnStandaloneServer(this.agentOptions.port).start();
-    this.agentOptions.port = this.agent.standaloneServerPort;
     if (!this.agentOptions.schemaPath) throw new Error('schemaPath is required');
 
-    this.schema = JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8'));
+    this.init({
+      schema: JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8')),
+      port: this.agent.standaloneServerPort,
+    });
   }
 }

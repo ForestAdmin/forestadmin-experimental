@@ -1,8 +1,8 @@
-import { Agent } from '@forestadmin/agent';
+import { Agent, createAgent } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
-import { TestableAgent, createTestableAgent } from '../../src';
+import { TestableAgent, createAgentSandbox, createTestableAgent } from '../../src';
 import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addAction', () => {
@@ -115,11 +115,11 @@ describe('addAction', () => {
 
   beforeAll(async () => {
     await createTable();
-    testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
-      actionFormCustomizer(agent);
-    });
-    await testableAgent.start();
+    // testableAgent = await createTestableAgent((agent: Agent) => {
+    //   agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
+    //   actionFormCustomizer(agent);
+    // });
+    // await testableAgent.start();
   });
 
   afterAll(async () => {
@@ -202,7 +202,24 @@ describe('addAction', () => {
   });
 
   it('check layout on page 0', async () => {
-    const action = await testableAgent
+    const sandbox = await createAgentSandbox();
+
+    // customer agent
+    const agent = createAgent({
+      forestServerUrl: sandbox.forestServerUrl,
+      schemaPath: sandbox.schemaPath,
+      authSecret: sandbox.authSecret,
+      envSecret: sandbox.envSecret,
+      logger: sandbox.loggerSilent,
+      isProduction: false,
+    });
+    agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
+    actionFormCustomizer(agent);
+    await agent.mountOnStandaloneServer().start();
+
+    await sandbox.connect(agent.standaloneServerPort);
+
+    const action = await sandbox.exec
       .collection('restaurants')
       .action('Leave a review', { recordId: restaurantId });
 
@@ -212,6 +229,11 @@ describe('addAction', () => {
     expect(action.getLayout().page(0).element(1).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
     expect(action.getLayout().page(0).nextButtonLabel).toBe('Next');
     expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
+
+    await agent.stop();
+
+    await sandbox.removeSchema();
+    await sandbox.down();
   });
 
   it('check layout on page 1', async () => {
