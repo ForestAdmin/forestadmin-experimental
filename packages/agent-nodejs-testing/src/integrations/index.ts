@@ -2,11 +2,9 @@ import { Agent, TSchema, createAgent } from '@forestadmin/agent';
 import { ForestSchema } from '@forestadmin/forestadmin-client';
 import {
   EnvironmentCollectionAccessPermissionsV4,
-  EnvironmentCollectionActionPermissionsV4,
   EnvironmentCollectionPermissionsV4,
   EnvironmentPermissionsV4Remote,
   EnvironmentSmartActionPermissionsV4,
-  RightConditionByRolesV4,
 } from '@forestadmin/forestadmin-client/dist/permissions/types';
 import fs from 'fs/promises';
 import * as http from 'node:http';
@@ -22,16 +20,21 @@ export { TestableAgent };
 export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';
 
-export type AgentSandbox = {
+export type AgentSandboxContext = {
   forestServerUrl: string;
   schemaPath: string;
   authSecret: string;
   envSecret: string;
+  isProduction: boolean;
+  logger: () => void;
+  bindAgentPort: (port: number) => Promise<void>;
+  bindAgentStop: (stop: () => Promise<void>) => Promise<void>;
+  bindSchema?: (schema: string) => Promise<void>;
+};
+
+export type SandboxedAgent = {
   exec: TestableAgentBase;
   down: () => Promise<void>;
-  removeSchema: () => Promise<void>;
-  loggerSilent: () => void;
-  connect: (port: number) => Promise<void>;
 };
 
 function transformForestSchemaToEnvironmentPermissionsV4Remote(
@@ -68,8 +71,14 @@ function transformForestSchemaToEnvironmentPermissionsV4Remote(
   };
 }
 
-export async function createAgentSandbox(options?: { schemaPath?: string }): Promise<AgentSandbox> {
-  const schemaPath = options?.schemaPath ?? SchemaPathManager.generateSchemaPath();
+export async function createAgentSandbox(
+  agentInSandbox: (context: AgentSandboxContext) => Promise<void>,
+): Promise<SandboxedAgent> {
+  let stopToSet: () => Promise<void>;
+  let isAgentBind: boolean;
+  let schemaPathSetByCustomer: string;
+
+  const schemaPath = schemaPathSetByCustomer ?? SchemaPathManager.generateSchemaPath();
 
   const server = http.createServer((req, res) => {
     try {
@@ -124,30 +133,54 @@ export async function createAgentSandbox(options?: { schemaPath?: string }): Pro
 
   const testableAgent = new TestableAgentBase(baseOptions);
 
-  return {
+  await agentInSandbox({
     forestServerUrl: `http://localhost:${PortFakeServerUrl}`,
     schemaPath,
     authSecret: baseOptions.authSecret,
     envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
-    exec: testableAgent,
-    loggerSilent: () => {},
-    down: async () => {
-      await new Promise((resolve, reject) => {
-        fakeForestServer.close(error => {
-          if (error) reject(error);
-          else resolve(null);
-        });
-      });
-    },
-    async connect(port: number) {
+    isProduction: false,
+    logger: () => {},
+    bindAgentPort: async (port: number) => {
       if (!fileExists(schemaPath)) {
         throw new Error('Please start the agent before initializing the sandbox');
       }
 
       const schema = JSON.parse(await fs.readFile(schemaPath, 'utf8'));
       testableAgent.init({ schema, port });
+      isAgentBind = true;
     },
-    removeSchema: async () => fs.rm(schemaPath, { force: true }),
+    bindAgentStop: async (stop: () => Promise<void>) => {
+      stopToSet = stop;
+    },
+    bindSchema: async (schema: string) => {
+      schemaPathSetByCustomer = JSON.parse(await fs.readFile(schema, 'utf8'));
+    },
+  });
+
+  if (!stopToSet) {
+    throw new Error('Please bind the stop function to initialize the sandbox');
+  }
+
+  if (!isAgentBind) {
+    throw new Error('Please bind the agent to initialize the sandbox');
+  }
+
+  return {
+    exec: testableAgent,
+    down: async () => {
+      if (SchemaPathManager.isTemporarySchemaPath(schemaPath)) {
+        await fs.rm(schemaPath, { force: true });
+      }
+
+      await new Promise((resolve, reject) => {
+        fakeForestServer.close(error => {
+          if (error) reject(error);
+          else resolve(null);
+        });
+      });
+
+      await stopToSet();
+    },
   };
 }
 

@@ -202,22 +202,14 @@ describe('addAction', () => {
   });
 
   it('check layout on page 0', async () => {
-    const sandbox = await createAgentSandbox();
-
-    // customer agent
-    const agent = createAgent({
-      forestServerUrl: sandbox.forestServerUrl,
-      schemaPath: sandbox.schemaPath,
-      authSecret: sandbox.authSecret,
-      envSecret: sandbox.envSecret,
-      logger: sandbox.loggerSilent,
-      isProduction: false,
+    const sandbox = await createAgentSandbox(async context => {
+      const agent = createAgent(context);
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
+      actionFormCustomizer(agent);
+      await agent.mountOnStandaloneServer().start();
+      await context.bindAgentPort(agent.standaloneServerPort);
+      await context.bindAgentStop(agent.stop.bind(agent));
     });
-    agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
-    actionFormCustomizer(agent);
-    await agent.mountOnStandaloneServer().start();
-
-    await sandbox.connect(agent.standaloneServerPort);
 
     const action = await sandbox.exec
       .collection('restaurants')
@@ -230,9 +222,6 @@ describe('addAction', () => {
     expect(action.getLayout().page(0).nextButtonLabel).toBe('Next');
     expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
 
-    await agent.stop();
-
-    await sandbox.removeSchema();
     await sandbox.down();
   });
 
