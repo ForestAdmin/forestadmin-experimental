@@ -20,17 +20,15 @@ export default class TestableAgentBase<
 > extends TestableChart {
   private readonly options: TestableAgentBaseOptions;
   private schema?: ForestSchema;
-  private port?: number;
 
   constructor(options: TestableAgentBaseOptions) {
     super();
     this.options = options;
   }
 
-  init({ schema, port }: { schema: ForestSchema; port: number }): void {
+  init({ schema, url }: { schema: ForestSchema; url: string }): void {
     this.schema = schema;
-    this.port = port;
-    this.httpRequester = createHttpRequester({ ...this.options, port: this.port });
+    this.httpRequester = createHttpRequester({ ...this.options, url });
   }
 
   collection(name: keyof TypingsSchema): TestableCollection<TypingsSchema> {

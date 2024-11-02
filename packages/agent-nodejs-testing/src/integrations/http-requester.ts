@@ -10,12 +10,12 @@ export class HttpRequester {
   private get baseUrl() {
     const prefix = this.options.prefix ? `/${this.options.prefix}` : '';
 
-    return `http://localhost:${this.options.port}${prefix}`;
+    return `${this.options.url}${prefix}`;
   }
 
   constructor(
     private readonly token: string,
-    private readonly options: { prefix?: string; port: number },
+    private readonly options: { prefix?: string; url: string },
   ) {
     this.deserializer = new Deserializer({ keyForAttribute: 'camelCase' });
   }
@@ -68,7 +68,7 @@ export class HttpRequester {
 
 export function createHttpRequester(options: {
   prefix?: string;
-  port: number;
+  url: string;
   authSecret: string;
 }): HttpRequester {
   const token = jsonwebtoken.sign(CURRENT_USER, options.authSecret, { expiresIn: '1 hours' });

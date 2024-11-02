@@ -17,7 +17,7 @@ export default class TestableAgent<
     agentOptions,
   }: {
     agent: Agent<TypingsSchema>;
-    agentOptions: TestableAgentOptions & { port: number }; // make port required
+    agentOptions: TestableAgentOptions;
   }) {
     super(agentOptions);
     this.agent = agent;
@@ -33,12 +33,12 @@ export default class TestableAgent<
   }
 
   async start(): Promise<void> {
-    await this.agent.mountOnStandaloneServer(this.agentOptions.port).start();
+    await this.agent.mountOnStandaloneServer(this.agentOptions.port ?? 0).start();
     if (!this.agentOptions.schemaPath) throw new Error('schemaPath is required');
 
     this.init({
       schema: JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8')),
-      port: this.agent.standaloneServerPort,
+      url: `http://localhost:${this.agent.standaloneServerPort}`,
     });
   }
 }
