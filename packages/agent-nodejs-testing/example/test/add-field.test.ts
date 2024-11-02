@@ -3,7 +3,7 @@ import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/dataso
 import { DataTypes } from 'sequelize';
 
 import { createTestableAgent } from '../../src';
-import TestableAgent from '../../src/integrations/testables/testable-agent-base';
+import TestableAgent from '../../src/integrations/testables/testable-agent';
 import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addField', () => {

@@ -1,8 +1,9 @@
-import { Agent, createAgent } from '@forestadmin/agent';
+import { Agent } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
-import { TestableAgent, createClient, createForestServerSandbox } from '../../src';
+import { createTestableAgent } from '../../src';
+import TestableAgent from '../../src/integrations/testables/testable-agent';
 import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('addAction', () => {
@@ -115,11 +116,11 @@ describe('addAction', () => {
 
   beforeAll(async () => {
     await createTable();
-    // testableAgent = await createTestableAgent((agent: Agent) => {
-    //   agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
-    //   actionFormCustomizer(agent);
-    // });
-    // await testableAgent.start();
+    testableAgent = await createTestableAgent((agent: Agent) => {
+      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
+      actionFormCustomizer(agent);
+    });
+    await testableAgent.start();
   });
 
   afterAll(async () => {
@@ -202,37 +203,7 @@ describe('addAction', () => {
   });
 
   it('check layout on page 0', async () => {
-    const forestServerPort = 3001;
-    const forestServerUrl = `http://localhost:${forestServerPort}`;
-    const schemaPath = './.test-forestadmin-schema.json';
-    const authSecret = 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb';
-    const agentPort = 3004;
-
-    const serverSandbox = await createForestServerSandbox({
-      port: forestServerPort,
-      agentSchemaPath: schemaPath,
-    });
-
-    const agent = createAgent({
-      envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
-      authSecret: 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
-      logger: () => {},
-      isProduction: false,
-      forestServerUrl,
-      schemaPath,
-    });
-
-    agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
-    actionFormCustomizer(agent);
-    await agent.mountOnStandaloneServer(agentPort).start();
-
-    const client = createClient({
-      agentAuthSecret: authSecret,
-      agentUrl: `http://localhost:${agentPort}`,
-      agentSchemaPath: schemaPath,
-    });
-
-    const action = await client
+    const action = await testableAgent
       .collection('restaurants')
       .action('Leave a review', { recordId: restaurantId });
 
@@ -242,9 +213,6 @@ describe('addAction', () => {
     expect(action.getLayout().page(0).element(1).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
     expect(action.getLayout().page(0).nextButtonLabel).toBe('Next');
     expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
-
-    await serverSandbox.stop();
-    await agent.stop();
   });
 
   it('check layout on page 1', async () => {

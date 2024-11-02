@@ -27,9 +27,7 @@ export default class TestableAgent<
   async stop(): Promise<void> {
     await this.agent.stop();
 
-    if (SchemaPathManager.isTemporarySchemaPath(this.agentOptions.schemaPath)) {
-      await fs.rm(this.agentOptions.schemaPath, { force: true });
-    }
+    await SchemaPathManager.removeTemporarySchemaPath(this.agentOptions.schemaPath);
   }
 
   async start(): Promise<void> {
