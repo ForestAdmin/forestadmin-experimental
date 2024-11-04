@@ -1,3 +1,10 @@
+## [0.20.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.20.0...agent-nodejs-testing@0.20.1) (2024-11-04)
+
+
+### Bug Fixes
+
+* return the field when id is not provided when using getFormFieldAction ([#118](https://github.com/ForestAdmin/forestadmin-experimental/issues/118)) ([b3b9a1e](https://github.com/ForestAdmin/forestadmin-experimental/commit/b3b9a1ec663b440f29d58cd9dd1f160509186dca))
+
 # [0.20.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.19.1...agent-nodejs-testing@0.20.0) (2024-10-31)
 
 
