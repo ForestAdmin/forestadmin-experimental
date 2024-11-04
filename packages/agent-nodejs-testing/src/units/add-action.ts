@@ -2,14 +2,13 @@ import type { ActionContext, CollectionCustomizerFunction, TestableAction } from
 
 import {
   ActionContextSingle,
-  DynamicFormElementOrPage,
+  DynamicField,
+  DynamicForm,
   TSchema,
 } from '@forestadmin/datasource-customizer';
 
-function getFieldId(field: DynamicFormElementOrPage<ActionContextSingle<TSchema, string>>) {
-  if ('id' in field) return 'id' in field && field.id ? field.id : field.label;
-
-  return undefined;
+function getFieldId(field: DynamicField<ActionContextSingle<TSchema, string>>) {
+  return 'id' in field && field.id ? field.id : field.label;
 }
 
 /**
@@ -35,6 +34,17 @@ export function getAddedAction(
   return action;
 }
 
+function getInputFieldFromForm<T>(
+  form: DynamicForm<ActionContextSingle<TSchema, string>>,
+  id: string,
+) {
+  return form.find(
+    field =>
+      field.type !== 'Layout' &&
+      getFieldId(field as DynamicField<ActionContextSingle<TSchema, string>>) === id,
+  ) as unknown as T;
+}
+
 /**
  * Static Form field accessor
  */
@@ -45,7 +55,7 @@ export function getFormFieldAction<T>(action: TestableAction, id: string): T {
     throw new Error('Use getDynamicFormFieldAction function helper');
   }
 
-  return action.definition.form.find(field => getFieldId(field) === id) as unknown as T;
+  return getInputFieldFromForm<T>(action.definition.form, id);
 }
 
 /**
@@ -62,9 +72,9 @@ export async function getDynamicFormFieldAction<T>(
     throw new Error('Use getFormFieldAction function helper');
   }
 
-  return (await action.definition.form(actionContext)).find(
-    field => getFieldId(field) === id,
-  ) as unknown as T;
+  const form = await action.definition.form(actionContext);
+
+  return getInputFieldFromForm<T>(form, id);
 }
 
 export function getFormFieldValueAction<ReturnType>(
