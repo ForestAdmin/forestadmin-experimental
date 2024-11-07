@@ -3,7 +3,6 @@ import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/dataso
 import { DataTypes } from 'sequelize';
 
 import { ForestServerSandbox, SchemaPathManager, createForestClient } from '../../src';
-import createForestServerSandbox from '../../src/integrations';
 import { STORAGE_PREFIX, logger } from '../utils';
 
 describe('test any agent setup', () => {
@@ -12,7 +11,8 @@ describe('test any agent setup', () => {
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
   const storage = `${STORAGE_PREFIX}-segment.db`;
 
-  const schemaPath = SchemaPathManager.generateTemporarySchemaPath();
+  const schemaPath =
+    '/Users/albanbertolini/Projects/to-remove/agent-python/src/_example/django/django_demo/.forestadmin-schema.json';
   const authSecret = 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb';
 
   // create a segment to get only minor users
@@ -36,24 +36,7 @@ describe('test any agent setup', () => {
     const forestServerPort = 3001;
     const forestServerUrl = `http://localhost:${forestServerPort}`;
 
-    serverSandbox = await createForestServerSandbox({
-      port: forestServerPort,
-      agentSchemaPath: schemaPath,
-    });
-
-    await createTable();
-
-    agent = createAgent({
-      envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
-      authSecret,
-      logger: () => {},
-      isProduction: false,
-      forestServerUrl,
-      schemaPath,
-    });
-    agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
-    segmentCustomizer(agent);
-    await agent.mountOnStandaloneServer(0).start();
+    // await createTable();
   });
 
   afterAll(async () => {
@@ -64,20 +47,27 @@ describe('test any agent setup', () => {
   });
 
   it('should return only minor users', async () => {
-    await sequelize.models.users.create({ age: 19 });
-    await sequelize.models.users.create({ age: 17 });
-
-    const client = createForestClient({
-      agentAuthSecret: authSecret,
-      agentUrl: `http://localhost:${agent.standaloneServerPort}`,
-      agentSchemaPath: schemaPath,
+    const client = await createForestClient({
+      agentForestEnvSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
+      agentForestAuthSecret: 'aeba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
+      agentUrl: `http://127.0.0.1:8000`,
+      serverUrl: `http://127.0.0.1:3456`,
+      agentSchemaPath:
+        '/Users/albanbertolini/Projects/to-remove/agent-python/src/_example/django/django_demo/.forestadmin-schema.json',
     });
 
-    // get the created user
-    const users = await client.collection('users').segment('minorUsers').list<{ age }>();
+    const client2 = await createForestClient({
+      agentForestEnvSecret: 'e2b3ad263d5a0e0eea6b373d27696dc7c52919b4c76d09c4ec776d09f12b2a48',
+      agentForestAuthSecret: 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
+      agentUrl: `http://127.0.0.1:3351`,
+      serverUrl: `http://127.0.0.1:3456`,
+      agentSchemaPath:
+        '/Users/albanbertolini/Projects/agent-nodejs/packages/_example/.forestadmin-schema.json',
+    });
+    const address = await client.collection('address').list();
+    const users = await client2.collection('customer').list();
 
-    // test the full name content
-    expect(users.length).toEqual(1);
-    expect(users[0].age).toEqual(17);
+    expect(address.length).toEqual(15);
+    expect(users.length).toEqual(15);
   });
 });

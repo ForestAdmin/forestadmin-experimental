@@ -5,18 +5,20 @@ import {
   EnvironmentPermissionsV4Remote,
   EnvironmentSmartActionPermissionsV4,
 } from '@forestadmin/forestadmin-client/dist/permissions/types';
-import fs from 'fs';
 import http from 'node:http';
+
+import { CURRENT_USER } from './forest-admin-client-mock';
 
 export default class ForestServerSandbox {
   private fakeForestServer: http.Server;
-  private readonly agentSchemaPath: string;
+
+  // cache the agent schema for every client to avoid to start several servers when testing agent.
+  private readonly agentSchema: Map<string, ForestSchema> = new Map();
 
   port: number;
 
-  constructor(options: { port?: number; agentSchemaPath: string }) {
-    this.port = options.port;
-    this.agentSchemaPath = options.agentSchemaPath;
+  constructor(port: number) {
+    this.port = port;
   }
 
   async createServer() {
@@ -45,21 +47,38 @@ export default class ForestServerSandbox {
   }
 
   private routes(req: http.IncomingMessage, res: http.ServerResponse) {
+    // eslint-disable-next-line no-console
+    const forestSecretKey = req.headers['forest-secret-key'] as string;
+    console.log(`Handling request`, req.url);
+
     try {
       res.writeHead(200, { 'Content-Type': 'application/json' });
 
-      if (req.url === '/liana/v1/ip-whitelist-rules') {
+      if (req.url === '/agent-schema') {
+        // read schema from post
+        let data = '';
+        req.on('data', chunk => {
+          data += chunk;
+        });
+        req.on('end', () => {
+          this.agentSchema.set(forestSecretKey, JSON.parse(data));
+          res.end();
+        });
+      } else if (req.url === '/liana/v4/subscribe-to-events') {
+        res.end();
+      } else if (req.url === '/liana/v1/ip-whitelist-rules') {
         res.end(JSON.stringify({ data: { attributes: { use_ip_whitelist: false, rules: [] } } }));
       } else if (req.url === '/liana/v4/permissions/environment') {
         try {
-          const schema = JSON.parse(fs.readFileSync(this.agentSchemaPath, { encoding: 'utf-8' }));
-          const permissionsV4 = this.transformForestSchemaToEnvironmentPermissionsV4Remote(schema);
+          const permissionsV4 = this.transformForestSchemaToEnvironmentPermissionsV4Remote(
+            this.agentSchema.get(forestSecretKey),
+          );
           res.end(JSON.stringify(permissionsV4));
         } catch (e) {
           res.end(JSON.stringify({ error: 'Provide a right schema path' }));
         }
       } else if (req.url === '/liana/v4/permissions/users') {
-        res.end(JSON.stringify([]));
+        res.end(JSON.stringify([CURRENT_USER]));
       } else if (req.url?.startsWith('/liana/v4/permissions/renderings/')) {
         res.end(
           JSON.stringify({
@@ -71,7 +90,7 @@ export default class ForestServerSandbox {
       } else if (req.url === '/forest/apimaps/hashcheck') {
         res.end(JSON.stringify({ sendSchema: false }));
       } else {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not Found' }));
       }
     } catch (error) {
@@ -88,19 +107,19 @@ export default class ForestServerSandbox {
       collections: schema.collections.reduce((collectionAcc, collection) => {
         collectionAcc[collection.name] = {
           collection: {
-            browseEnabled: true,
-            deleteEnabled: true,
-            editEnabled: true,
-            exportEnabled: true,
-            addEnabled: true,
-            readEnabled: true,
+            browseEnabled: { roles: [1] },
+            deleteEnabled: { roles: [1] },
+            editEnabled: { roles: [1] },
+            exportEnabled: { roles: [1] },
+            addEnabled: { roles: [1] },
+            readEnabled: { roles: [1] },
           } as EnvironmentCollectionAccessPermissionsV4,
           actions: collection.actions.reduce((actionAcc, action) => {
             actionAcc[action.name] = {
-              approvalRequired: true,
-              userApprovalEnabled: true,
-              selfApprovalEnabled: true,
-              triggerEnabled: true,
+              approvalRequired: { roles: [1] },
+              userApprovalEnabled: { roles: [1] },
+              selfApprovalEnabled: { roles: [1] },
+              triggerEnabled: { roles: [1] },
               triggerConditions: [],
               userApprovalConditions: [],
               approvalRequiredConditions: [],

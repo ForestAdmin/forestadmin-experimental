@@ -67,9 +67,9 @@ export class HttpRequester {
 }
 
 export function createHttpRequester(options: {
-  prefix?: string;
   url: string;
   authSecret: string;
+  prefix?: string;
 }): HttpRequester {
   const token = jsonwebtoken.sign(CURRENT_USER, options.authSecret, { expiresIn: '1 hours' });
 

@@ -1,6 +1,8 @@
 import { Agent, TSchema, createAgent } from '@forestadmin/agent';
 import { ForestSchema } from '@forestadmin/forestadmin-client';
 import fs from 'fs';
+import http from 'node:http';
+import superagent from 'superagent';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import ForestServerSandbox from './forest-server-sandbox';
@@ -15,19 +17,18 @@ export * from './types';
 export { SchemaPathManager, ForestServerSandbox, TestableAgent };
 export type ForestClient = TestableAgentBase;
 
-export default async function createForestServerSandbox(options: {
-  port?: number;
-  agentSchemaPath: string;
-}): Promise<ForestServerSandbox> {
-  return new ForestServerSandbox(options).createServer();
+export async function createForestServerSandbox(port: number): Promise<ForestServerSandbox> {
+  return new ForestServerSandbox(port).createServer();
 }
 
-export function createForestClient(options: {
-  agentAuthSecret: string;
+export async function createForestClient(options: {
+  agentForestEnvSecret: string;
+  agentForestAuthSecret: string;
   agentUrl: string;
+  serverUrl: string;
   agentSchemaPath: string;
-}): ForestClient {
-  const { agentAuthSecret, agentUrl, agentSchemaPath } = options;
+}): Promise<ForestClient> {
+  const { serverUrl, agentForestAuthSecret, agentUrl, agentSchemaPath } = options;
   let schema: ForestSchema;
 
   try {
@@ -36,7 +37,12 @@ export function createForestClient(options: {
     throw new Error('Provide a right schema path');
   }
 
-  const testableAgent = new TestableAgentBase({ authSecret: agentAuthSecret });
+  await superagent
+    .post(`${serverUrl}/agent-schema`)
+    .set('forest-secret-key', options.agentForestEnvSecret)
+    .send(schema);
+
+  const testableAgent = new TestableAgentBase({ authSecret: agentForestAuthSecret });
   testableAgent.init({ schema, url: agentUrl });
 
   return testableAgent;

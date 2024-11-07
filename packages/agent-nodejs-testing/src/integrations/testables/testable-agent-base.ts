@@ -11,8 +11,8 @@ import { createHttpRequester } from '../http-requester';
  */
 
 export type TestableAgentBaseOptions = {
-  prefix?: string;
   authSecret: string;
+  prefix?: string;
 };
 
 export default class TestableAgentBase<
