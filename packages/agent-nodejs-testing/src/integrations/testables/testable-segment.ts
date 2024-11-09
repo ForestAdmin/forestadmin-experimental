@@ -1,5 +1,5 @@
 import type { HttpRequester } from '../http-requester';
-import type { TestableBaseOptions } from '../types';
+import type { SelectOptions } from '../types';
 
 import QuerySerializer from '../query-serializer';
 
@@ -14,7 +14,7 @@ export default class TestableSegment<TypingsSchema> {
     this.httpRequester = httpRequester;
   }
 
-  async list<Data = unknown>(options?: TestableBaseOptions): Promise<Data[]> {
+  async list<Data = unknown>(options?: SelectOptions): Promise<Data[]> {
     return this.httpRequester.query<Data[]>({
       method: 'get',
       path: `/forest/${this.collectionName as string}`,

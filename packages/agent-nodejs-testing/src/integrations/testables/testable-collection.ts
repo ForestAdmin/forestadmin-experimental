@@ -1,5 +1,5 @@
 import type { HttpRequester } from '../http-requester';
-import type { TestableBaseOptions } from '../types';
+import type { SelectOptions } from '../types';
 import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
 import TestableAction, { BaseActionContext } from './testable-action';
@@ -42,11 +42,11 @@ export default class TestableCollection<TypingsSchema> {
     return new TestableRelation<TypingsSchema>(name, this.name, parentId, this.httpRequester);
   }
 
-  async search<Data = unknown>(content: string): Promise<Data[]> {
+  async search<Data = any>(content: string): Promise<Data[]> {
     return this.list({ search: content });
   }
 
-  async list<Data = unknown>(options?: TestableBaseOptions): Promise<Data[]> {
+  async list<Data = any>(options?: SelectOptions): Promise<Data[]> {
     return this.httpRequester.query<Data[]>({
       method: 'get',
       path: `/forest/${this.name as string}`,
@@ -54,7 +54,7 @@ export default class TestableCollection<TypingsSchema> {
     });
   }
 
-  async count(options?: TestableBaseOptions): Promise<number> {
+  async count(options?: SelectOptions): Promise<number> {
     return Number(
       (
         await this.httpRequester.query<{ count: number }>({
@@ -66,7 +66,7 @@ export default class TestableCollection<TypingsSchema> {
     );
   }
 
-  async delete<Data = unknown>(ids: string[] | number[]): Promise<Data> {
+  async delete<Data = any>(ids: string[] | number[]): Promise<Data> {
     const serializedIds = ids.map((id: string | number) => id.toString());
     const requestBody = {
       data: {
@@ -82,7 +82,7 @@ export default class TestableCollection<TypingsSchema> {
     });
   }
 
-  async create<Data = unknown>(attributes: Record<string, unknown>): Promise<Data> {
+  async create<Data = any>(attributes: Record<string, unknown>): Promise<Data> {
     const requestBody = { data: { attributes, type: this.name } };
 
     return this.httpRequester.query<Data>({
@@ -92,7 +92,7 @@ export default class TestableCollection<TypingsSchema> {
     });
   }
 
-  async update<Data = unknown>(
+  async update<Data = any>(
     id: string | number,
     attributes: Record<string, unknown>,
   ): Promise<Data> {

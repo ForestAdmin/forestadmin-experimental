@@ -34,6 +34,9 @@ export default class ForestServerSandbox {
 
     this.port = (this.fakeForestServer.address() as { port: number }).port;
 
+    // eslint-disable-next-line no-console
+    console.log(`Server listening on port ${this.port}`);
+
     return this;
   }
 
@@ -47,8 +50,8 @@ export default class ForestServerSandbox {
   }
 
   private routes(req: http.IncomingMessage, res: http.ServerResponse) {
-    // eslint-disable-next-line no-console
     const forestSecretKey = req.headers['forest-secret-key'] as string;
+    // eslint-disable-next-line no-console
     console.log(`Handling request`, req.url);
 
     try {
