@@ -23,10 +23,16 @@ export default class HubSpotClient {
       )}`,
     );
 
-    const { results } = await this.client.crm.objects.searchApi.doSearch(
-      apiName,
-      publicObjectSearchRequest,
-    );
+    let results = [];
+
+    try {
+      ({ results } = await this.client.crm.objects.searchApi.doSearch(
+        apiName,
+        publicObjectSearchRequest,
+      ));
+    } catch (error) {
+      this.logger('Error', error);
+    }
 
     return results.map(r => r.properties);
   }
@@ -42,9 +48,13 @@ export default class HubSpotClient {
       )}`,
     );
 
-    const { results } = await this.client.crm[apiName].searchApi.doSearch(
-      publicObjectSearchRequest,
-    );
+    let results = [];
+
+    try {
+      ({ results } = await this.client.crm[apiName].searchApi.doSearch(publicObjectSearchRequest));
+    } catch (error) {
+      this.logger('Error', error);
+    }
 
     return results.map(r => r.properties);
   }
@@ -57,9 +67,16 @@ export default class HubSpotClient {
       `,
     );
 
-    const results = await this.client.crm[apiName].basicApi.getById(id, projection);
+    // todo
+    let properties = {};
 
-    return [results.properties];
+    try {
+      ({ properties } = await this.client.crm[apiName].basicApi.getById(id, projection));
+    } catch (error) {
+      this.logger('Error', error);
+    }
+
+    return [properties];
   }
 
   async getOneOnCustomHubspotCollection(apiName: string, id: string, projection: string[]) {
@@ -69,9 +86,17 @@ export default class HubSpotClient {
       on ${apiName} on id ${id} with a projection on ${projection},
       `,
     );
-    const results = await this.client.crm.objects.basicApi.getById(apiName, id, projection);
 
-    return [results.properties];
+    // todo
+    let properties = {};
+
+    try {
+      ({ properties } = await this.client.crm.objects.basicApi.getById(apiName, id, projection));
+    } catch (error) {
+      this.logger('Error', error);
+    }
+
+    return [properties];
   }
 
   async searchOwner(publicObjectSearchRequest: PublicObjectSearchRequest) {
@@ -84,7 +109,14 @@ export default class HubSpotClient {
     const email = publicObjectSearchRequest.filterGroups.find(filters =>
       filters.filters.find(f => f.propertyName === 'email'),
     )?.filters?.[0].value;
-    const { results } = await this.client.crm.owners.ownersApi.getPage(email);
+
+    let results = [];
+
+    try {
+      ({ results } = await this.client.crm.owners.ownersApi.getPage(email));
+    } catch (error) {
+      this.logger('Error', error);
+    }
 
     return results;
   }
@@ -97,6 +129,14 @@ export default class HubSpotClient {
       `,
     );
 
-    return [await this.client.crm.owners.ownersApi.getById(id)];
+    let result = [];
+
+    try {
+      result = [await this.client.crm.owners.ownersApi.getById(id)];
+    } catch (error) {
+      this.logger('Error', error);
+    }
+
+    return result;
   }
 }

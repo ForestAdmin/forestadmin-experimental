@@ -15,5 +15,5 @@ export type FieldsIntrospection = Property[];
 export type HubSpotOptions = {
   accessToken: string;
   collections: { [name: string]: string[] };
-  excludeOwnerCollection: boolean;
+  excludeOwnerCollection?: boolean;
 };
