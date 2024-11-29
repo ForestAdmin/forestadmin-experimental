@@ -7,22 +7,27 @@ import type {
   UserInfo,
 } from '@forestadmin/forestadmin-client';
 
-export const CURRENT_USER: UserInfo = {
+export type UserInfoToSupportAnyAgents = UserInfo & {
+  roleId: number;
+  rendering_id: number;
+  first_name: string;
+  last_name: string;
+};
+
+export const CURRENT_USER: UserInfoToSupportAnyAgents = {
   id: 1,
   email: 'forest@forest.com',
   team: 'admin',
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+
   rendering_id: 1,
   renderingId: 1,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+
   first_name: 'forest',
   firstName: 'forest',
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+
   last_name: 'admin',
   lastName: 'admin',
+
   role: 'Admin',
   permissionLevel: 'admin',
   tags: {},

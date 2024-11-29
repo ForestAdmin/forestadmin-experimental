@@ -1,7 +1,6 @@
 import { Agent, TSchema, createAgent } from '@forestadmin/agent';
 import { ForestSchema } from '@forestadmin/forestadmin-client';
 import fs from 'fs';
-import http from 'node:http';
 import superagent from 'superagent';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
@@ -17,10 +16,22 @@ export * from './types';
 export { SchemaPathManager, ForestServerSandbox, TestableAgent };
 export type ForestClient = TestableAgentBase;
 
+/**
+ * Create a forest server sandbox
+ * It is useful to test the agent if you use the createForestClient way to test your agent
+ * @param port
+ */
 export async function createForestServerSandbox(port: number): Promise<ForestServerSandbox> {
   return new ForestServerSandbox(port).createServer();
 }
 
+/**
+ * Create a forest client to test your agent customizations
+ * by sending requests to the agent like the frontend does.
+ * With this client, you should start your agent by yourself.
+ * You can test any agent with this client (python, ruby, nodeJs, etc.)
+ * @param options
+ */
 export async function createForestClient(options: {
   agentForestEnvSecret: string;
   agentForestAuthSecret: string;
@@ -37,6 +48,7 @@ export async function createForestClient(options: {
     throw new Error('Provide a right schema path');
   }
 
+  // send the schema to the server to allow the server to build fake answers
   await superagent
     .post(`${serverUrl}/agent-schema`)
     .set('forest-secret-key', options.agentForestEnvSecret)
@@ -48,6 +60,16 @@ export async function createForestClient(options: {
   return testableAgent;
 }
 
+/**
+ * Create a testable agent
+ * You can test your agentNodejs customizations by injecting your customizations.
+ * It will start the agent for you. You don't need to start the agent by yourself and a server.
+ * It's not compatible with the createForestClient & createForestServerSandbox way.
+ * It is recommended to user createForestClient & createForestServerSandbox to test your agent.
+ *
+ * @param customizer
+ * @param options
+ */
 export async function createTestableAgent<TypingsSchema extends TSchema = TSchema>(
   customizer: (agent: Agent<TypingsSchema>) => void,
   options?: TestableAgentOptions,

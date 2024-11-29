@@ -13,7 +13,7 @@ export default class ForestServerSandbox {
   private fakeForestServer: http.Server;
 
   // cache the agent schema for every client to avoid to start several servers when testing agent.
-  private readonly agentSchema: Map<string, ForestSchema> = new Map();
+  private readonly agentSchemaCache: Map<string, ForestSchema> = new Map();
 
   port: number;
 
@@ -25,7 +25,7 @@ export default class ForestServerSandbox {
     const server = http.createServer(this.routes.bind(this));
 
     this.fakeForestServer = await new Promise((resolve, reject) => {
-      server.listen(this.port, 0, () => resolve(server));
+      server.listen(this.port, () => resolve(server));
       server.on('error', error => {
         console.error('Server error:', error);
         reject(error);
@@ -50,7 +50,7 @@ export default class ForestServerSandbox {
   }
 
   private routes(req: http.IncomingMessage, res: http.ServerResponse) {
-    const forestSecretKey = req.headers['forest-secret-key'] as string;
+    const agentSchemaCacheIdentifier = req.headers['forest-secret-key'] as string;
     // eslint-disable-next-line no-console
     console.log(`Handling request`, req.url);
 
@@ -58,13 +58,12 @@ export default class ForestServerSandbox {
       res.writeHead(200, { 'Content-Type': 'application/json' });
 
       if (req.url === '/agent-schema') {
-        // read schema from post
         let data = '';
         req.on('data', chunk => {
           data += chunk;
         });
         req.on('end', () => {
-          this.agentSchema.set(forestSecretKey, JSON.parse(data));
+          this.agentSchemaCache.set(agentSchemaCacheIdentifier, JSON.parse(data));
           res.end();
         });
       } else if (req.url === '/liana/v4/subscribe-to-events') {
@@ -74,7 +73,7 @@ export default class ForestServerSandbox {
       } else if (req.url === '/liana/v4/permissions/environment') {
         try {
           const permissionsV4 = this.transformForestSchemaToEnvironmentPermissionsV4Remote(
-            this.agentSchema.get(forestSecretKey),
+            this.agentSchemaCache.get(agentSchemaCacheIdentifier),
           );
           res.end(JSON.stringify(permissionsV4));
         } catch (e) {
@@ -98,7 +97,7 @@ export default class ForestServerSandbox {
       }
     } catch (error) {
       console.error('Error handling request:', error);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Internal Server Error' }));
     }
   }
