@@ -7,12 +7,10 @@ agent
   .addDataSource(
     createHubSpotDataSource({
       hubspotClientConfiguration: {
-        accessToken: {
-          accessToken: YOUR_ACCESS_TOKEN,
-          limiterOptions: {
-            minTime: 110,
-            maxConcurrent: 1,
-          },
+        accessToken: YOUR_ACCESS_TOKEN,
+        limiterOptions: {
+          minTime: 110,
+          maxConcurrent: 1,
         },
       },
       collections: {
