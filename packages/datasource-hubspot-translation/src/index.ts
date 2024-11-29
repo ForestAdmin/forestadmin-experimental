@@ -23,15 +23,19 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
     }
 
     if (
-      !options.hubspotClientConfiguration.limiterOptions
-      || !options.hubspotClientConfiguration.limiterOptions.minTime
-      || !options.hubspotClientConfiguration.limiterOptions.maxConcurrent
+      !options.hubspotClientConfiguration.limiterOptions ||
+      !options.hubspotClientConfiguration.limiterOptions.minTime ||
+      !options.hubspotClientConfiguration.limiterOptions.maxConcurrent
     ) {
-      logger('Warn', 'No configuration has been passed for the rate limiting, using maxConcurrent: 1 and minTime: 110 to prevent reaching hubspot API limit')
+      logger(
+        'Warn',
+        'No configuration has been passed for the rate limiting.' +
+        'Using maxConcurrent: 1 and minTime: 110 to prevent reaching hubspot API limit',
+      );
       options.hubspotClientConfiguration.limiterOptions = {
         maxConcurrent: 1,
         minTime: 110,
-      }
+      };
     }
 
     const hubSpotClient = new Client(options.hubspotClientConfiguration);
