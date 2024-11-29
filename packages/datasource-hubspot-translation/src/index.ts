@@ -16,13 +16,25 @@ export const HUBSPOT_COMMON_COLLECTIONS_TO_API: Record<string, string> = {
 
 export default function createHubSpotDataSource(options: HubSpotOptions) {
   return async (logger: Logger) => {
-    const hubSpotClient = new Client(options.hubspotClientConfiguration);
-
     if (!options.hubspotClientConfiguration.accessToken) {
       throw new Error(
-        'Missing hubspotClientConfiguration.accessKey, please provide your hubspot token.',
+        'Missing hubspotClientConfiguration.accessToken, please provide your hubspot token.',
       );
     }
+
+    if (
+      !options.hubspotClientConfiguration.limiterOptions
+      || !options.hubspotClientConfiguration.limiterOptions.minTime
+      || !options.hubspotClientConfiguration.limiterOptions.maxConcurrent
+    ) {
+      logger('Warn', 'No configuration has been passed for the rate limiting, using maxConcurrent: 1 and minTime: 110 to prevent reaching hubspot API limit')
+      options.hubspotClientConfiguration.limiterOptions = {
+        maxConcurrent: 1,
+        minTime: 110,
+      }
+    }
+
+    const hubSpotClient = new Client(options.hubspotClientConfiguration);
 
     const fieldsByCollection: Introspection = {};
 
