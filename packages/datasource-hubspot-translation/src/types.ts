@@ -1,5 +1,5 @@
 import type { Property } from '@hubspot/api-client/lib/codegen/crm/properties';
-import type Bottleneck from 'bottleneck';
+
 import IConfiguration from '@hubspot/api-client/lib/src/configuration/IConfiguration';
 
 export type Introspection = {

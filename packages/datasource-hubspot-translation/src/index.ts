@@ -19,7 +19,9 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
     const hubSpotClient = new Client(options.hubspotClientConfiguration);
 
     if (!options.hubspotClientConfiguration.accessToken) {
-      throw new Error('Missing hubspotClientConfiguration.accessKey, please provide your hubspot token.');
+      throw new Error(
+        'Missing hubspotClientConfiguration.accessKey, please provide your hubspot token.',
+      );
     }
 
     const fieldsByCollection: Introspection = {};
