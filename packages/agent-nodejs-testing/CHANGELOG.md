@@ -1,3 +1,10 @@
+# [0.22.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.21.0...agent-nodejs-testing@0.22.0) (2024-11-29)
+
+
+### Features
+
+* improve the readme and improve function naming ([#122](https://github.com/ForestAdmin/forestadmin-experimental/issues/122)) ([150ce74](https://github.com/ForestAdmin/forestadmin-experimental/commit/150ce7498b4d5087d95b66e44afe983717e0d710))
+
 # [0.21.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.20.1...agent-nodejs-testing@0.21.0) (2024-11-29)
 
 
