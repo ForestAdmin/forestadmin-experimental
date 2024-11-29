@@ -16,10 +16,10 @@ export const HUBSPOT_COMMON_COLLECTIONS_TO_API: Record<string, string> = {
 
 export default function createHubSpotDataSource(options: HubSpotOptions) {
   return async (logger: Logger) => {
-    const hubSpotClient = new Client({ accessToken: options.accessToken });
+    const hubSpotClient = new Client(options.hubspotClientConfiguration);
 
-    if (!options.accessToken) {
-      throw new Error('Missing hubspot accessKey, please provide your hubspot token.');
+    if (!options.hubspotClientConfiguration.accessToken) {
+      throw new Error('Missing hubspotClientConfiguration.accessKey, please provide your hubspot token.');
     }
 
     const fieldsByCollection: Introspection = {};
