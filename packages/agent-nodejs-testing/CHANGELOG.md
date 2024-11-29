@@ -1,3 +1,10 @@
+# [0.21.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.20.1...agent-nodejs-testing@0.21.0) (2024-11-29)
+
+
+### Features
+
+* allow user to test any agent stack (python, nodeJs, php, ruby) ([#119](https://github.com/ForestAdmin/forestadmin-experimental/issues/119)) ([da7b9a7](https://github.com/ForestAdmin/forestadmin-experimental/commit/da7b9a7e9fcbb5fc647bd230b5a0f4d4cc26858c))
+
 ## [0.20.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.20.0...agent-nodejs-testing@0.20.1) (2024-11-04)
 
 
