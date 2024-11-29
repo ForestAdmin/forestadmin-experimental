@@ -3,18 +3,20 @@ import jsonwebtoken from 'jsonwebtoken';
 import superagent from 'superagent';
 
 import { CURRENT_USER } from './forest-admin-client-mock';
-import { TestableAgentOptions } from './types';
 
 export class HttpRequester {
   private readonly deserializer: Deserializer;
 
   private get baseUrl() {
-    const prefix = this.agentOptions.prefix ? `/${this.agentOptions.prefix}` : '';
+    const prefix = this.options.prefix ? `/${this.options.prefix}` : '';
 
-    return `http://localhost:${this.agentOptions.port}${prefix}`;
+    return `${this.options.url}${prefix}`;
   }
 
-  constructor(private readonly token: string, private readonly agentOptions: TestableAgentOptions) {
+  constructor(
+    private readonly token: string,
+    private readonly options: { prefix?: string; url: string },
+  ) {
     this.deserializer = new Deserializer({ keyForAttribute: 'camelCase' });
   }
 
@@ -64,12 +66,12 @@ export class HttpRequester {
   }
 }
 
-export function createHttpRequester({
-  agentOptions,
-}: {
-  agentOptions: TestableAgentOptions;
+export function createHttpRequester(options: {
+  url: string;
+  authSecret: string;
+  prefix?: string;
 }): HttpRequester {
-  const token = jsonwebtoken.sign(CURRENT_USER, agentOptions.authSecret, { expiresIn: '1 hours' });
+  const token = jsonwebtoken.sign(CURRENT_USER, options.authSecret, { expiresIn: '1 hours' });
 
-  return new HttpRequester(token, agentOptions);
+  return new HttpRequester(token, options);
 }

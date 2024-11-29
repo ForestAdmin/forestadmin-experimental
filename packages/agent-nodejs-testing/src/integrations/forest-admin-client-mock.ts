@@ -7,16 +7,31 @@ import type {
   UserInfo,
 } from '@forestadmin/forestadmin-client';
 
-export const CURRENT_USER: UserInfo = {
+export type UserInfoToSupportAnyAgents = UserInfo & {
+  roleId: number;
+  rendering_id: number;
+  first_name: string;
+  last_name: string;
+};
+
+export const CURRENT_USER: UserInfoToSupportAnyAgents = {
   id: 1,
   email: 'forest@forest.com',
-  firstName: 'forest',
-  lastName: 'admin',
   team: 'admin',
+
+  rendering_id: 1,
   renderingId: 1,
+
+  first_name: 'forest',
+  firstName: 'forest',
+
+  last_name: 'admin',
+  lastName: 'admin',
+
   role: 'Admin',
   permissionLevel: 'admin',
   tags: {},
+  roleId: 1,
 };
 
 export default class ForestAdminClientMock implements ForestAdminClient {

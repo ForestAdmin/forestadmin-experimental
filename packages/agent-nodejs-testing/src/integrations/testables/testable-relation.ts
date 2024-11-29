@@ -1,5 +1,5 @@
 import type { HttpRequester } from '../http-requester';
-import type { TestableBaseOptions } from '../types';
+import type { SelectOptions } from '../types';
 
 import QuerySerializer from '../query-serializer';
 
@@ -21,7 +21,7 @@ export default class TestableRelation<TypingsSchema> {
     this.parentId = parentId;
   }
 
-  list<Data = unknown>(options?: TestableBaseOptions): Promise<Data[]> {
+  list<Data = unknown>(options?: SelectOptions): Promise<Data[]> {
     return this.httpRequester.query<Data[]>({
       method: 'get',
       path: `/forest/${this.collectionName as string}/${this.parentId}/relationships/${this.name}`,

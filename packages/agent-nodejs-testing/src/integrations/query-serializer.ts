@@ -1,9 +1,9 @@
-import type { TestableBaseOptions } from './types';
+import type { SelectOptions } from './types';
 import type { PlainFilter } from '@forestadmin/datasource-toolkit';
 import type { PlainSortClause } from '@forestadmin/datasource-toolkit/dist/src/interfaces/query/sort';
 
 export default class QuerySerializer {
-  static serialize(query: TestableBaseOptions): Record<string, unknown> | null {
+  static serialize(query: SelectOptions): Record<string, unknown> | null {
     return query
       ? {
           ...query,

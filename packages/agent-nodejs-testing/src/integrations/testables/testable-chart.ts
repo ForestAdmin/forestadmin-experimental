@@ -3,11 +3,7 @@ import type { HttpRequester } from '../http-requester';
 import { DistributionChart, PercentageChart, ValueChart } from '@forestadmin/datasource-toolkit';
 
 export default abstract class TestableChart {
-  protected readonly httpRequester: HttpRequester;
-
-  protected constructor({ httpRequester }: { httpRequester: HttpRequester }) {
-    this.httpRequester = httpRequester;
-  }
+  protected httpRequester: HttpRequester;
 
   async valueChart(chartName: string): Promise<ValueChart> {
     return this.dashboardChart(chartName);
