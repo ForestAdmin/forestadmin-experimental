@@ -47,7 +47,7 @@ export default class HubSpotCommonCollection extends BaseCollection {
     schema: FieldsIntrospection,
     logger: Logger,
   ) {
-    super(`hubspot__${collectionName}`, dataSource);
+    super(`hubspot__${collectionName}`, dataSource, client);
     this.client = new HubSpotClient(client, logger);
     this.logger = logger;
     this.hubSpotApiPath = hubSpotApiPath;
