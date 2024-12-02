@@ -9,7 +9,7 @@ agent
       hubspotClientConfiguration: {
         accessToken: YOUR_ACCESS_TOKEN,
         limiterOptions: {
-          minTime: 110,
+          minTime: 200,
           maxConcurrent: 1,
         },
       },
@@ -46,7 +46,7 @@ Not providing any value for the limiter will use the default options being:
 ```javascript
 limiterOptions: {
   maxConcurrent: 1,
-  minTime: 110,
+  minTime: 200,
 }
 ```
 

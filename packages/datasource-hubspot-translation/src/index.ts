@@ -34,7 +34,7 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
       );
       options.hubspotClientConfiguration.limiterOptions = {
         maxConcurrent: 1,
-        minTime: 110,
+        minTime: 200,
       };
     }
 
