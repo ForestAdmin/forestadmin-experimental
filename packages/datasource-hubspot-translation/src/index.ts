@@ -30,7 +30,7 @@ export default function createHubSpotDataSource(options: HubSpotOptions) {
       logger(
         'Warn',
         'No configuration has been passed for the rate limiting. ' +
-          'Using maxConcurrent: 1 and minTime: 110 to prevent reaching hubspot API limit',
+          'Using maxConcurrent: 1 and minTime: 200 to prevent reaching hubspot API limit',
       );
       options.hubspotClientConfiguration.limiterOptions = {
         maxConcurrent: 1,
