@@ -2,6 +2,7 @@
 
 ## Usage
 
+### Creating the datasource
 ``` javascript
 agent
   .addDataSource(
@@ -27,11 +28,23 @@ agent
         projects: ['number_of_users', 'project_id', 'project_name', 'cs_owner'],
         //...
       },
-      excludeOwnerCollection: false, // we handle automatically the owner collection, but you can exclude it if you want.
+      excludeOwnerCollection: true, // defaults to false: we handle automatically the owner collection, but you can exclude it if you want.
     }),
   )
 
 ```
+
+### Retrieving the hubspot client for custom calls
+When customizing a collection (adding a field, adding an action) you can retrieve the hubspot client from context to make custom calls like so: 
+
+```typescript
+import type { Client } from '@hubspot/api-client';
+
+...
+
+const husbpotClient = context.collection.nativeDriver as Client;
+```
+
 ## Options 
 
 ### hubspotClientConfiguration 
@@ -52,6 +65,33 @@ limiterOptions: {
 
 This default configuration works for the minimal plan of hubspot. If you have a better plan, use a proper configuration to allow for more requests, based on the [bottleneck documentation](https://github.com/SGrondin/bottleneck?tab=readme-ov-file#docs). 
 
+### collections
+
+You can specify the collections that need to be included in your datasource using this option. 
+
+You can also specify the fields that you want to be included. If a specified field does not exist on your collection, we will warn that we could not find that field, and display the list of available fields of your collection.
+### excludeOwnerCollection
+
+By default, we will automatically include the owner collection in your datasource.
+
+You specify that you don't want to include the owner collection by using the `excludeOwnerCollection` like so: 
+
+```typescript
+agent
+  .addDataSource(
+    createHubSpotDataSource({
+      hubspotClientConfiguration: {
+        accessToken: YOUR_ACCESS_TOKEN,
+        limiterOptions: {
+          minTime: 200,
+          maxConcurrent: 1,
+        },
+      },
+      collections: {...},
+      excludeOwnerCollection: true,
+    }),
+  )
+```
 ## Why is it experimental
 
 Hubspot datasources has a few limitations that currently prevent us from having a complex support via Forest.
