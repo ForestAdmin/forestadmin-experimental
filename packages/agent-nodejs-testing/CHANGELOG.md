@@ -1,3 +1,11 @@
+## [0.22.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.22.0...agent-nodejs-testing@0.22.1) (2024-12-04)
+
+
+### Bug Fixes
+
+* allow bottleneck config ([#121](https://github.com/ForestAdmin/forestadmin-experimental/issues/121)) ([1b8c5fb](https://github.com/ForestAdmin/forestadmin-experimental/commit/1b8c5fbc9ee67cf3551d7880217023276e62ecfb))
+* **datasource hubspot:** return empty record when api throw 404 ([#123](https://github.com/ForestAdmin/forestadmin-experimental/issues/123)) ([cc321a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/cc321a0294e38a46a057b0698d2c35c1ac394364))
+
 # [0.22.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.21.0...agent-nodejs-testing@0.22.0) (2024-11-29)
 
 
