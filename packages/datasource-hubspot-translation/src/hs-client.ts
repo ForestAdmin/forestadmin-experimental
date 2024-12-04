@@ -57,9 +57,16 @@ export default class HubSpotClient {
       `,
     );
 
-    const results = await this.client.crm[apiName].basicApi.getById(id, projection);
+    let results = [];
 
-    return [results.properties];
+    try {
+      const response = await this.client.crm[apiName].basicApi.getById(id, projection);
+      results = [response.properties];
+    } catch (error) {
+      if (error.code !== 404) throw error;
+    }
+
+    return results;
   }
 
   async getOneOnCustomHubspotCollection(apiName: string, id: string, projection: string[]) {
@@ -69,9 +76,17 @@ export default class HubSpotClient {
       on ${apiName} on id ${id} with a projection on ${projection},
       `,
     );
-    const results = await this.client.crm.objects.basicApi.getById(apiName, id, projection);
 
-    return [results.properties];
+    let results = [];
+
+    try {
+      const response = await this.client.crm.objects.basicApi.getById(apiName, id, projection);
+      results = [response.properties];
+    } catch (error) {
+      if (error.code !== 404) throw error;
+    }
+
+    return results;
   }
 
   async searchOwner(publicObjectSearchRequest: PublicObjectSearchRequest) {
@@ -97,6 +112,15 @@ export default class HubSpotClient {
       `,
     );
 
-    return [await this.client.crm.owners.ownersApi.getById(id)];
+    let results = [];
+
+    try {
+      const owner = await this.client.crm.owners.ownersApi.getById(id);
+      results = [owner];
+    } catch (error) {
+      if (error.code !== 404) throw error;
+    }
+
+    return results;
   }
 }
