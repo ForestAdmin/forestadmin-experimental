@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.2.0...datasource-hubspot-translation@1.2.1) (2024-12-04)
+
+
+### Bug Fixes
+
+* **datasource hubspot:** return empty record when api throw 404 ([#123](https://github.com/ForestAdmin/forestadmin-experimental/issues/123)) ([cc321a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/cc321a0294e38a46a057b0698d2c35c1ac394364))
+
 # [1.2.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.1.0...datasource-hubspot-translation@1.2.0) (2024-12-02)
 
 
