@@ -1,3 +1,19 @@
+# [2.3.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.2.0...rpc-agent@2.3.0) (2024-12-04)
+
+
+### Bug Fixes
+
+* allow bottleneck config ([#121](https://github.com/ForestAdmin/forestadmin-experimental/issues/121)) ([1b8c5fb](https://github.com/ForestAdmin/forestadmin-experimental/commit/1b8c5fbc9ee67cf3551d7880217023276e62ecfb))
+* **datasource hubspot:** return empty record when api throw 404 ([#123](https://github.com/ForestAdmin/forestadmin-experimental/issues/123)) ([cc321a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/cc321a0294e38a46a057b0698d2c35c1ac394364))
+* force release because the previous fails ([#117](https://github.com/ForestAdmin/forestadmin-experimental/issues/117)) ([c876afc](https://github.com/ForestAdmin/forestadmin-experimental/commit/c876afc55f885f26d424b72da3f45a7802a15c06))
+* return the field when id is not provided when using getFormFieldAction ([#118](https://github.com/ForestAdmin/forestadmin-experimental/issues/118)) ([b3b9a1e](https://github.com/ForestAdmin/forestadmin-experimental/commit/b3b9a1ec663b440f29d58cd9dd1f160509186dca))
+
+
+### Features
+
+* allow user to test any agent stack (python, nodeJs, php, ruby) ([#119](https://github.com/ForestAdmin/forestadmin-experimental/issues/119)) ([da7b9a7](https://github.com/ForestAdmin/forestadmin-experimental/commit/da7b9a7e9fcbb5fc647bd230b5a0f4d4cc26858c))
+* improve the readme and improve function naming ([#122](https://github.com/ForestAdmin/forestadmin-experimental/issues/122)) ([150ce74](https://github.com/ForestAdmin/forestadmin-experimental/commit/150ce7498b4d5087d95b66e44afe983717e0d710))
+
 # [2.2.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.1.0...rpc-agent@2.2.0) (2024-10-31)
 
 
