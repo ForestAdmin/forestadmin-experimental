@@ -23,12 +23,12 @@ export default class HubSpotClient {
       )}`,
     );
 
-    const { results } = await this.client.crm.objects.searchApi.doSearch(
+    const { results, paging } = await this.client.crm.objects.searchApi.doSearch(
       apiName,
       publicObjectSearchRequest,
     );
 
-    return results.map(r => r.properties);
+    return { results: results.map(r => r.properties), cursor: paging?.next?.after };
   }
 
   async searchOnCommonHubspotCollection(
@@ -42,11 +42,11 @@ export default class HubSpotClient {
       )}`,
     );
 
-    const { results } = await this.client.crm[apiName].searchApi.doSearch(
+    const { results, paging } = await this.client.crm[apiName].searchApi.doSearch(
       publicObjectSearchRequest,
     );
 
-    return results.map(r => r.properties);
+    return { results: results.map(r => r.properties), cursor: paging?.next?.after };
   }
 
   async getOneOnCommonHubspotCollection(apiName: string, id: string, projection: string[]) {
@@ -99,9 +99,9 @@ export default class HubSpotClient {
     const email = publicObjectSearchRequest.filterGroups.find(filters =>
       filters.filters.find(f => f.propertyName === 'email'),
     )?.filters?.[0].value;
-    const { results } = await this.client.crm.owners.ownersApi.getPage(email);
+    const { results, paging } = await this.client.crm.owners.ownersApi.getPage(email);
 
-    return results;
+    return { results, cursor: paging?.next?.after };
   }
 
   async getOneOwner(id: number) {

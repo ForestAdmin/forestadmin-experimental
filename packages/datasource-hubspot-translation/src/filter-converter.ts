@@ -117,7 +117,12 @@ export default class Converter {
     }
   }
 
-  convertFiltersToHubSpotProperties(filter: PaginatedFilter, projection: Projection) {
+  convertFiltersToHubSpotProperties(
+    filter: PaginatedFilter,
+    projection: Projection,
+    limit: number,
+    after = '0',
+  ) {
     const properties: {
       propertyName: string;
       operator: FilterOperatorEnum;
@@ -149,14 +154,12 @@ export default class Converter {
     let sort = filter.sort?.[0].field || this.primaryKeyName;
     if (!filter.sort?.[0].ascending) sort = `-${sort}`;
 
-    const limit = (filter.page?.limit || 0) + (filter.page?.skip || 0);
-
     const publicObjectSearchRequest: PublicObjectSearchRequest = {
       filterGroups,
       sorts: [sort],
       properties: [...projection],
-      limit: limit || 100,
-      after: '0',
+      limit,
+      after,
     };
 
     return publicObjectSearchRequest;

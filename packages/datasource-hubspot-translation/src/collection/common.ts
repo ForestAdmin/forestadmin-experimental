@@ -30,6 +30,9 @@ const TYPE_MAPPING: { [key: string]: ColumnType } = {
   json: 'Json',
 };
 
+// Max limit setup by hubspot
+const HUBSPOT_MAX_RECORD_LIMIT = 200;
+
 export default class HubSpotCommonCollection extends BaseCollection {
   logger: Logger;
 
@@ -115,20 +118,62 @@ export default class HubSpotCommonCollection extends BaseCollection {
     return this.client.getOneOnCommonHubspotCollection(this.hubSpotApiPath, `${id}`, projection);
   }
 
+  /**
+   * pagination work (limit 200 by hubspot)
+   * norminal case limit lower max hubspot limit records
+   *  eg limit 15 page 1
+   *  => should be fine only one call with limit 15 after 0
+   *  => should not slice
+   * another case limit lower max hubspot limit records
+   *  eg limit 15 page 2
+   *  => should be fine only one call with limit 30 after 0
+   *  => should send the second page with slice
+   * pagination case limit higher max hubspot limit records
+   *  eg limit 100 page 3
+   *  => should call one time with limit 200 after 0
+   *  => should call another time with limit 100 after the last of the previous call
+   *  => should slice to show the third page
+   * no limit case
+   *  eg relationship
+   *  => should call as many time as necessay unless batch of record was not rich the limit
+   */
+
   override async list(
     caller: Caller,
     filter: PaginatedFilter,
     projection: Projection,
   ): Promise<RecordData[]> {
-    const publicObjectSearchRequest = this.converter.convertFiltersToHubSpotProperties(
-      filter,
-      projection,
-    );
-
-    let results: Record<string, string | number>[];
+    let results: Record<string, string | number>[] = [];
 
     if (!this.converter.isGetByIdRequest(filter)) {
-      results = await this.search(publicObjectSearchRequest);
+      const NumberOfRecordNeded = filter.page ? filter.page.limit + filter.page.skip : null;
+      let currentResults: Record<string, string | number>[] = [];
+      let cursor: string;
+      let currentlimit: number;
+
+      do {
+        currentlimit = NumberOfRecordNeded
+          ? Math.min(NumberOfRecordNeded - results.length, HUBSPOT_MAX_RECORD_LIMIT)
+          : HUBSPOT_MAX_RECORD_LIMIT;
+
+        const publicObjectSearchRequest = this.converter.convertFiltersToHubSpotProperties(
+          filter,
+          projection,
+          currentlimit,
+          cursor,
+        );
+
+        // eslint-disable-next-line no-await-in-loop
+        ({ results: currentResults, cursor } = await this.search(publicObjectSearchRequest));
+
+        results = results.concat(currentResults);
+      } while (NumberOfRecordNeded ? results.length < NumberOfRecordNeded && cursor : cursor);
+
+      if (filter.page) {
+        const start = filter.page.skip;
+        const end = start + filter.page.limit;
+        results = results.slice(start, end);
+      }
     } else {
       results = await this.getOne(
         Number((filter.conditionTree as ConditionTreeLeaf).value),
