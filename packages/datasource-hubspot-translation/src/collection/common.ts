@@ -30,6 +30,9 @@ const TYPE_MAPPING: { [key: string]: ColumnType } = {
   json: 'Json',
 };
 
+// Max limit setup by hubspot
+const HUBSPOT_MAX_RECORD_LIMIT = 200;
+
 export default class HubSpotCommonCollection extends BaseCollection {
   logger: Logger;
 
@@ -120,15 +123,37 @@ export default class HubSpotCommonCollection extends BaseCollection {
     filter: PaginatedFilter,
     projection: Projection,
   ): Promise<RecordData[]> {
-    const publicObjectSearchRequest = this.converter.convertFiltersToHubSpotProperties(
-      filter,
-      projection,
-    );
-
-    let results: Record<string, string | number>[];
+    let results: Record<string, string | number>[] = [];
 
     if (!this.converter.isGetByIdRequest(filter)) {
-      results = await this.search(publicObjectSearchRequest);
+      const numberOfRecordNeeded = filter.page ? filter.page.limit + filter.page.skip : null;
+      let currentResults: Record<string, string | number>[] = [];
+      let cursor: string;
+      let currentlimit: number;
+
+      do {
+        currentlimit = numberOfRecordNeeded
+          ? Math.min(numberOfRecordNeeded - results.length, HUBSPOT_MAX_RECORD_LIMIT)
+          : HUBSPOT_MAX_RECORD_LIMIT;
+
+        const publicObjectSearchRequest = this.converter.convertFiltersToHubSpotProperties(
+          filter,
+          projection,
+          currentlimit,
+          cursor,
+        );
+
+        // eslint-disable-next-line no-await-in-loop
+        ({ results: currentResults, cursor } = await this.search(publicObjectSearchRequest));
+
+        results = results.concat(currentResults);
+      } while (numberOfRecordNeeded ? results.length < numberOfRecordNeeded && cursor : cursor);
+
+      if (filter.page) {
+        const start = filter.page.skip;
+        const end = start + filter.page.limit;
+        results = results.slice(start, end);
+      }
     } else {
       results = await this.getOne(
         Number((filter.conditionTree as ConditionTreeLeaf).value),
