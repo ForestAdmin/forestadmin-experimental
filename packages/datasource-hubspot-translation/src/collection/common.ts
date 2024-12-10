@@ -118,26 +118,6 @@ export default class HubSpotCommonCollection extends BaseCollection {
     return this.client.getOneOnCommonHubspotCollection(this.hubSpotApiPath, `${id}`, projection);
   }
 
-  /**
-   * pagination work (limit 200 by hubspot)
-   * norminal case limit lower max hubspot limit records
-   *  eg limit 15 page 1
-   *  => should be fine only one call with limit 15 after 0
-   *  => should not slice
-   * another case limit lower max hubspot limit records
-   *  eg limit 15 page 2
-   *  => should be fine only one call with limit 30 after 0
-   *  => should send the second page with slice
-   * pagination case limit higher max hubspot limit records
-   *  eg limit 100 page 3
-   *  => should call one time with limit 200 after 0
-   *  => should call another time with limit 100 after the last of the previous call
-   *  => should slice to show the third page
-   * no limit case
-   *  eg relationship
-   *  => should call as many time as necessay unless batch of record was not rich the limit
-   */
-
   override async list(
     caller: Caller,
     filter: PaginatedFilter,
@@ -146,14 +126,14 @@ export default class HubSpotCommonCollection extends BaseCollection {
     let results: Record<string, string | number>[] = [];
 
     if (!this.converter.isGetByIdRequest(filter)) {
-      const NumberOfRecordNeded = filter.page ? filter.page.limit + filter.page.skip : null;
+      const numberOfRecordNeeded = filter.page ? filter.page.limit + filter.page.skip : null;
       let currentResults: Record<string, string | number>[] = [];
       let cursor: string;
       let currentlimit: number;
 
       do {
-        currentlimit = NumberOfRecordNeded
-          ? Math.min(NumberOfRecordNeded - results.length, HUBSPOT_MAX_RECORD_LIMIT)
+        currentlimit = numberOfRecordNeeded
+          ? Math.min(numberOfRecordNeeded - results.length, HUBSPOT_MAX_RECORD_LIMIT)
           : HUBSPOT_MAX_RECORD_LIMIT;
 
         const publicObjectSearchRequest = this.converter.convertFiltersToHubSpotProperties(
@@ -167,7 +147,7 @@ export default class HubSpotCommonCollection extends BaseCollection {
         ({ results: currentResults, cursor } = await this.search(publicObjectSearchRequest));
 
         results = results.concat(currentResults);
-      } while (NumberOfRecordNeded ? results.length < NumberOfRecordNeded && cursor : cursor);
+      } while (numberOfRecordNeeded ? results.length < numberOfRecordNeeded && cursor : cursor);
 
       if (filter.page) {
         const start = filter.page.skip;
