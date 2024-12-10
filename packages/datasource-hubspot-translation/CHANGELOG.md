@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.2.1...datasource-hubspot-translation@1.3.0) (2024-12-10)
+
+
+### Features
+
+* **datasource hubspot:** enable pagination ([#124](https://github.com/ForestAdmin/forestadmin-experimental/issues/124)) ([533e754](https://github.com/ForestAdmin/forestadmin-experimental/commit/533e754771519046b83d1cd6958aa1dd34d4e660))
+
 ## [1.2.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.2.0...datasource-hubspot-translation@1.2.1) (2024-12-04)
 
 
