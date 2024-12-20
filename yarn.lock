@@ -570,7 +570,7 @@
     socks "^2.7.1"
     ssh2 "^1.14.0"
 
-"@forestadmin/datasource-toolkit@1.29.1", "@forestadmin/datasource-toolkit@^1.21.0", "@forestadmin/datasource-toolkit@^1.29.0", "@forestadmin/datasource-toolkit@^1.5.0", "@forestadmin/datasource-toolkit@^1.9.0":
+"@forestadmin/datasource-toolkit@1.29.1", "@forestadmin/datasource-toolkit@^1.21.0", "@forestadmin/datasource-toolkit@^1.5.0", "@forestadmin/datasource-toolkit@^1.9.0":
   version "1.29.1"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.29.1.tgz#bf1cda9d3684208509a891367b39ec7ff112618c"
   integrity sha512-JJnxRJyvZUIemp+mU0sZwIieiJys2RAAMb8JPNqmSWDmkXgVV0t0mbdmegF3xwk8lQvYbRqcTNOrT9Q0wjLXoQ==
@@ -610,6 +610,15 @@
   version "1.44.0"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.44.0.tgz#a5e6fd51c960818e6af2a30882da4c340734300f"
   integrity sha512-IEwSSPtN4EITSZtPIzKv9yHql7ZBFyJU8v5v9iQ2u7gzA7sJQ6yrVZ37DJdDYNmGFXLdB7pm69FZIwbhNDTvOw==
+  dependencies:
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "^9.0.0"
+
+"@forestadmin/datasource-toolkit@^1.45.0":
+  version "1.45.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.45.1.tgz#cd859ee636bf3a42cdc4b743fe00acb72cdc147b"
+  integrity sha512-eUcLvftBFr8ok7+wLyGhNagmwr4hEh6KCkLYmy/qdGER2DqgNbhuvxJXXeR3wl1VW4GsYajaXv1UjIJq2xQijw==
   dependencies:
     luxon "^3.2.1"
     object-hash "^3.0.0"

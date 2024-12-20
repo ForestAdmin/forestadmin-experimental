@@ -32,4 +32,69 @@ describe('ElasticsearchDataSource', () => {
 
     expect(datasource.getCollection('cars')).toBeInstanceOf(ElasticsearchCollection);
   });
+
+  describe('executeNativeQuery', () => {
+    it('should execute the given query on the correct connection', async () => {
+      const elasticsearchClient = new Client({ node: ELASTICSEARCH_URL });
+
+      const dataSource = new ElasticsearchDataSource(
+        elasticsearchClient,
+        [
+          new ModelElasticsearch(elasticsearchClient, 'cars', ['indexPatterns'], ['aliases'], {
+            properties: {},
+          }),
+        ],
+        jest.fn(),
+        {
+          liveQueryConnections: 'main',
+        },
+      );
+      const spyQuery = jest.spyOn(elasticsearchClient.sql, 'query').mockResolvedValue({
+        columns: [{ name: 'id', type: 'number' }],
+        rows: [[1]],
+      });
+
+      const result = await dataSource.executeNativeQuery(
+        'main',
+        'SELECT id FROM "index-alias" WHERE type = $something',
+        { something: 'value' },
+      );
+
+      expect(spyQuery).toHaveBeenCalled();
+      expect(spyQuery).toHaveBeenCalledWith({
+        query: 'SELECT id FROM "index-alias" WHERE type = ?',
+        params: ['value'],
+      });
+      expect(result).toEqual([
+        {
+          id: 1,
+        },
+      ]);
+    });
+
+    describe('when giving an unknown connection name', () => {
+      it('should throw an error', async () => {
+        const elasticsearchClient = new Client({ node: ELASTICSEARCH_URL });
+
+        const dataSource = new ElasticsearchDataSource(
+          elasticsearchClient,
+          [
+            new ModelElasticsearch(elasticsearchClient, 'cars', ['indexPatterns'], ['aliases'], {
+              properties: {},
+            }),
+          ],
+          jest.fn(),
+          {
+            liveQueryConnections: 'main',
+          },
+        );
+        const spyQuery = jest.spyOn(elasticsearchClient.sql, 'query').mockImplementation();
+
+        await expect(
+          dataSource.executeNativeQuery('production', 'query', { something: 'value' }),
+        ).rejects.toThrow(new Error(`Unknown connection name 'production'`));
+        expect(spyQuery).not.toHaveBeenCalled();
+      });
+    });
+  });
 });

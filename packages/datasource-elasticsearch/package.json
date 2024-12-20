@@ -24,11 +24,11 @@
     "publish:package": "semantic-release"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-toolkit": "^1.29.0",
+    "@forestadmin/datasource-toolkit": "^1.45.0",
     "@elastic/elasticsearch": ">= 8.15.0 < 9"
   },
   "devDependencies": {
-    "@forestadmin/datasource-toolkit": "^1.29.0",
+    "@forestadmin/datasource-toolkit": "^1.45.0",
     "@elastic/elasticsearch": "^8.15.0",
     "@elastic/elasticsearch-mock": "2.0.0"
   }
