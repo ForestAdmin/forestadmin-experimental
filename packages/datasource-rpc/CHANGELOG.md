@@ -1,3 +1,11 @@
+# [1.5.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.4.0...datasource-rpc@1.5.0) (2025-01-02)
+
+
+### Features
+
+* **datasource hubspot:** enable pagination ([#124](https://github.com/ForestAdmin/forestadmin-experimental/issues/124)) ([533e754](https://github.com/ForestAdmin/forestadmin-experimental/commit/533e754771519046b83d1cd6958aa1dd34d4e660))
+* **ds-elasticsearch:** support for native query sql [breaking] ([#125](https://github.com/ForestAdmin/forestadmin-experimental/issues/125)) ([3c371f4](https://github.com/ForestAdmin/forestadmin-experimental/commit/3c371f4c2e59252c545bff0689f5f6f69b0e4fbd))
+
 # [1.4.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.3.0...datasource-rpc@1.4.0) (2024-12-04)
 
 
