@@ -47,17 +47,21 @@ export function createElasticsearchDataSourceWithExistingClient(client: Client):
  */
 export function createElasticsearchDataSource(
   connection: ClientOptions['node'],
-  options?: ConfigurationOptions,
+  options?: {
+    liveQueryConnections?: string;
+    builder: ConfigurationOptions;
+  },
 ): DataSourceFactory {
   return async (logger: Logger) => {
     const client = new Client({ node: connection });
+    const { liveQueryConnections, builder } = options;
 
-    const collectionModels = options
+    const collectionModels = options?.builder
       ? await (
-          options(new ElasticsearchDatasourceBuilder(client)) as ElasticsearchDatasourceBuilder
+          builder(new ElasticsearchDatasourceBuilder(client)) as ElasticsearchDatasourceBuilder
         ).createCollectionsFromConfiguration()
       : await Introspector.introspect(client, logger);
 
-    return new ElasticsearchDataSource(client, collectionModels, logger);
+    return new ElasticsearchDataSource(client, collectionModels, logger, { liveQueryConnections });
   };
 }

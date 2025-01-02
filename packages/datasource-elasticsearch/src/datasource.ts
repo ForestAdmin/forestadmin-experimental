@@ -4,6 +4,10 @@ import { BaseDataSource, Logger } from '@forestadmin/datasource-toolkit';
 import ElasticsearchCollection from './collection';
 import ModelElasticsearch from './model-builder/model';
 
+interface NativeQueryConnection {
+  instance: Client;
+}
+
 export default class ElasticsearchDataSource extends BaseDataSource<ElasticsearchCollection> {
   /**
    * We can't directly use the Elasticsearch version we install in the package.json
@@ -13,7 +17,12 @@ export default class ElasticsearchDataSource extends BaseDataSource<Elasticsearc
    */
   protected elasticsearchClient: Client;
 
-  constructor(elasticsearchClient: Client, collectionModels: ModelElasticsearch[], logger: Logger) {
+  constructor(
+    elasticsearchClient: Client,
+    collectionModels: ModelElasticsearch[],
+    logger: Logger,
+    options?: { liveQueryConnections?: string },
+  ) {
     super();
 
     if (!elasticsearchClient) throw new Error('Invalid (null) Elasticsearch instance.');
@@ -21,6 +30,12 @@ export default class ElasticsearchDataSource extends BaseDataSource<Elasticsearc
 
     // Creating collections
     this.createCollections(collectionModels, logger);
+
+    if (options?.liveQueryConnections) {
+      this.addNativeQueryConnection(options.liveQueryConnections, {
+        instance: this.elasticsearchClient,
+      });
+    }
 
     logger?.('Info', 'ElasticsearchDataSource - Built');
   }
@@ -38,5 +53,45 @@ export default class ElasticsearchDataSource extends BaseDataSource<Elasticsearc
         );
         this.addCollection(collection);
       });
+  }
+
+  override async executeNativeQuery(connectionName: string, query: string, contextVariables = {}) {
+    if (!this.nativeQueryConnections[connectionName]) {
+      throw new Error(`Unknown connection name '${connectionName}'`);
+    }
+
+    const { params, esQuery } = this.replaceSqlArguments(query, contextVariables);
+
+    const response = await (
+      this.nativeQueryConnections[connectionName] as NativeQueryConnection
+    ).instance.sql.query({
+      query: esQuery,
+      params,
+    });
+
+    return response.rows.map(row => {
+      const rows: Record<string, unknown> = {};
+      response.columns.forEach((column, index) => {
+        rows[column.name] = row[index];
+      });
+
+      return rows;
+    });
+  }
+
+  private replaceSqlArguments(sqlQuery: string, values: Record<string, unknown>) {
+    const params: unknown[] = [];
+
+    const placeholderRegex = /\$(\w+)/g;
+
+    const esQuery = sqlQuery.replace(placeholderRegex, (match, key) => {
+      if (key in values) {
+        params.push(values[key]);
+
+        return '?';
+      }
+    });
+
+    return { esQuery, params };
   }
 }
