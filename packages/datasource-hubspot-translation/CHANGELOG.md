@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.3.0...datasource-hubspot-translation@1.4.0) (2025-01-02)
+
+
+### Features
+
+* **ds-elasticsearch:** support for native query sql [breaking] ([#125](https://github.com/ForestAdmin/forestadmin-experimental/issues/125)) ([3c371f4](https://github.com/ForestAdmin/forestadmin-experimental/commit/3c371f4c2e59252c545bff0689f5f6f69b0e4fbd))
+
 # [1.3.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-hubspot-translation@1.2.1...datasource-hubspot-translation@1.3.0) (2024-12-10)
 
 
