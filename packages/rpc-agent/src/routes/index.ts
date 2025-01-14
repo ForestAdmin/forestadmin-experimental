@@ -60,10 +60,11 @@ export function makeRpcRoutes(
   dataSource: DataSource,
   options: Options,
   services: Services,
+  rpcCollections: string[],
 ): BaseRoute[] {
   const routes = [
     ...getRootRoutes(options, services),
-    new RpcSchemaRoute(services, options, dataSource),
+    new RpcSchemaRoute(services, options, dataSource, rpcCollections),
     ...getRpcCollectionsRoutes(dataSource, options, services),
     new RpcDatasourceChartRoute(services, options, dataSource),
   ];

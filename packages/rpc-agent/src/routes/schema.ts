@@ -8,15 +8,18 @@ export default class RpcSchemaRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
   protected readonly dataSource: DataSource;
+  private readonly rpcCollections: string[];
 
   constructor(
     services: ForestAdminHttpDriverServices,
     options: AgentOptionsWithDefaults,
     dataSource: DataSource,
+    rpcCollections: string[],
   ) {
     super(services, options);
 
     this.dataSource = dataSource;
+    this.rpcCollections = rpcCollections;
   }
 
   override setupRoutes(router: Router): void {
@@ -24,6 +27,8 @@ export default class RpcSchemaRoute extends BaseRoute {
   }
 
   async buildCollection(collection: Collection) {
+    if (this.rpcCollections.includes(collection.name)) return;
+
     const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
       fileds[name] = {
         ...schema,
@@ -37,8 +42,12 @@ export default class RpcSchemaRoute extends BaseRoute {
   }
 
   async handleRpc(context: any) {
+    const collections = await Promise.all(
+      this.dataSource.collections.map(this.buildCollection.bind(this)),
+    );
+
     context.response.body = {
-      collections: await Promise.all(this.dataSource.collections.map(this.buildCollection)),
+      collections: collections.filter(Boolean),
       charts: this.dataSource.schema.charts,
     };
   }
