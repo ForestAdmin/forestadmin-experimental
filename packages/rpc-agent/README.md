@@ -17,13 +17,13 @@ const agent = createRpcAgent({
 // use the agent like a real one.
 ```
 
-# Deal with nested RPC datas ource
+# Deal with nested RPC data source
 
 Be careful when you want to use RPC data source inside an RPC agent.
 Two solution:
 * you want to combine data sources before use it to the gateway agent, and you not use the imported data source anywhere.
   
-  => No action is need use agent and data source as usual.
+  => no action is needed, use agent and data source as usual.
 
 * you want to use an RPC data source at several places and declare relationship on it.
 
