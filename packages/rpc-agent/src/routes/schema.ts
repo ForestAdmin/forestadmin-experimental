@@ -26,9 +26,7 @@ export default class RpcSchemaRoute extends BaseRoute {
     router.get('/rpc-schema', this.handleRpc.bind(this));
   }
 
-  async buildCollection(collection: Collection) {
-    if (this.rpcCollections.includes(collection.name)) return;
-
+  buildCollection(collection: Collection) {
     const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
       fileds[name] = {
         ...schema,
@@ -42,13 +40,29 @@ export default class RpcSchemaRoute extends BaseRoute {
   }
 
   async handleRpc(context: any) {
-    const collections = await Promise.all(
-      this.dataSource.collections.map(this.buildCollection.bind(this)),
-    );
+    const rpcRelations = {};
+    const collections = [];
+
+    this.dataSource.collections.forEach(collection => {
+      if (this.rpcCollections.includes(collection.name)) {
+        const relations = {};
+
+        Object.entries(collection.schema.fields).forEach(([name, field]) => {
+          if (field.type !== 'Column' && !this.rpcCollections.includes(field.foreignCollection)) {
+            relations[name] = field;
+          }
+        });
+
+        if (Object.keys(relations).length > 0) rpcRelations[collection.name] = relations;
+      } else {
+        collections.push(this.buildCollection(collection));
+      }
+    });
 
     context.response.body = {
       collections: collections.filter(Boolean),
       charts: this.dataSource.schema.charts,
+      rpcRelations,
     };
   }
 }

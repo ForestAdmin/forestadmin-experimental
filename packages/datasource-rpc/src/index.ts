@@ -1,10 +1,10 @@
-import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
+import { CollectionCustomizer } from '@forestadmin/datasource-customizer';
+import { BaseDataSource, DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
 import superagent from 'superagent';
 
 import RpcDataSource from './datasource';
 import { RpcDataSourceOptions } from './types';
 
-// eslint-disable-next-line import/prefer-default-export
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {
   return async (logger: Logger) => {
     const { authSecret, uri } = options;
@@ -24,4 +24,50 @@ export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFa
 
     return new RpcDataSource(logger, { ...options, token }, introspection);
   };
+}
+
+export function generateRpcRelations(dataSource) {
+  dataSource.compositeDataSource.dataSources.forEach((d: BaseDataSource) => {
+    if (d instanceof RpcDataSource) {
+      Object.entries(d.rpcRelations).forEach(([name, relations]) => {
+        const cz: CollectionCustomizer = dataSource.getCollection(name);
+
+        Object.entries(relations).forEach(([relationName, relationDefinition]) => {
+          switch (relationDefinition.type) {
+            case 'ManyToMany':
+              cz.addManyToManyRelation(
+                relationName,
+                relationDefinition.foreignCollection,
+                relationDefinition.throughCollection,
+                {
+                  foreignKey: relationDefinition.foreignKey,
+                  foreignKeyTarget: relationDefinition.foreignKeyTarget,
+                  originKey: relationDefinition.originKey,
+                  originKeyTarget: relationDefinition.originKeyTarget,
+                },
+              );
+              break;
+            case 'OneToMany':
+              cz.addOneToManyRelation(relationName, relationDefinition.foreignCollection, {
+                originKey: relationDefinition.originKey,
+                originKeyTarget: relationDefinition.originKeyTarget,
+              });
+              break;
+            case 'OneToOne':
+              cz.addOneToOneRelation(relationName, relationDefinition.foreignCollection, {
+                originKey: relationDefinition.originKey,
+                originKeyTarget: relationDefinition.originKeyTarget,
+              });
+              break;
+            default:
+              cz.addManyToOneRelation(relationName, relationDefinition.foreignCollection, {
+                foreignKey: relationDefinition.foreignKey,
+                foreignKeyTarget: relationDefinition.foreignKeyTarget,
+              });
+              break;
+          }
+        });
+      });
+    }
+  });
 }

@@ -518,18 +518,6 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
-"@forestadmin/datasource-customizer@^1.45.1":
-  version "1.45.1"
-  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.45.1.tgz#5fa577a4616fdf1a8b0e6c52f36ebc586f71ea83"
-  integrity sha512-EjBG6DXKVrhCItYq+Cd7szTih2i91ARdEGdr1bKam34Vvkrb1nwa5ZlzTASOpS+HFnZMvmGeq8wAhuJt3h9CMQ==
-  dependencies:
-    "@forestadmin/datasource-toolkit" "1.34.1"
-    antlr4 "^4.13.1-patch-1"
-    file-type "^16.5.4"
-    luxon "^3.2.1"
-    object-hash "^3.0.0"
-    uuid "^9.0.0"
-
 "@forestadmin/datasource-replica@^1.0.0":
   version "1.0.55"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-replica/-/datasource-replica-1.0.55.tgz#5d94ee6d8943c5e7dd3abb521b81ae76934c819e"
@@ -595,15 +583,6 @@
   version "1.34.0"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.34.0.tgz#c58a0b508894bfa658f97cf96830f83aa72f06a1"
   integrity sha512-ua5QjL1yhqdlaaUTbBKZJvmVueaZsNBIZBTLtK7G0aVEdXpmRqcehd+/enBN4MxICqF7j60vuVsDbWzrHj2ZRw==
-  dependencies:
-    luxon "^3.2.1"
-    object-hash "^3.0.0"
-    uuid "^9.0.0"
-
-"@forestadmin/datasource-toolkit@1.34.1", "@forestadmin/datasource-toolkit@^1.34.1":
-  version "1.34.1"
-  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.34.1.tgz#6d5e887ff9a8af5ce7fb625db1579de1ac760f9a"
-  integrity sha512-lyuNRleN8y1A+yo6exMZ0eDsYeHthD0NrvsjdRstP1aMMNHt57xmOWBGrfwVi2SvRx+TZzJp+rrK2JfSEqAebg==
   dependencies:
     luxon "^3.2.1"
     object-hash "^3.0.0"
