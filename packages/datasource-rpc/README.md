@@ -3,7 +3,7 @@ The RPC data source allows get and proxify data from a RPC agent.
 # Installation
 
 - install the package `@forestadmin-experimental/datasource-rpc`.
-- give the URI, FOREST_ENV_SECRET & FOREST_AUTH_SECRET
+- give the URI, an authsecret used to auth between RPC agent and the gateway
 
 ```javascript
 const { createAgent } = require('@forestadmin/agent');
@@ -12,8 +12,20 @@ const { createRpcDataSource } = require('@forestadmin-experimental/datasource-rp
 const agent = createAgent(options).addDataSource(
   createRpcDataSource({
     uri: 'http://localhost:3352',
-    authSecret: process.env.FOREST_AUTH_SECRET,
-    envSecret: process.env.FOREST_ENV_SECRET,
+    authSecret: process.env.AUTH_SECRET,
   }),
 );
 ```
+
+# Deal with RPC relationship
+
+We preconize creating relationship between RPC agents on your gateway.
+But if you want to specify relationship in another way, you should use the given pluggin on the gateway.
+
+```javascript
+import { generateRpcRelations } from '@forestadmin-experimental/datasource-rpc';
+
+agent.use(generateRpcRelations);
+```
+
+To use in combination with [markCollectionsAsRpc](https://github.com/ForestAdmin/forestadmin-experimental/blob/main/packages/rpc-agent/README.md).
