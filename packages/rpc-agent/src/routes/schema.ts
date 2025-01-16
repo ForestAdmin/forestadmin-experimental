@@ -8,22 +8,25 @@ export default class RpcSchemaRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
   protected readonly dataSource: DataSource;
+  private readonly rpcCollections: string[];
 
   constructor(
     services: ForestAdminHttpDriverServices,
     options: AgentOptionsWithDefaults,
     dataSource: DataSource,
+    rpcCollections: string[],
   ) {
     super(services, options);
 
     this.dataSource = dataSource;
+    this.rpcCollections = rpcCollections;
   }
 
   override setupRoutes(router: Router): void {
     router.get('/rpc-schema', this.handleRpc.bind(this));
   }
 
-  async buildCollection(collection: Collection) {
+  buildCollection(collection: Collection) {
     const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
       fileds[name] = {
         ...schema,
@@ -37,9 +40,29 @@ export default class RpcSchemaRoute extends BaseRoute {
   }
 
   async handleRpc(context: any) {
+    const rpcRelations = {};
+    const collections = [];
+
+    this.dataSource.collections.forEach(collection => {
+      if (this.rpcCollections.includes(collection.name)) {
+        const relations = {};
+
+        Object.entries(collection.schema.fields).forEach(([name, field]) => {
+          if (field.type !== 'Column' && !this.rpcCollections.includes(field.foreignCollection)) {
+            relations[name] = field;
+          }
+        });
+
+        if (Object.keys(relations).length > 0) rpcRelations[collection.name] = relations;
+      } else {
+        collections.push(this.buildCollection(collection));
+      }
+    });
+
     context.response.body = {
-      collections: await Promise.all(this.dataSource.collections.map(this.buildCollection)),
+      collections: collections.filter(Boolean),
       charts: this.dataSource.schema.charts,
+      rpcRelations,
     };
   }
 }

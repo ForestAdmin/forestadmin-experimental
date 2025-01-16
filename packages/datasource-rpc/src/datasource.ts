@@ -8,6 +8,7 @@ export default class RpcDataSource extends BaseDataSource {
   private readonly options: RpcDataSourceOptionsWithToken;
   private readonly logger: Logger;
   protected readonly _charts: string[];
+  readonly rpcRelations: RpcSchema['rpcRelations'];
 
   constructor(logger: Logger, options: RpcDataSourceOptionsWithToken, introspection: RpcSchema) {
     super();
@@ -26,6 +27,7 @@ export default class RpcDataSource extends BaseDataSource {
     );
 
     this._charts = introspection.charts;
+    this.rpcRelations = introspection.rpcRelations;
   }
 
   override get schema() {
