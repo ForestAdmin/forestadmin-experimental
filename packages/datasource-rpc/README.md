@@ -20,7 +20,7 @@ const agent = createAgent(options).addDataSource(
 # Deal with RPC relationship
 
 We preconize creating relationship between RPC agents on your gateway.
-But if you want to specify relationship in another way, you should use the given pluggin on the gateway.
+But if you want to specify relationship in another way, you should use the given plugin on the gateway.
 
 ```javascript
 import { generateRpcRelations } from '@forestadmin-experimental/datasource-rpc';
@@ -28,4 +28,4 @@ import { generateRpcRelations } from '@forestadmin-experimental/datasource-rpc';
 agent.use(generateRpcRelations);
 ```
 
-To use in combination with [markCollectionsAsRpc](https://github.com/ForestAdmin/forestadmin-experimental/blob/main/packages/rpc-agent/README.md).
+To be used with [markCollectionsAsRpc](../rpc-agent/README.md#deal-with-nested-rpc-data-source-and-relationship).

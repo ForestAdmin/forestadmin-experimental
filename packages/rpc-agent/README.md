@@ -17,21 +17,130 @@ const agent = createRpcAgent({
 // use the agent like a real one.
 ```
 
-# Deal with nested RPC data source
+# Deal with nested RPC data source and relationship
 
 Be careful when you want to use RPC data source inside an RPC agent.
-Two solution:
-* you want to combine data sources before use it to the gateway agent, and you not use the imported data source anywhere.
-  
-  => no action is needed, use agent and data source as usual.
+As RPC agent act almost like a real one, a schema was created and used by the RPC data source.
+So all collections that you put on it should be inside this schema, and can cause duplication issue.
 
-* you want to use an RPC data source at several places and declare relationship on it.
+Unlike `removeCollection`, `markCollectionsAsRpc` remove collection from the schema but keep defined relationship.
+If you declare some relationship on a collection marked as RPC, you should use [the given plugin](../datasource-rpc/README.md#deal-with-rpc-relationship) on the gateway to do the reconciliation.
 
-  => use `markCollectionsAsRpc` function
-  ```javascript
-  agent.createRpcDataSource({
-    uri: 'http://localhost:3352',
-    authSecret: process.env.AUTH_SECRET,
+## Examples
+
+Given this structure:
+* One RPC agent used to manage Users.
+* One RPC agent used to manage Groups.
+* One RPC agent used to manage Projects.
+* One agent used as a gateway.
+
+### Case 1 declaring relationship inside the gateway
+
+Declare your relation as usual, like below:
+
+```javascript
+gateway
+  .createRpcDataSource(/*from the user RPC agent*/)
+  .createRpcDataSource(/*from the project RPC agent*/)
+  .createRpcDataSource(/*from the group RPC agent*/)
+  .customizeCollection('user', collection => {
+    collection.addManyToOneRelation('group', 'group', {
+      foreignKey: 'group_id',
+    });
   })
-  .markCollectionsAsRpc('user', 'group');
-  ```
+  .customizeCollection('project', collection => {
+    collection.addManyToOneRelation('group', 'group', {
+      foreignKey: 'group_id',
+    });
+  })
+  .customizeCollection('group', collection => {
+    collection
+      .addOneToManyRelation('users', 'user', {
+        originKey: 'group_id',
+      })
+      .addOneToManyRelation('projects', 'project', {
+        originKey: 'group_id',
+      });
+  });
+```
+
+### Case 2 using RPC datasource inside RPC agent
+
+You combine data source before using it on the gateway.
+In this exemple you don't use group agent on several places, only on the user agent.
+Here there is no need to use `markCollectionsAsRpc`, like below:
+
+```javascript
+/* define user agent and use group agent as a RPC data source
+* define some relationship between both data source
+*/
+userAgent
+  .createcreateSqlDataSource(...)
+  .createRpcDataSource(/*from the group RPC agent*/)
+  .customizeCollection('user', collection => {
+    collection.addManyToOneRelation('group', 'group', {
+      foreignKey: 'group_id',
+    });
+  })
+  .customizeCollection('group', collection => {
+    collection.addOneToManyRelation('users', 'user', {
+      originKey: 'group_id',
+    });
+  });
+
+/* define the gateway and use agragated agent
+* all collection and relationship defined in the user agent will be import as a datasource
+*/
+gateway
+  .createRpcDataSource(/*from the user RPC agent*/)
+  .createRpcDataSource(/*from the project RPC agent*/)
+```
+
+### Case 2 declaring relationship between RPC datasource on a RPC agent
+
+You have complexe datasource relationship and usage, see below how to use `markCollectionsAsRpc` and the `generateRpcRelations` plugin.
+
+```javascript
+/* define user agent and use group agent as a RPC data source
+* define some relationship between both data source
+*/
+userAgent
+  .createcreateSqlDataSource(...)
+  .createRpcDataSource(/*from the group RPC agent*/)
+  .customizeCollection('user', collection => {
+    collection.addManyToOneRelation('group', 'group', {
+      foreignKey: 'group_id',
+    });
+  })
+  .customizeCollection('group', collection => {
+    collection.addOneToManyRelation('users', 'user', {
+      originKey: 'group_id',
+    });
+  })
+  .markCollectionsAsRpc('group');
+
+/* define project agent and use group agent as a RPC data source
+* define some relationship between both data source
+*/
+projectAgent
+  .createcreateSqlDataSource(...)
+  .createRpcDataSource(/*from the group RPC agent*/)
+  .customizeCollection('project', collection => {
+    collection.addManyToOneRelation('group', 'group', {
+      foreignKey: 'group_id',
+    });
+  })
+  .customizeCollection('group', collection => {
+    collection.addOneToManyRelation('projects', 'project', {
+      originKey: 'group_id',
+    });
+  })
+  .markCollectionsAsRpc('group');
+
+// define the gateway 
+gateway
+  .createRpcDataSource(/*from the user RPC agent*/)
+  .createRpcDataSource(/*from the project RPC agent*/)
+  .createRpcDataSource(/*from the group RPC agent*/)
+  .use(generateRpcRelations);
+```
