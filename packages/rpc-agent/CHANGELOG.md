@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.4.0...rpc-agent@2.5.0) (2025-01-16)
+
+
+### Features
+
+* **rpc-agent:** allow rpc spaghetti ([#126](https://github.com/ForestAdmin/forestadmin-experimental/issues/126)) ([40a18f3](https://github.com/ForestAdmin/forestadmin-experimental/commit/40a18f3fb3168cb1db63a633bbcf2743ba987859))
+
 # [2.4.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.3.0...rpc-agent@2.4.0) (2025-01-02)
 
 

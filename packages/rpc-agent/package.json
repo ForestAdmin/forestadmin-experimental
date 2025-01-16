@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/rpc-agent",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {
