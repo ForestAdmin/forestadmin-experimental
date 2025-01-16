@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-elasticsearch@0.7.0...datasource-elasticsearch@0.8.0) (2025-01-16)
+
+
+### Features
+
+* **rpc-agent:** allow rpc spaghetti ([#126](https://github.com/ForestAdmin/forestadmin-experimental/issues/126)) ([40a18f3](https://github.com/ForestAdmin/forestadmin-experimental/commit/40a18f3fb3168cb1db63a633bbcf2743ba987859))
+
 # [0.7.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-elasticsearch@0.6.0...datasource-elasticsearch@0.7.0) (2025-01-02)
 
 
