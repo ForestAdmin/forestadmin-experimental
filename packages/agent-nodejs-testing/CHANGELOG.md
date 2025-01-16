@@ -1,3 +1,10 @@
+# [0.24.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.23.0...agent-nodejs-testing@0.24.0) (2025-01-16)
+
+
+### Features
+
+* **rpc-agent:** allow rpc spaghetti ([#126](https://github.com/ForestAdmin/forestadmin-experimental/issues/126)) ([40a18f3](https://github.com/ForestAdmin/forestadmin-experimental/commit/40a18f3fb3168cb1db63a633bbcf2743ba987859))
+
 # [0.23.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.22.0...agent-nodejs-testing@0.23.0) (2025-01-02)
 
 
