@@ -21,7 +21,7 @@ const agent = createRpcAgent({
 
 Be cautious when using an RPC data source within an RPC agent. Since an RPC agent behaves similarly to a real one, a schema is created and utilized by the RPC data source. Therefore, all collections added to it should be within this schema, which can potentially cause duplication issues.
 
-Unlike removeCollection, the markCollectionsAsRpc function removes the collection from the schema but retains the defined relationships. If you declare relationships on a collection marked as RPC, you should use [the provided plugin](../datasource-rpc/README.md#deal-with-rpc-relationship) on the gateway to perform the reconciliation.
+Unlike `removeCollection`, the `markCollectionsAsRpc` function removes the collection from the schema but retains the defined relationships. If you declare relationships on a collection marked as RPC, you should use [the provided plugin](../datasource-rpc/README.md#deal-with-rpc-relationship) on the gateway to perform the reconciliation.
 
 ## Examples
 
