@@ -19,8 +19,7 @@ const agent = createAgent(options).addDataSource(
 
 # Deal with RPC relationship
 
-We preconize creating relationship between RPC agents on your gateway.
-But if you want to specify relationship in another way, you should use the given plugin on the gateway.
+We recommend creating a relationship between RPC agents on your gateway. However, if you want to specify the relationship in another way, you should use the provided plugin on the gateway.
 
 ```javascript
 import { generateRpcRelations } from '@forestadmin-experimental/datasource-rpc';
