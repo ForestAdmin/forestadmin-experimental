@@ -93,7 +93,7 @@ gateway
 
 ### Case 2 declaring relationship between RPC datasource on a RPC agent
 
-You have complexe datasource relationship and usage, see below how to use `markCollectionsAsRpc` and the `generateRpcRelations` plugin.
+If you have complex datasource relationship and usage, see how to use `markCollectionsAsRpc` and the `generateRpcRelations` plugin below.
 
 ```javascript
 /* define user agent and use group agent as a RPC data source
