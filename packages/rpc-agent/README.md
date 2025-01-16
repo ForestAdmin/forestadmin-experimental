@@ -63,9 +63,7 @@ gateway
 
 ### Case 2 using RPC datasource inside RPC agent
 
-You combine data source before using it on the gateway.
-In this exemple you don't use group agent on several places, only on the user agent.
-Here there is no need to use `markCollectionsAsRpc`, like below:
+You should combine the data sources before using them on the gateway. In this example, you only use the group agent in the user agent, not in multiple places. Therefore, there is no need to use `markCollectionsAsRpc`, as shown below:
 
 ```javascript
 /* define user agent and use group agent as a RPC data source
