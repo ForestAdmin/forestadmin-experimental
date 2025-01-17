@@ -9,12 +9,13 @@ The RPC data source allows get and proxify data from a RPC agent.
 const { createAgent } = require('@forestadmin/agent');
 const { createRpcDataSource } = require('@forestadmin-experimental/datasource-rpc');
 
-const agent = createAgent(options).addDataSource(
-  createRpcDataSource({
-    uri: 'http://localhost:3352',
-    authSecret: process.env.AUTH_SECRET,
-  }),
-);
+const agent = createAgent(options)
+  .addDataSource(
+    createRpcDataSource({
+      uri: 'http://localhost:3352',
+      authSecret: process.env.AUTH_SECRET,
+    }),
+  );
 ```
 
 # Deal with RPC relationship
