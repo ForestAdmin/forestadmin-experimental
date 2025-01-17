@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.5.0...datasource-rpc@1.6.0) (2025-01-17)
+
+
+### Bug Fixes
+
+* release datasource-rpc ([2135d1e](https://github.com/ForestAdmin/forestadmin-experimental/commit/2135d1ecbecd3b4172e0ef02d43f5a061fd2625b))
+
+
+### Features
+
+* **rpc-agent:** allow rpc spaghetti ([#126](https://github.com/ForestAdmin/forestadmin-experimental/issues/126)) ([40a18f3](https://github.com/ForestAdmin/forestadmin-experimental/commit/40a18f3fb3168cb1db63a633bbcf2743ba987859))
+
 # [1.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.5.0...datasource-rpc@1.6.0) (2025-01-16)
 
 
