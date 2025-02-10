@@ -51,54 +51,71 @@ export default class ForestServerSandbox {
 
   private routes(req: http.IncomingMessage, res: http.ServerResponse) {
     const agentSchemaCacheIdentifier = req.headers['forest-secret-key'] as string;
-    // eslint-disable-next-line no-console
     console.log(`Handling request`, req.url);
 
-    try {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+    const sendResponse = (statusCode: number, data?: object) => {
+      if (!res.headersSent) {
+        res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+      }
 
-      if (req.url === '/agent-schema') {
-        let data = '';
-        req.on('data', chunk => {
-          data += chunk;
-        });
-        req.on('end', () => {
-          this.agentSchemaCache.set(agentSchemaCacheIdentifier, JSON.parse(data));
-          res.end();
-        });
-      } else if (req.url === '/liana/v4/subscribe-to-events') {
-        res.end();
-      } else if (req.url === '/liana/v1/ip-whitelist-rules') {
-        res.end(JSON.stringify({ data: { attributes: { use_ip_whitelist: false, rules: [] } } }));
-      } else if (req.url === '/liana/v4/permissions/environment') {
-        try {
-          const permissionsV4 = this.transformForestSchemaToEnvironmentPermissionsV4Remote(
-            this.agentSchemaCache.get(agentSchemaCacheIdentifier),
-          );
-          res.end(JSON.stringify(permissionsV4));
-        } catch (e) {
-          res.end(JSON.stringify({ error: 'Provide a right schema path' }));
+      if (!res.writableEnded) {
+        res.end(data ? JSON.stringify(data) : undefined);
+      }
+    };
+
+    try {
+      switch (req.url) {
+        case '/agent-schema': {
+          let data = '';
+          req.on('data', chunk => {
+            data += chunk;
+          });
+          req.on('end', () => {
+            this.agentSchemaCache.set(agentSchemaCacheIdentifier, JSON.parse(data));
+            sendResponse(200);
+          });
+          break;
         }
-      } else if (req.url === '/liana/v4/permissions/users') {
-        res.end(JSON.stringify([CURRENT_USER]));
-      } else if (req.url?.startsWith('/liana/v4/permissions/renderings/')) {
-        res.end(
-          JSON.stringify({
-            team: {},
-            collections: {},
-            stats: [],
-          }),
-        );
-      } else if (req.url === '/forest/apimaps/hashcheck') {
-        res.end(JSON.stringify({ sendSchema: false }));
-      } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Not Found' }));
+
+        case '/liana/v4/subscribe-to-events':
+          sendResponse(200);
+          break;
+
+        case '/liana/v1/ip-whitelist-rules':
+          sendResponse(200, { data: { attributes: { use_ip_whitelist: false, rules: [] } } });
+          break;
+
+        case '/liana/v4/permissions/environment': {
+          try {
+            const permissionsV4 = this.transformForestSchemaToEnvironmentPermissionsV4Remote(
+              this.agentSchemaCache.get(agentSchemaCacheIdentifier),
+            );
+            sendResponse(200, permissionsV4);
+          } catch {
+            sendResponse(400, { error: 'Provide a valid schema path' });
+          }
+
+          break;
+        }
+
+        case '/liana/v4/permissions/users':
+          sendResponse(200, [CURRENT_USER]);
+          break;
+
+        case '/forest/apimaps/hashcheck':
+          sendResponse(200, { sendSchema: false });
+          break;
+
+        default:
+          if (req.url?.startsWith('/liana/v4/permissions/renderings/')) {
+            sendResponse(200, { team: {}, collections: {}, stats: [] });
+          } else {
+            sendResponse(404, { error: 'Not Found' });
+          }
       }
     } catch (error) {
       console.error('Error handling request:', error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal Server Error' }));
+      sendResponse(500, { error: 'Internal Server Error' });
     }
   }
 
@@ -118,7 +135,7 @@ export default class ForestServerSandbox {
           } as EnvironmentCollectionAccessPermissionsV4,
           actions: collection.actions.reduce((actionAcc, action) => {
             actionAcc[action.name] = {
-              approvalRequired: { roles: [1] },
+              approvalRequired: { roles: [0] },
               userApprovalEnabled: { roles: [1] },
               selfApprovalEnabled: { roles: [1] },
               triggerEnabled: { roles: [1] },
