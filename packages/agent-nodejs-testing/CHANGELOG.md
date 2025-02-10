@@ -1,3 +1,11 @@
+## [0.24.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.0...agent-nodejs-testing@0.24.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* **agent-tester:** fix mock server ([#127](https://github.com/ForestAdmin/forestadmin-experimental/issues/127)) ([ab1983d](https://github.com/ForestAdmin/forestadmin-experimental/commit/ab1983d5ed8854f901658f382e241b1f5f12bf17))
+* release datasource-rpc ([2135d1e](https://github.com/ForestAdmin/forestadmin-experimental/commit/2135d1ecbecd3b4172e0ef02d43f5a061fd2625b))
+
 # [0.24.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.23.0...agent-nodejs-testing@0.24.0) (2025-01-16)
 
 
