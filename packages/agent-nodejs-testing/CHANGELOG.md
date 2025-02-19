@@ -1,3 +1,10 @@
+## [0.24.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.2...agent-nodejs-testing@0.24.3) (2025-02-19)
+
+
+### Bug Fixes
+
+* change enum function name ([ce0323e](https://github.com/ForestAdmin/forestadmin-experimental/commit/ce0323ee0dcb0e7cca5e56d8c64244275ca91d14))
+
 ## [0.24.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.1...agent-nodejs-testing@0.24.2) (2025-02-19)
 
 
