@@ -7,7 +7,7 @@ export default class TestableActionFieldEnum<
     return this.fieldsFormStates.getField(this.name).getPlainField().enums;
   }
 
-  async check(option: string) {
+  async select(option: string) {
     if (!this.getOptions().some(o => o === option))
       throw new Error(`Option "${option}" not found in field "${this.name}"`);
 

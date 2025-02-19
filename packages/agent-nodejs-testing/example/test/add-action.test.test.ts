@@ -243,7 +243,7 @@ describe('addAction', () => {
       .collection('restaurants')
       .action('Leave a review', { recordId: restaurantId });
 
-    await action.getEnumField('enum').check('opt1');
+    await action.getEnumField('enum').select('opt1');
     expect(action.getEnumField('enum').getValue()).toBe('opt1');
   });
 });
