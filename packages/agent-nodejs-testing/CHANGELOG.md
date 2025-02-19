@@ -1,3 +1,10 @@
+## [0.24.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.1...agent-nodejs-testing@0.24.2) (2025-02-19)
+
+
+### Bug Fixes
+
+* **agent nodejs testing:** action enum field check ([#128](https://github.com/ForestAdmin/forestadmin-experimental/issues/128)) ([997644a](https://github.com/ForestAdmin/forestadmin-experimental/commit/997644a75b1bc95d6201acc099cfe49072951240))
+
 ## [0.24.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.0...agent-nodejs-testing@0.24.1) (2025-02-10)
 
 
