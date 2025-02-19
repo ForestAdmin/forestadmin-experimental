@@ -22,4 +22,5 @@ export type PlainField = {
       };
     };
   };
+  enums?: string[];
 };

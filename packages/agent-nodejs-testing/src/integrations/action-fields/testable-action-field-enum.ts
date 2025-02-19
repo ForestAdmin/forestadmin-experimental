@@ -3,8 +3,14 @@ import TestableActionField from './testable-action-field';
 export default class TestableActionFieldEnum<
   TypingsSchema,
 > extends TestableActionField<TypingsSchema> {
+  getOptions(): string[] | undefined {
+    return this.fieldsFormStates.getField(this.name).getPlainField().enums;
+  }
+
   async check(option: string) {
-    const opt = this.fieldsFormStates.getMultipleChoiceField(this.name).getOption(option);
-    await this.fieldsFormStates.setFieldValue(this.name, opt);
+    if (!this.getOptions().some(o => o === option))
+      throw new Error(`Option "${option}" not found in field "${this.name}"`);
+
+    await this.fieldsFormStates.setFieldValue(this.name, option);
   }
 }
