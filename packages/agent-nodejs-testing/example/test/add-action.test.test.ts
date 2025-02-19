@@ -60,6 +60,11 @@ describe('addAction', () => {
                 type: 'Number',
                 defaultValue: async context => Number(await context.getRecordId()),
               },
+              {
+                label: 'enum',
+                type: 'Enum',
+                enumValues: ['opt1', 'opt2'],
+              },
             ],
           },
 
@@ -231,5 +236,14 @@ describe('addAction', () => {
     expect(action.getLayout().page(1).element(3).rowElement(0).getInputId()).toEqual(
       'Rating again',
     );
+  });
+
+  it('should check value on EnumField', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    await action.getEnumField('enum').check('opt1');
+    expect(action.getEnumField('enum').getValue()).toBe('opt1');
   });
 });
