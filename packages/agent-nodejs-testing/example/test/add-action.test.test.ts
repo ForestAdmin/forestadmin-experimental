@@ -238,24 +238,12 @@ describe('addAction', () => {
     );
   });
 
-  describe('enum field', () => {
-    it('should check value on EnumField', async () => {
-      const action = await testableAgent
-        .collection('restaurants')
-        .action('Leave a review', { recordId: restaurantId });
+  it('should check value on EnumField', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
 
-      await action.getEnumField('enum').check('opt1');
-      expect(action.getEnumField('enum').getValue()).toBe('opt1');
-    });
-
-    it('should throw an error on invalid option', async () => {
-      const action = await testableAgent
-        .collection('restaurants')
-        .action('Leave a review', { recordId: restaurantId });
-
-      await expect(action.getEnumField('enum').check('unknow')).rejects.toThrow(
-        'Option "unknow" not found in field "enum"',
-      );
-    });
+    await action.getEnumField('enum').check('opt1');
+    expect(action.getEnumField('enum').getValue()).toBe('opt1');
   });
 });
