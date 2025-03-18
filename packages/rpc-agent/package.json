@@ -16,13 +16,11 @@
   },
   "devDependencies": {
     "@forestadmin/agent": "^1.63.1",
-    "@forestadmin/forestadmin-client": "^1.36.12",
     "@forestadmin/datasource-customizer": "^1.65.1",
     "@forestadmin/datasource-toolkit": "^1.50.0"
   },
   "peerDependencies": {
     "@forestadmin/agent": "^1.63.1",
-    "@forestadmin/forestadmin-client": "^1.36.12",
     "@forestadmin/datasource-customizer": "^1.65.1",
     "@forestadmin/datasource-toolkit": "^1.50.0"
   },

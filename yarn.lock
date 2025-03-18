@@ -694,7 +694,7 @@
     openid-client "^5.6.4"
     superagent "^8.0.6"
 
-"@forestadmin/forestadmin-client@1.36.12", "@forestadmin/forestadmin-client@^1.36.12":
+"@forestadmin/forestadmin-client@1.36.12":
   version "1.36.12"
   resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.36.12.tgz#b9d67ce1f671ae266a3bbe67bfcf1de0b2c9ee93"
   integrity sha512-z168A52vxzHtT+KVPEymyURYcCmCB4uTyLnL79fzF2/+totC70peJvlqezPd7fzjb0AfD+EsYX31+sUuVsBGCA==
