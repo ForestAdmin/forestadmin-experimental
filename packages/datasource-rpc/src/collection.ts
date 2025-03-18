@@ -14,17 +14,18 @@ import {
 } from '@forestadmin/datasource-toolkit';
 import superagent from 'superagent';
 
-import { RpcDataSourceOptionsWithToken } from './types';
+import { RpcDataSourceOptions } from './types';
+import { setAuth } from './utils';
 
 export default class RpcCollection extends BaseCollection {
   private readonly logger: Logger;
-  private readonly options: RpcDataSourceOptionsWithToken;
+  private readonly options: RpcDataSourceOptions;
   private readonly rpcCollectionUri: string;
 
   constructor(
     logger: Logger,
     datasource: DataSource,
-    options: RpcDataSourceOptionsWithToken,
+    options: RpcDataSourceOptions,
     name: string,
     schema: CollectionSchema,
   ) {
@@ -64,7 +65,7 @@ export default class RpcCollection extends BaseCollection {
     this.logger('Debug', `Forwarding '${this.name}' creation call to the Rpc agent on ${url}.`);
 
     const request = superagent.post(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     const response = await request.send(data);
 
     return response.body;
@@ -78,7 +79,7 @@ export default class RpcCollection extends BaseCollection {
     this.logger('Debug', `Forwarding '${this.name}' list call to the Rpc agent on ${url}.`);
 
     const request = superagent.get(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     const response = await request.send();
 
     return response.body;
@@ -92,7 +93,7 @@ export default class RpcCollection extends BaseCollection {
     this.logger('Debug', `Forwarding '${this.name}' update call to the Rpc agent on ${url}.`);
 
     const request = superagent.put(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     await request.send(patch);
   }
 
@@ -104,7 +105,7 @@ export default class RpcCollection extends BaseCollection {
     this.logger('Debug', `Forwarding '${this.name}' deletion call to the Rpc agent on ${url}.`);
 
     const request = superagent.delete(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     await request.send();
   }
 
@@ -118,7 +119,7 @@ export default class RpcCollection extends BaseCollection {
     this.logger('Debug', `Forwarding '${this.name}' aggragation call to the Rpc agent on ${url}.`);
 
     const request = superagent.get(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     const response = await request.send();
 
     return response.body;
@@ -135,7 +136,7 @@ export default class RpcCollection extends BaseCollection {
     );
 
     const request = superagent.post(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     const response = await request.send(formValues);
 
     response.body.invalidated = new Set(response.body.invalidated);
@@ -167,7 +168,7 @@ export default class RpcCollection extends BaseCollection {
     );
 
     const request = superagent.post(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     const response = await request.send(formValues || {});
 
     return response.body;
@@ -185,7 +186,7 @@ export default class RpcCollection extends BaseCollection {
     );
 
     const request = superagent.get(url);
-    request.auth(this.options.token, { type: 'bearer' });
+    setAuth(request, this.options.authSecret);
     const response = await request.send();
 
     return response.body;
