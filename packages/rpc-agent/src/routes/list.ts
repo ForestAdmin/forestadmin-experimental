@@ -16,7 +16,7 @@ export default class RpcListRoute extends CollectionRoute {
   public async handleList(context: any) {
     const projection = context.query.projection as string;
     const queryFilter = JSON.parse(context.query.filter as string);
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const paginatedFilter = new PaginatedFilter({
       ...queryFilter,

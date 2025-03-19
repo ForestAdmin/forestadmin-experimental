@@ -3,7 +3,7 @@ import superagent from 'superagent';
 
 import RpcCollection from './collection';
 import { RpcDataSourceOptions, RpcSchema } from './types';
-import { setAuth } from './utils';
+import { appendHeaders } from './utils';
 
 export default class RpcDataSource extends BaseDataSource {
   private readonly options: RpcDataSourceOptions;
@@ -36,15 +36,12 @@ export default class RpcDataSource extends BaseDataSource {
   }
 
   override async renderChart(caller: Caller, name: string) {
-    const { timezone: tz } = caller;
-    const url = `${
-      this.options.uri
-    }/forest/rpc-datasource-chart?timezone=${tz}&chart=${name}&caller=${JSON.stringify(caller)}`;
+    const url = `${this.options.uri}/forest/rpc-datasource-chart?chart=${name}`;
 
     this.logger('Debug', `Forwarding datasource chart '${name}' call to the Rpc agent on ${url}.`);
 
     const request = superagent.get(url);
-    setAuth(request, this.options.authSecret);
+    appendHeaders(request, this.options.authSecret, caller);
 
     const response = await request.send();
 

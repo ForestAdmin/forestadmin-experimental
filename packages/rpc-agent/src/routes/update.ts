@@ -10,7 +10,7 @@ export default class RpcUpdateRoute extends CollectionRoute {
 
   public async handleUpdate(context: any) {
     const queryFilter = JSON.parse(context.query.filter as string);
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({
       ...queryFilter,

@@ -4,7 +4,7 @@ import superagent from 'superagent';
 
 import RpcDataSource from './datasource';
 import { RpcDataSourceOptions } from './types';
-import { setAuth } from './utils';
+import { appendHeaders } from './utils';
 
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {
   return async (logger: Logger) => {
@@ -13,7 +13,7 @@ export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFa
     logger('Info', `Getting schema from Rpc agent on ${uri}.`);
 
     const introRq = superagent.get(`${uri}/forest/rpc-schema`);
-    setAuth(introRq, authSecret);
+    appendHeaders(introRq, authSecret);
 
     const introResp = await introRq.send();
 
