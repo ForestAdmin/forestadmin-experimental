@@ -9,7 +9,7 @@ export default class RpcDeleteRoute extends CollectionRoute {
   }
 
   public async handleDelete(context: any) {
-    const queryFilter = JSON.parse(context.query.filter as string);
+    const queryFilter = context.request.body.filter;
     const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({

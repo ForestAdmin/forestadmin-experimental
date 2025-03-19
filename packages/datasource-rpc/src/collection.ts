@@ -70,15 +70,13 @@ export default class RpcCollection extends BaseCollection {
   }
 
   async list(caller: Caller, filter: PaginatedFilter, projection: Projection) {
-    const url = `${this.rpcCollectionUri}/list?filter=${JSON.stringify(
-      filter,
-    )}&projection=${projection}`;
+    const url = `${this.rpcCollectionUri}/list`;
 
     this.logger('Debug', `Forwarding '${this.name}' list call to the Rpc agent on ${url}.`);
 
-    const request = superagent.get(url);
+    const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send();
+    const response = await request.send({ projection, filter });
 
     return response.body;
   }
@@ -90,37 +88,33 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.put(url);
     appendHeaders(request, this.options.authSecret, caller);
-    await request.send(patch);
+    await request.send({ patch, filter });
   }
 
   async delete(caller: Caller, filter: Filter) {
-    const url = `${this.rpcCollectionUri}/delete?filter=${JSON.stringify(filter)}`;
+    const url = `${this.rpcCollectionUri}/delete`;
 
     this.logger('Debug', `Forwarding '${this.name}' deletion call to the Rpc agent on ${url}.`);
 
     const request = superagent.delete(url);
     appendHeaders(request, this.options.authSecret, caller);
-    await request.send();
+    await request.send({ filter });
   }
 
   async aggregate(caller: Caller, filter: Filter, aggregation: Aggregation, limit?: number) {
-    const url = `${this.rpcCollectionUri}/aggregate?filter=${JSON.stringify(
-      filter,
-    )}&aggregation=${JSON.stringify(aggregation)}&limit=${limit}`;
+    const url = `${this.rpcCollectionUri}/aggregate`;
 
     this.logger('Debug', `Forwarding '${this.name}' aggragation call to the Rpc agent on ${url}.`);
 
-    const request = superagent.get(url);
+    const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send();
+    const response = await request.send({ filter, aggregation, limit });
 
     return response.body;
   }
 
   override async execute(caller: Caller, name: string, formValues: RecordData, filter?: Filter) {
-    const url = `${this.rpcCollectionUri}/action-execute?action=${name}&filter=${JSON.stringify(
-      filter,
-    )}`;
+    const url = `${this.rpcCollectionUri}/action-execute?action=${name}`;
 
     this.logger(
       'Debug',
@@ -129,7 +123,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send(formValues);
+    const response = await request.send({ filter, formValues });
 
     response.body.invalidated = new Set(response.body.invalidated);
 
@@ -145,12 +139,7 @@ export default class RpcCollection extends BaseCollection {
     filter?: Filter,
     metas?: GetFormMetas,
   ) {
-    let url = `${this.rpcCollectionUri}/action-form?action=${name}`;
-
-    // Caller can be null for the FA schema generation
-    if (caller) {
-      url += `&filter=${JSON.stringify(filter)}&metas=${JSON.stringify(metas)}`;
-    }
+    const url = `${this.rpcCollectionUri}/action-form?action=${name}`;
 
     this.logger(
       'Debug',
@@ -159,7 +148,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send(formValues || {});
+    const response = await request.send({ filter, metas, formValues });
 
     return response.body;
   }

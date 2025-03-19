@@ -8,5 +8,7 @@ export function appendHeaders(req, authSecret: string, caller?: Caller) {
   req.set('X_SIGNATURE', token);
   req.set('X_TIMESTAMP', timeStamp);
 
+  req.set('Content-Type', 'application/json');
+
   if (caller) req.set('forest_caller', JSON.stringify(caller));
 }

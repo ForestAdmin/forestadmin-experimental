@@ -10,28 +10,23 @@ import Router from '@koa/router';
 
 export default class RpcListRoute extends CollectionRoute {
   setupRoutes(router: Router): void {
-    router.get(`/rpc/${this.collectionUrlSlug}/list`, this.handleList.bind(this));
+    router.post(`/rpc/${this.collectionUrlSlug}/list`, this.handleList.bind(this));
   }
 
   public async handleList(context: any) {
-    const projection = context.query.projection as string;
-    const queryFilter = JSON.parse(context.query.filter as string);
+    const { projection, filter } = context.request.body;
     const caller = JSON.parse(context.headers.forest_caller as string);
 
     const paginatedFilter = new PaginatedFilter({
-      ...queryFilter,
-      conditionTree: queryFilter?.conditionTree
-        ? ConditionTreeFactory.fromPlainObject(queryFilter.conditionTree)
+      ...filter,
+      conditionTree: filter?.conditionTree
+        ? ConditionTreeFactory.fromPlainObject(filter.conditionTree)
         : undefined,
-      sort: queryFilter.sort ? new Sort(...queryFilter.sort) : undefined,
-      page: queryFilter.page ? new Page(queryFilter.page.skip, queryFilter.page.limit) : undefined,
+      sort: filter?.sort ? new Sort(...filter.sort) : undefined,
+      page: filter?.page ? new Page(filter.page.skip, filter.page.limit) : undefined,
     });
 
-    const records = await this.collection.list(
-      caller,
-      paginatedFilter,
-      new Projection(...projection.split(',')),
-    );
+    const records = await this.collection.list(caller, paginatedFilter, new Projection(projection));
 
     context.response.body = records;
   }
