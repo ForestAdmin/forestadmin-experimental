@@ -4,13 +4,11 @@ import Router from '@koa/router';
 
 export default class RpcAggregateRoute extends CollectionRoute {
   setupRoutes(router: Router): void {
-    router.get(`/rpc/${this.collectionUrlSlug}/aggregate`, this.handleaggregate.bind(this));
+    router.post(`/rpc/${this.collectionUrlSlug}/aggregate`, this.handleaggregate.bind(this));
   }
 
   public async handleaggregate(context: any) {
-    const aggregation = JSON.parse(context.query.aggregation as string);
-    const queryFilter = JSON.parse(context.query.filter as string);
-    const limit = Number(context.query.limit);
+    const { aggregation, filter: queryFilter, limit } = context.request.body;
     const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({
@@ -26,6 +24,8 @@ export default class RpcAggregateRoute extends CollectionRoute {
       new Aggregation(aggregation),
       Number.isNaN(limit) ? null : limit,
     );
+
+    console.log(records);
 
     context.response.body = records;
   }

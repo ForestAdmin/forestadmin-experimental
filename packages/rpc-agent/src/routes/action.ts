@@ -10,7 +10,7 @@ export default class RpcActionRoute extends CollectionRoute {
 
   public async handleExecute(context: any) {
     const action = context.query.action as string;
-    const queryFilter = JSON.parse(context.query.filter as string);
+    const queryFilter = context.request.body.filter;
     const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({
@@ -23,7 +23,7 @@ export default class RpcActionRoute extends CollectionRoute {
     const actionResult = await this.collection.execute(
       caller,
       action,
-      context.request.body,
+      context.request.body.formValues,
       filter,
     );
 
@@ -39,12 +39,11 @@ export default class RpcActionRoute extends CollectionRoute {
     const action = context.query.action as string;
 
     // All this things can be null when asking form fo FA schema generation
-    const queryFilter = JSON.parse(context.query?.filter || '{}');
-    const metas = JSON.parse(context.query?.metas || '{}');
+    const { metas, filter: queryFilter, formValues } = context.request.body;
     const caller = JSON.parse(context.headers.forest_caller || '{}');
 
     const filter = new Filter({
-      ...queryFilter,
+      ...(queryFilter || {}),
       conditionTree: queryFilter?.conditionTree
         ? ConditionTreeFactory.fromPlainObject(queryFilter.conditionTree)
         : undefined,
@@ -53,9 +52,9 @@ export default class RpcActionRoute extends CollectionRoute {
     const actionFields = await this.collection.getForm(
       caller,
       action,
-      context.request.body,
+      formValues,
       filter,
-      metas,
+      metas || {},
     );
 
     context.response.body = actionFields;
