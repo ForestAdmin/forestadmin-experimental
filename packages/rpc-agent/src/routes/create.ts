@@ -8,7 +8,7 @@ export default class RpcCreateRoute extends CollectionRoute {
   }
 
   public async handleCreate(context: any) {
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const records = await this.collection.create(caller, context.request.body as RecordData[]);
 

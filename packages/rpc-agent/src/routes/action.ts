@@ -11,7 +11,7 @@ export default class RpcActionRoute extends CollectionRoute {
   public async handleExecute(context: any) {
     const action = context.query.action as string;
     const queryFilter = JSON.parse(context.query.filter as string);
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({
       ...queryFilter,
@@ -41,7 +41,7 @@ export default class RpcActionRoute extends CollectionRoute {
     // All this things can be null when asking form fo FA schema generation
     const queryFilter = JSON.parse(context.query?.filter || '{}');
     const metas = JSON.parse(context.query?.metas || '{}');
-    const caller = JSON.parse(context.query?.caller || '{}');
+    const caller = JSON.parse(context.headers.forest_caller || '{}');
 
     const filter = new Filter({
       ...queryFilter,

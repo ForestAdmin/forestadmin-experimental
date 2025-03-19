@@ -11,7 +11,7 @@ export default class RpcAggregateRoute extends CollectionRoute {
     const aggregation = JSON.parse(context.query.aggregation as string);
     const queryFilter = JSON.parse(context.query.filter as string);
     const limit = Number(context.query.limit);
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({
       ...queryFilter,
