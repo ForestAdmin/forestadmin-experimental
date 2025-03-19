@@ -9,7 +9,7 @@ export default class Authentication extends BaseRoute {
 
   setupRoutes(router: Router): void {
     router.use(async (context, next) => {
-      const { http_x_signature: signature, http_x_timestamp: timeStamp } = context.headers;
+      const { x_signature: signature, x_timestamp: timeStamp } = context.headers;
 
       if (!signature) {
         throw new ForbiddenError('Invalid signature.');
