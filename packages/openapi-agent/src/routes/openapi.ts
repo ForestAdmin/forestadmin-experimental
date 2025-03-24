@@ -21,20 +21,16 @@ export default class RpcOpenApiRoute extends BaseRoute {
 
   override setupRoutes(router: Router): void {
     // Register both paths to be safe: with and without /forest prefix
-    const routeHandler = async (ctx, next) => {
+    const routeHandler = async ctx => {
       try {
         // Parse query parameters, look for both "exclude" and common misspellings
         const { exclude } = ctx.request.query;
-        console.log('Request URL:', ctx.request.url);
-        console.log('Raw query string:', ctx.request.querystring);
-        console.log('Parsed exclude parameter:', exclude);
 
         // Add exclude parameter to the context explicitly
         ctx.state.exclude = exclude;
 
         await this.handleOpenApi(ctx);
       } catch (error) {
-        console.error('Error handling OpenAPI request:', error);
         ctx.status = 500;
         ctx.body = { error: 'Internal server error generating OpenAPI schema' };
       }
@@ -164,13 +160,15 @@ export default class RpcOpenApiRoute extends BaseRoute {
     collections.forEach(collection => {
       const collectionName = collection.name;
       const schemaRef = `#/components/schemas/${collectionName}`;
-      const { operators, fields } = this.getFilterSchemaForCollection(collection);
+      const { fields } = this.getFilterSchemaForCollection(collection);
 
       paths[`/forest/mcp/rpc/${collectionName}/list`] = {
         post: {
           summary: `List ${collectionName}`,
 
-          description: `Retrieve a list of ${collectionName} records with filtering, sorting, and pagination. Don't use it to retrieve more than 20 records to avoid ResponseTooLarge error.`,
+          description: `Retrieve a list of ${collectionName} records with filtering,
+          sorting, and pagination.
+          Don't use it to retrieve more than 20 records to avoid ResponseTooLarge error.`,
           operationId: `list_${collectionName}`,
           requestBody: {
             description: `List request configuration with projection and filters`,
@@ -310,7 +308,6 @@ export default class RpcOpenApiRoute extends BaseRoute {
     collections.forEach(collection => {
       const collectionName = collection.name;
       const schemaRef = `#/components/schemas/${collectionName}`;
-      const { fields } = this.getFilterSchemaForCollection(collection);
 
       // POST /rpc/{collection}/create
       paths[`/forest/mcp/rpc/${collectionName}/create`] = {
@@ -329,8 +326,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
                     data: {
                       type: 'array',
                       items: { $ref: schemaRef },
-                      description:
-                        'Records to create. Make sure the primary key is not sent, as it may cause issues.',
+                      description: `Records to create.
+                        Make sure the primary key is not sent, as it may cause issues.`,
                     },
                   },
                   required: ['data'],
@@ -368,8 +365,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
               },
             },
             400: {
-              description:
-                'Bad request - Invalid data or validation error. Often occurs when caller is not valid JSON.',
+              description: `Bad request - Invalid data or validation error.
+                Often occurs when caller is not valid JSON.`,
               content: {
                 'application/json': {
                   examples: {
@@ -466,7 +463,7 @@ export default class RpcOpenApiRoute extends BaseRoute {
             example[fieldName] = variant ? `Example 2` : `Example`;
         }
 
-        count++;
+        count += 1;
       } else if (fieldSchema.type === 'ManyToOne' || fieldSchema.type === 'OneToOne') {
         // For relationships, add the ID reference
         example[`${fieldName}Id`] = variant ? '2' : '1';
@@ -595,8 +592,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
 
     // Condition tree schema using anyOf to avoid circular reference
     schemas.ConditionTree = {
-      description:
-        'A condition tree for filtering records - can be either a leaf condition or branch condition',
+      description: `A condition tree for filtering records - 
+        can be either a leaf condition or branch condition`,
       anyOf: [
         { $ref: '#/components/schemas/LeafCondition' },
         { $ref: '#/components/schemas/BranchCondition' },
@@ -807,27 +804,19 @@ export default class RpcOpenApiRoute extends BaseRoute {
   async makeOpenApi(collections, exclude, origin) {
     // Get the exclude parameter from state
     const excludeParam = exclude;
-    console.log('Processing exclude parameter in handler:', excludeParam);
 
     // Process excluded collections if parameter is provided
     let filteredCollections = [...collections]; // Create a copy of the array
 
     if (excludeParam) {
       const excludedCollections = excludeParam.split(',').map(name => name.trim());
-      console.log('Collections to exclude:', excludedCollections);
-      console.log('All available collections:', collections.map(c => c.name).join(', '));
 
       // Filter out excluded collections
       filteredCollections = collections.filter(collection => {
         const shouldExclude = excludedCollections.includes(collection.name);
-        console.log(`Collection ${collection.name}: ${shouldExclude ? 'EXCLUDED' : 'INCLUDED'}`);
 
         return !shouldExclude;
       });
-
-      console.log(
-        `Filtered from ${collections.length} to ${filteredCollections.length} collections`,
-      );
     }
 
     const openApiSpec = {
@@ -859,15 +848,16 @@ export default class RpcOpenApiRoute extends BaseRoute {
     openApiSpec.paths['/openapi.json'] = {
       get: {
         summary: 'OpenAPI Specification',
-        description:
-          'Returns the OpenAPI specification for the API. Use the `exclude` query parameter to filter out specific collections (e.g., `/openapi.json?exclude=users,orders`).',
+        description: `Returns the OpenAPI specification for the API.
+        Use the \`exclude\` query parameter to filter out specific collections 
+        (e.g., \`/openapi.json?exclude=users,orders\`).`,
         operationId: 'get_api_specification',
         parameters: [
           {
             name: 'exclude',
             in: 'query',
-            description:
-              'Comma-separated list of collection names to exclude from the documentation (e.g., `users,transactions`)',
+            description: `Comma-separated list of collection names to exclude from the documentation
+            (e.g., \`users,transactions\`)`,
             required: false,
             schema: {
               type: 'string',
@@ -986,8 +976,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
           description: `Delete one or more ${collectionName} records based on a filter condition`,
           operationId: `delete_${collectionName}`,
           requestBody: {
-            description:
-              'Delete record with filter data. The data object MUST contain a "filter" field to specify which records to delete.',
+            description: `Delete record with filter data.
+              The data object MUST contain a "filter" field to specify which records to delete.`,
             required: true,
             content: {
               'application/json': {
@@ -1002,8 +992,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
                       required: ['conditionTree'],
                       properties: {
                         conditionTree: {
-                          description:
-                            'Conditions for filtering records to delete. Accepts a leaf condition or a branch condition.',
+                          description: `Conditions for filtering records to delete.
+                            Accepts a leaf condition or a branch condition.`,
                           anyOf: [
                             { $ref: '#/components/schemas/LeafCondition' },
                             { $ref: '#/components/schemas/BranchCondition' },
@@ -1057,8 +1047,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
               description: 'No Content - Records deleted successfully',
             },
             400: {
-              description:
-                'Bad Request - Invalid data or validation error. Often occurs when the filter is missing or malformed.',
+              description: `Bad Request - Invalid data or validation error.
+                Often occurs when the filter is missing or malformed.`,
               content: {
                 'application/json': {
                   examples: {
@@ -1094,8 +1084,6 @@ export default class RpcOpenApiRoute extends BaseRoute {
 
     collections.forEach(collection => {
       const collectionName = collection.name;
-      const schemaRef = `#/components/schemas/${collectionName}`;
-      const { fields } = this.getFilterSchemaForCollection(collection);
 
       // POST /forest/rpc/{collection}/update
       paths[`/forest/mcp/rpc/${collectionName}/update`] = {
@@ -1104,7 +1092,9 @@ export default class RpcOpenApiRoute extends BaseRoute {
           description: `Update one or more ${collectionName} records based on a filter condition`,
           operationId: `update_${collectionName}`,
           requestBody: {
-            description: `Update configuration with filter and patch data. The data object MUST contain the fields to update with their new values - this is a patch operation, not a full record update.`,
+            description: `Update configuration with filter and patch data
+            The data object MUST contain the fields to update with their new values.
+            This is a patch operation, not a full record update.`,
             required: true,
             content: {
               'application/json': {
@@ -1129,8 +1119,12 @@ export default class RpcOpenApiRoute extends BaseRoute {
                     },
                     patch: {
                       type: 'object',
-                      description:
-                        'Fields and values to update on matched records. This MUST be a PATCH object with only the fields you want to update, not the full record. THIS FIELD IS REQUIRED AND CANNOT BE OMITTED. This is an object with the fields you want to update as keys and the new values as values.',
+                      description: `Fields and values to update on matched records. 
+                        This MUST be a PATCH object with only the fields you want 
+                        to update, not the full record.
+                        THIS FIELD IS REQUIRED AND CANNOT BE OMITTED.
+                        This is an object with the fields you want to update as keys 
+                        and the new values as values.`,
                       additionalProperties: true,
                       minProperties: 1,
                       nullable: false,
@@ -1186,6 +1180,7 @@ export default class RpcOpenApiRoute extends BaseRoute {
                             {
                               field: 'createdAt',
                               operator: 'Before',
+                              // eslint-disable-next-line max-len
                               value: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
                             },
                           ],
@@ -1238,8 +1233,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
               },
             },
             400: {
-              description:
-                'Bad request - Invalid data or validation error. Often occurs when caller is not valid JSON or patch is missing.',
+              description: `Bad request - Invalid data or validation error.
+                Often occurs when caller is not valid JSON or patch is missing.`,
               content: {
                 'application/json': {
                   examples: {
@@ -1258,16 +1253,16 @@ export default class RpcOpenApiRoute extends BaseRoute {
                     missingPatch: {
                       summary: 'Missing patch data',
                       value: {
-                        error:
-                          'Missing or empty patch object. Update requests must include a patch object with at least one property.',
+                        error: `Missing or empty patch object. 
+                          Update requests must include a patch object with at least one property.`,
                         code: 'MISSING_PATCH',
                       },
                     },
                     emptyPatch: {
                       summary: 'Empty patch object',
                       value: {
-                        error:
-                          'Missing or empty patch object. Update requests must include a patch object with at least one property.',
+                        error: `Missing or empty patch object.
+                          Update requests must include a patch object with at least one property.`,
                         code: 'MISSING_PATCH',
                       },
                     },
@@ -1354,7 +1349,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
       paths[`/forest/mcp/rpc/${collectionName}/aggregate`] = {
         post: {
           summary: `Aggregate ${collectionName}`,
-          description: `Compute aggregations on ${collectionName} records with filtering, grouping, supports also time-based analysis.`,
+          description: `Compute aggregations on ${collectionName}
+          records with filtering, grouping, supports also time-based analysis.`,
           operationId: `aggregate_${collectionName}`,
           requestBody: {
             description: `Aggregate configuration with field, operation, and optional grouping`,
@@ -1393,8 +1389,8 @@ export default class RpcOpenApiRoute extends BaseRoute {
                               },
                               operation: {
                                 type: 'string',
-                                description:
-                                  'Optional operation to apply to the group field (e.g., date grouping). Skip if targeted field is not a date.',
+                                description: `Optional operation to apply to the group field
+                                  (e.g., date grouping). Skip if targeted field is not a date.`,
                                 enum: ['Day', 'Week', 'Month', 'Year'],
                               },
                             },
@@ -1510,6 +1506,7 @@ export default class RpcOpenApiRoute extends BaseRoute {
                         conditionTree: {
                           field: dateField,
                           operator: 'GreaterThan',
+                          // eslint-disable-next-line max-len
                           value: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
                         },
                       },

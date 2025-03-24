@@ -37,8 +37,6 @@ export default class RpcAggregateRoute extends CollectionRoute {
       Number.isNaN(limit) ? null : limit,
     );
 
-    console.log(records);
-
     context.response.body = records;
   }
 }

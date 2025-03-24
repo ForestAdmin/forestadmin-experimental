@@ -39,7 +39,6 @@ export default class RpcDeleteRoute extends CollectionRoute {
     });
 
     await this.collection.delete(caller, filter);
-    console.log('remove');
     context.response.status = HttpCode.NoContent;
   }
 }

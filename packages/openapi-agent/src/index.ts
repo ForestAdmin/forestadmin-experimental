@@ -1,6 +1,5 @@
 import { AgentOptions } from '@forestadmin/agent';
 import { TSchema } from '@forestadmin/datasource-customizer';
-import * as crypto from 'crypto';
 
 import AgentWithOpenAPIInterface from './agent';
 
