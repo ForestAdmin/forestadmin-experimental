@@ -1,0 +1,38 @@
+{
+  "name": "@forestadmin-experimental/openapi-agent",
+  "version": "2.5.0",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/agent"
+  },
+  "dependencies": {
+    "@koa/router": "^12.0.0"
+  },
+  "devDependencies": {
+    "@forestadmin/agent": "^1.57.1",
+    "@forestadmin/datasource-customizer": "^1.59.0",
+    "@forestadmin/datasource-toolkit": "^1.46.0"
+  },
+  "peerDependencies": {
+    "@forestadmin/agent": "^1.57.1",
+    "@forestadmin/datasource-customizer": "^1.59.0",
+    "@forestadmin/datasource-toolkit": "^1.46.0"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "lint": "eslint src",
+    "publish:package": "semantic-release"
+  }
+}
