@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/openapi-agent",
-  "version": "2.5.0",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
-    "directory": "packages/agent"
+    "directory": "packages/openapi-agent"
   },
   "dependencies": {
     "@koa/router": "^12.0.0"

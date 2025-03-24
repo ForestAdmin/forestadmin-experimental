@@ -8,26 +8,7 @@ export default class RpcCreateRoute extends CollectionRoute {
   }
 
   public async handleCreate(context: any) {
-    let caller = {
-      id: -1,
-      email: 'me@forestadmin.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      team: 'Operations',
-      renderingId: 0,
-      requestId: '0',
-      tags: {},
-      role: 'Operations',
-      request: { ip: '127.0.0.1' },
-      permissionLevel: 'admin' as const,
-      timezone: 'Europe/Paris',
-    };
-
-    try {
-      caller = JSON.parse(context.headers as string);
-    } catch (err) {
-      // do nothing
-    }
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const records = await this.collection.create(
       caller,

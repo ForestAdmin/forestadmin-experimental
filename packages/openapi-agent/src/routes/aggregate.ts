@@ -4,25 +4,13 @@ import Router from '@koa/router';
 
 export default class RpcAggregateRoute extends CollectionRoute {
   setupRoutes(router: Router): void {
-    router.post(`/rpc/${this.collectionUrlSlug}/aggregate`, this.handleaggregate.bind(this));
+    router.post(`/rpc/${this.collectionUrlSlug}/aggregate`, this.handleAggregate.bind(this));
   }
 
-  public async handleaggregate(context: any) {
+  public async handleAggregate(context: any) {
     const { aggregation, filter: queryFilter, limit } = context.request.body;
-    const caller = {
-      id: -1,
-      email: 'me@forestadmin.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      team: 'Operations',
-      renderingId: 0,
-      requestId: '0',
-      tags: {},
-      role: 'Operations',
-      request: { ip: '127.0.0.1' },
-      permissionLevel: 'admin' as const,
-      timezone: 'Europe/Paris',
-    };
+    const caller = JSON.parse(context.headers.forest_caller as string);
+
     const filter = new Filter({
       ...queryFilter,
       conditionTree: queryFilter?.conditionTree

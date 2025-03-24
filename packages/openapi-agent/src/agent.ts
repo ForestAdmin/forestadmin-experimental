@@ -1,4 +1,3 @@
-// eslint-disable-next-line max-classes-per-file
 import { Agent } from '@forestadmin/agent';
 import BaseRoute from '@forestadmin/agent/dist/routes/base-route';
 import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
@@ -20,6 +19,26 @@ export default class AgentWithOpenAPIInterface<S extends TSchema = TSchema> exte
         bootstrap: () => Promise.all(rpcRoutes.map(route => route.bootstrap())),
         setupRoutes: router => {
           const r = new Router({ prefix: '/mcp' });
+          r.use(async (c, next) => {
+            if (c.request.headers && !c.request.headers.forest_caller) {
+              c.request.headers.forest_caller = JSON.stringify({
+                id: -1,
+                email: 'me@forestadmin.com',
+                firstName: 'John',
+                lastName: 'Doe',
+                team: 'Operations',
+                renderingId: 0,
+                requestId: '0',
+                tags: {},
+                role: 'Operations',
+                request: { ip: '127.0.0.1' },
+                permissionLevel: 'admin' as const,
+                timezone: 'Europe/Paris',
+              });
+            }
+
+            await next();
+          });
           rpcRoutes.forEach(route => route.setupRoutes(r));
           router.use(r.routes());
         },
