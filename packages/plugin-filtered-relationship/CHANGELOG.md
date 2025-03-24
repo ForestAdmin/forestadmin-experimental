@@ -1,3 +1,18 @@
+# [2.5.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.4.0...plugin-filtered-relationship@2.5.0) (2025-03-24)
+
+
+### Bug Fixes
+
+* **agent nodejs testing:** action enum field check ([#128](https://github.com/ForestAdmin/forestadmin-experimental/issues/128)) ([997644a](https://github.com/ForestAdmin/forestadmin-experimental/commit/997644a75b1bc95d6201acc099cfe49072951240))
+* **agent-tester:** fix mock server ([#127](https://github.com/ForestAdmin/forestadmin-experimental/issues/127)) ([ab1983d](https://github.com/ForestAdmin/forestadmin-experimental/commit/ab1983d5ed8854f901658f382e241b1f5f12bf17))
+* change enum function name ([ce0323e](https://github.com/ForestAdmin/forestadmin-experimental/commit/ce0323ee0dcb0e7cca5e56d8c64244275ca91d14))
+* release datasource-rpc ([2135d1e](https://github.com/ForestAdmin/forestadmin-experimental/commit/2135d1ecbecd3b4172e0ef02d43f5a061fd2625b))
+
+
+### Features
+
+* **filtered relationship:** add option to select origin key target ([#131](https://github.com/ForestAdmin/forestadmin-experimental/issues/131)) ([37b0d38](https://github.com/ForestAdmin/forestadmin-experimental/commit/37b0d383ffdebb560357c4039f1dd13167e8480e))
+
 # [2.4.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.3.0...plugin-filtered-relationship@2.4.0) (2025-01-16)
 
 
