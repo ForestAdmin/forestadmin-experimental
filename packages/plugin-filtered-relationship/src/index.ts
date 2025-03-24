@@ -1,4 +1,9 @@
-import type { Plugin, TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
+import type {
+  CollectionCustomizer,
+  Plugin,
+  TCollectionName,
+  TSchema,
+} from '@forestadmin/datasource-customizer';
 
 import { CollectionUtils, ColumnSchema, SchemaUtils } from '@forestadmin/datasource-toolkit';
 
@@ -9,7 +14,7 @@ export { Options as FilteredOneToManyOptions };
 export default function filteredOneToMany<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
->(dataSource, collection, options?: Options<S, N>) {
+>(dataSource, collection: CollectionCustomizer, options?: Options<S, N>) {
   if (!collection) throw new Error('filteredOneToMany may only be use() on a collection.');
   if (!options) throw new Error('Options must be provided.');
 
@@ -17,6 +22,7 @@ export default function filteredOneToMany<
   const newFieldName = `${relationName}Id`;
   const foreignForestCollection = dataSource.getCollection(foreignCollection);
   const pks = SchemaUtils.getPrimaryKeys(foreignForestCollection.schema);
+
   if (pks.length > 1) {
     throw new Error('filteredOneToMany does not support collections with composite Primary Keys.');
   }
@@ -40,6 +46,7 @@ export default function filteredOneToMany<
 
   collection.addOneToManyRelation(relationName, foreignCollection, {
     originKey: newFieldName,
+    originKeyTarget: options.originKeyTarget,
   });
 }
 
