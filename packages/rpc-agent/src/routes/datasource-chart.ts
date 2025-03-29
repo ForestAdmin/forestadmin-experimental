@@ -25,7 +25,7 @@ export default class RpcDatasourceChartRoute extends BaseRoute {
 
   async handleDatasourceChart(context: any) {
     const chartName = context.query.chart;
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     context.response.body = await this.dataSource.renderChart(caller, chartName);
   }
