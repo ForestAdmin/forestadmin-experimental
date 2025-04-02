@@ -1,12 +1,15 @@
 import { Caller } from '@forestadmin/datasource-toolkit';
 import { createHmac } from 'crypto';
 
-// eslint-disable-next-line import/prefer-default-export
-export function appendHeaders(req, authSecret: string, caller?: Caller) {
+export function getAuthoriztionHeaders(authSecret: string) {
   const timeStamp = new Date().toUTCString();
   const token = createHmac('sha256', authSecret).update(timeStamp).digest('hex');
-  req.set('X_SIGNATURE', token);
-  req.set('X_TIMESTAMP', timeStamp);
+
+  return { X_SIGNATURE: token, X_TIMESTAMP: timeStamp };
+}
+
+export function appendHeaders(req, authSecret: string, caller?: Caller) {
+  req.set(getAuthoriztionHeaders(authSecret));
 
   req.set('Content-Type', 'application/json');
 
