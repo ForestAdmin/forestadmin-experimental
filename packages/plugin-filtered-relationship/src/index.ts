@@ -21,14 +21,20 @@ export default function filteredOneToMany<
   const { relationName, foreignCollection, handler } = options;
   const newFieldName = `${relationName}Id`;
   const foreignForestCollection = dataSource.getCollection(foreignCollection);
-  const pks = SchemaUtils.getPrimaryKeys(foreignForestCollection.schema);
+  const fpks = SchemaUtils.getPrimaryKeys(foreignForestCollection.schema);
+  const pks = SchemaUtils.getPrimaryKeys(collection.schema);
 
-  if (pks.length > 1) {
+  if (fpks.length > 1 || pks.length > 1) {
     throw new Error('filteredOneToMany does not support collections with composite Primary Keys.');
   }
 
-  const [foreignPk] = pks;
-  const pkType = CollectionUtils.getFieldSchema(foreignForestCollection, foreignPk) as ColumnSchema;
+  const [foreignPk] = fpks;
+  const [pk] = pks;
+  // Put new field type as same as the pk of the original collection to avoid incompatible type
+  const pkType = CollectionUtils.getFieldSchema(
+    dataSource.getCollection(collection.name),
+    pk,
+  ) as ColumnSchema;
 
   foreignForestCollection.addField(newFieldName, {
     columnType: pkType.columnType,
@@ -46,7 +52,6 @@ export default function filteredOneToMany<
 
   collection.addOneToManyRelation(relationName, foreignCollection, {
     originKey: newFieldName,
-    originKeyTarget: options.originKeyTarget,
   });
 }
 

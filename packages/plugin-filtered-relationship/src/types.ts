@@ -15,8 +15,6 @@ export type Options<
   /** Target foreign collection */
   foreignCollection: N;
 
-  /** Target column on the collection default to the primary key */
-  originKeyTarget?: string;
   /**
    * Function to generate a dynamic ConditionTree to filter records of the foreign collection
    *
