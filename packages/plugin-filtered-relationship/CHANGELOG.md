@@ -1,3 +1,15 @@
+# [2.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.5.0...plugin-filtered-relationship@2.6.0) (2025-04-08)
+
+
+### Bug Fixes
+
+* **filtered relationship:** now work with collection with different pk type ([2f18851](https://github.com/ForestAdmin/forestadmin-experimental/commit/2f18851e688109e49c5f92e468f003779a330e99))
+
+
+### Features
+
+* add openapi-agent ([#132](https://github.com/ForestAdmin/forestadmin-experimental/issues/132)) ([195b584](https://github.com/ForestAdmin/forestadmin-experimental/commit/195b584970f6c88675d193c5ad0bda7db5f11c72))
+
 # [2.5.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.4.0...plugin-filtered-relationship@2.5.0) (2025-03-24)
 
 
