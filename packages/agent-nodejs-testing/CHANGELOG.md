@@ -1,3 +1,17 @@
+# [0.25.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.3...agent-nodejs-testing@0.25.0) (2025-04-09)
+
+
+### Bug Fixes
+
+* **filtered relationship:** now work with collection with different pk type ([2f18851](https://github.com/ForestAdmin/forestadmin-experimental/commit/2f18851e688109e49c5f92e468f003779a330e99))
+
+
+### Features
+
+* add openapi-agent ([#132](https://github.com/ForestAdmin/forestadmin-experimental/issues/132)) ([195b584](https://github.com/ForestAdmin/forestadmin-experimental/commit/195b584970f6c88675d193c5ad0bda7db5f11c72))
+* **agent-tester:** add isRequired getter on action fields ([#133](https://github.com/ForestAdmin/forestadmin-experimental/issues/133)) ([a6778af](https://github.com/ForestAdmin/forestadmin-experimental/commit/a6778af0af30445aaa0c837d6318f0bfa4f601da))
+* **filtered relationship:** add option to select origin key target ([#131](https://github.com/ForestAdmin/forestadmin-experimental/issues/131)) ([37b0d38](https://github.com/ForestAdmin/forestadmin-experimental/commit/37b0d383ffdebb560357c4039f1dd13167e8480e))
+
 ## [0.24.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.2...agent-nodejs-testing@0.24.3) (2025-02-19)
 
 
