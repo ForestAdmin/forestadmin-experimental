@@ -1,4 +1,3 @@
-import { ActionLayoutElementWithField } from '@forestadmin/datasource-toolkit';
 import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
 
 import FieldGetter from './field-getter';

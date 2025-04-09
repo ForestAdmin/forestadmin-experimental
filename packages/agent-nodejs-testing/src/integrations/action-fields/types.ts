@@ -1,7 +1,7 @@
 import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-client';
 
 export type ResponseBody = {
-  fields: { field: string }[];
+  fields: PlainField[];
   layout: ForestServerActionFormLayoutElement[];
 };
 
@@ -13,6 +13,7 @@ export type PlainFieldOption = {
 export type PlainField = {
   field: string;
   value?: unknown;
+  isRequired: true;
   widgetEdit?: {
     parameters: {
       static: {
