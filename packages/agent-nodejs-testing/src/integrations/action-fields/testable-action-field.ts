@@ -12,4 +12,8 @@ export default abstract class TestableActionField<TypingsSchema> {
   getValue() {
     return this.fieldsFormStates.getField(this.name)?.getValue();
   }
+
+  isRequired() {
+    return this.fieldsFormStates.getField(this.name)?.getPlainField().isRequired;
+  }
 }

@@ -28,7 +28,7 @@ describe('addAction', () => {
                 type: 'Layout',
               },
               { component: 'HtmlBlock', content: '<h1>Welcome</h1>', type: 'Layout' },
-              { label: 'rating', type: 'Number' },
+              { label: 'rating', type: 'Number', isRequired: true },
               {
                 label: 'Put a comment',
                 type: 'String',
@@ -245,5 +245,13 @@ describe('addAction', () => {
 
     await action.getEnumField('enum').select('opt1');
     expect(action.getEnumField('enum').getValue()).toBe('opt1');
+  });
+
+  it('the rating field should be required', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    expect(action.getFieldNumber('rating').isRequired()).toBe(true);
   });
 });
