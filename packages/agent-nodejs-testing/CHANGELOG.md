@@ -1,3 +1,10 @@
+## [0.25.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.25.0...agent-nodejs-testing@0.25.1) (2025-04-09)
+
+
+### Bug Fixes
+
+* **agent-tester:** fix type for isRequired ([#134](https://github.com/ForestAdmin/forestadmin-experimental/issues/134)) ([95d0c2c](https://github.com/ForestAdmin/forestadmin-experimental/commit/95d0c2ca9428cc9a5be2ccded9d5ef2e250958b5))
+
 # [0.25.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.24.3...agent-nodejs-testing@0.25.0) (2025-04-09)
 
 
