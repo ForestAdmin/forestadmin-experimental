@@ -93,7 +93,7 @@ gateway
 
 ### Case 2 declaring relationship between RPC datasource on a RPC agent
 
-If you have complex datasource relationship and usage, see how to use `markCollectionsAsRpc` and the `generateRpcRelations` plugin below.
+If you have complex datasource relationship and usage, see how to use `markCollectionsAsRpc` and the `reconciliateRpc` plugin below.
 
 ```javascript
 /* define user agent and use group agent as a RPC data source
@@ -137,5 +137,27 @@ gateway
   .createRpcDataSource(/*from the user RPC agent*/)
   .createRpcDataSource(/*from the project RPC agent*/)
   .createRpcDataSource(/*from the group RPC agent*/)
-  .use(generateRpcRelations);
+  .use(reconciliateRpc);
+```
+
+# Deal with disableSearch customization
+
+To make `disableSearch` customization work on the gateway, you should use [the provided plugin](../datasource-rpc/README.md#deal-with-disablesearch-on-rpc-collections)
+
+## Examples
+
+```javascript
+
+/* define project agent and disable the search behavior on the collection
+*/
+projectAgent
+  .createcreateSqlDataSource(...)
+  .customizeCollection('project', collection => {
+    collecion.disableSearch();
+  });
+
+// define the gateway 
+gateway
+  .createRpcDataSource(/*from the project RPC agent*/)
+  .use(reconciliateRpc);
 ```
