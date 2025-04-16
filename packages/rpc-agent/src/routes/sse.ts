@@ -6,6 +6,8 @@ import { PassThrough } from 'stream';
 export default class SseRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
+  private stream: PassThrough;
+
   override setupRoutes(router: Router): void {
     router.get('/sse', this.handleSSe.bind(this));
   }
@@ -21,11 +23,15 @@ export default class SseRoute extends BaseRoute {
       Connection: 'keep-alive',
     });
 
-    const stream = new PassThrough();
+    this.stream = new PassThrough();
 
     context.status = 200;
-    context.body = stream;
+    context.body = this.stream;
 
-    stream.write('ok');
+    this.stream.write('ok');
+  }
+
+  endSse() {
+    this.stream?.end('end');
   }
 }
