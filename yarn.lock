@@ -471,6 +471,31 @@
     superagent "^8.0.6"
     uuid "^9.0.0"
 
+"@forestadmin/agent@^1.63.1":
+  version "1.63.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.63.1.tgz#1109fc8a905c34cd54d35fd8accdd189f106e580"
+  integrity sha512-nqyXNVkOVQVivxM0RmtU8JT22TfZPAI/8tmJ6vuGE0d0sx/kOt93kCAp2QdLAu2ivKPqZkUZpSi02HYBtr7Dyw==
+  dependencies:
+    "@fast-csv/format" "^4.3.5"
+    "@fastify/express" "^1.1.0"
+    "@forestadmin/datasource-customizer" "1.65.1"
+    "@forestadmin/datasource-toolkit" "1.50.0"
+    "@forestadmin/forestadmin-client" "1.36.12"
+    "@koa/cors" "^5.0.0"
+    "@koa/router" "^12.0.0"
+    "@types/koa__router" "^12.0.0"
+    forest-ip-utils "^1.0.1"
+    json-api-serializer "^2.6.6"
+    json-stringify-pretty-compact "^3.0.0"
+    jsonwebtoken "^9.0.0"
+    koa "^2.15.4"
+    koa-bodyparser "^4.3.0"
+    koa-jwt "^4.0.4"
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    superagent "^8.0.6"
+    uuid "11.0.2"
+
 "@forestadmin/datasource-customizer@1.40.0", "@forestadmin/datasource-customizer@^1.28.2", "@forestadmin/datasource-customizer@^1.9.0":
   version "1.40.0"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.40.0.tgz#b7ab00c3fc13441567f1ff1924f9f147f6160517"
@@ -517,6 +542,18 @@
     luxon "^3.2.1"
     object-hash "^3.0.0"
     uuid "^9.0.0"
+
+"@forestadmin/datasource-customizer@1.65.1", "@forestadmin/datasource-customizer@^1.65.1":
+  version "1.65.1"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.65.1.tgz#33a7e1cc6b0a793c0d11578e42ffa319dbbad986"
+  integrity sha512-BoRut+pskF/WUwdxWh9nY0Dk9jEQ+XYo0+qV9wOEWrJ4jsRHiq37eW0vyvatv7Jl29ZfG4WWf5DFVVKbma8fLA==
+  dependencies:
+    "@forestadmin/datasource-toolkit" "1.50.0"
+    antlr4 "^4.13.1-patch-1"
+    file-type "^16.5.4"
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "11.0.2"
 
 "@forestadmin/datasource-replica@^1.0.0":
   version "1.0.55"
@@ -606,6 +643,15 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
+"@forestadmin/datasource-toolkit@1.50.0", "@forestadmin/datasource-toolkit@^1.50.0":
+  version "1.50.0"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.50.0.tgz#a94ae271044df38ced9222c163087d6d0229a83e"
+  integrity sha512-yYrDOhoc+c5w++W3iSK5G+UBnD94ghPv+gjLehC3aMSxTOXmVDT32qHs82HJQlNThbtSoGvFNFx3rqYcbI2P2Q==
+  dependencies:
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "11.0.2"
+
 "@forestadmin/datasource-toolkit@^1.44.0":
   version "1.44.0"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-toolkit/-/datasource-toolkit-1.44.0.tgz#a5e6fd51c960818e6af2a30882da4c340734300f"
@@ -648,7 +694,19 @@
     openid-client "^5.6.4"
     superagent "^8.0.6"
 
-"@forestadmin/forestadmin-client@1.36.3", "@forestadmin/forestadmin-client@^1.36.3":
+"@forestadmin/forestadmin-client@1.36.12", "@forestadmin/forestadmin-client@^1.36.12":
+  version "1.36.12"
+  resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.36.12.tgz#b9d67ce1f671ae266a3bbe67bfcf1de0b2c9ee93"
+  integrity sha512-z168A52vxzHtT+KVPEymyURYcCmCB4uTyLnL79fzF2/+totC70peJvlqezPd7fzjb0AfD+EsYX31+sUuVsBGCA==
+  dependencies:
+    eventsource "2.0.2"
+    json-api-serializer "^2.6.6"
+    jsonwebtoken "^9.0.0"
+    object-hash "^3.0.0"
+    openid-client "^5.7.1"
+    superagent "^8.0.6"
+
+"@forestadmin/forestadmin-client@1.36.3":
   version "1.36.3"
   resolved "https://registry.yarnpkg.com/@forestadmin/forestadmin-client/-/forestadmin-client-1.36.3.tgz#1c0c87a0ee54ac6956ce3b1b6e0253ab16e8d50a"
   integrity sha512-uwzkXy69NRWdPSwg5crStirgEQSCABh+uxRbEGi6YgYDGTM9pcgUIIvwDsh7eNoLOM4oxo6oU6WHWCl5RInokQ==
@@ -5622,6 +5680,11 @@ jose@^4.15.5:
   resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.5.tgz#6475d0f467ecd3c630a1b5dadd2735a7288df706"
   integrity sha512-jc7BFxgKPKi94uOvEmzlSWFFe2+vASyXaKUpdQKatWAESU2MWjDfFf0fdfc83CDKcA5QecabZeNLyfhe3yKNkg==
 
+jose@^4.15.9:
+  version "4.15.9"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.9.tgz#9b68eda29e9a0614c042fa29387196c7dd800100"
+  integrity sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==
+
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -5884,6 +5947,35 @@ koa@^2.14.1:
   version "2.15.0"
   resolved "https://registry.yarnpkg.com/koa/-/koa-2.15.0.tgz#d24ae1b0ff378bf12eb3df584ab4204e4c12ac2b"
   integrity sha512-KEL/vU1knsoUvfP4MC4/GthpQrY/p6dzwaaGI6Rt4NQuFqkw3qrvsdYF5pz3wOfi7IGTvMPHC9aZIcUKYFNxsw==
+  dependencies:
+    accepts "^1.3.5"
+    cache-content-type "^1.0.0"
+    content-disposition "~0.5.2"
+    content-type "^1.0.4"
+    cookies "~0.9.0"
+    debug "^4.3.2"
+    delegates "^1.0.0"
+    depd "^2.0.0"
+    destroy "^1.0.4"
+    encodeurl "^1.0.2"
+    escape-html "^1.0.3"
+    fresh "~0.5.2"
+    http-assert "^1.3.0"
+    http-errors "^1.6.3"
+    is-generator-function "^1.0.7"
+    koa-compose "^4.1.0"
+    koa-convert "^2.0.0"
+    on-finished "^2.3.0"
+    only "~0.0.2"
+    parseurl "^1.3.2"
+    statuses "^1.5.0"
+    type-is "^1.6.16"
+    vary "^1.1.2"
+
+koa@^2.15.4:
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/koa/-/koa-2.16.1.tgz#ba1aae04d8319d7dac4a17a0d289d7482501e194"
+  integrity sha512-umfX9d3iuSxTQP4pnzLOz0HKnPg0FaUUIKcye2lOiz3KPu1Y3M3xlz76dISdFPQs37P9eJz1wUpcTS6KDPn9fA==
   dependencies:
     accepts "^1.3.5"
     cache-content-type "^1.0.0"
@@ -7076,6 +7168,16 @@ openid-client@^5.6.4:
   integrity sha512-5P4qO9nGJzB5PI0LFlhj4Dzg3m4odt0qsJTfyEtZyOlkgpILwEioOhVVJOrS1iVH494S4Ee5OCjjg6Bf5WOj3w==
   dependencies:
     jose "^4.15.5"
+    lru-cache "^6.0.0"
+    object-hash "^2.2.0"
+    oidc-token-hash "^5.0.3"
+
+openid-client@^5.7.1:
+  version "5.7.1"
+  resolved "https://registry.yarnpkg.com/openid-client/-/openid-client-5.7.1.tgz#34cace862a3e6472ed7d0a8616ef73b7fb85a9c3"
+  integrity sha512-jDBPgSVfTnkIh71Hg9pRvtJc6wTwqjRkN88+gCFtYWrlP4Yx2Dsrow8uPi3qLr/aeymPF3o2+dS+wOpglK04ew==
+  dependencies:
+    jose "^4.15.9"
     lru-cache "^6.0.0"
     object-hash "^2.2.0"
     oidc-token-hash "^5.0.3"
@@ -9159,6 +9261,11 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
+
+uuid@11.0.2:
+  version "11.0.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.0.2.tgz#a8d68ba7347d051e7ea716cc8dcbbab634d66875"
+  integrity sha512-14FfcOJmqdjbBPdDjFQyk/SdT4NySW4eM0zcG+HqbHP5jzuH56xO3J1DGhgs/cEMCfwYi3HQI1gnTO62iaG+tQ==
 
 uuid@^8.0.0, uuid@^8.3.2:
   version "8.3.2"
