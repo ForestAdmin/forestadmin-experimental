@@ -1,3 +1,10 @@
+## [0.25.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.25.1...agent-nodejs-testing@0.25.2) (2025-04-16)
+
+
+### Bug Fixes
+
+* **rpc datasource:** handle basic SA form ([#135](https://github.com/ForestAdmin/forestadmin-experimental/issues/135)) ([1c687d3](https://github.com/ForestAdmin/forestadmin-experimental/commit/1c687d339ae102b0c986159b417d6b7e15fab63a))
+
 ## [0.25.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.25.0...agent-nodejs-testing@0.25.1) (2025-04-09)
 
 
