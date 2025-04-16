@@ -1,3 +1,17 @@
+# [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/openapi-agent@1.0.0...openapi-agent@1.1.0) (2025-04-16)
+
+
+### Bug Fixes
+
+* **agent-tester:** fix type for isRequired ([#134](https://github.com/ForestAdmin/forestadmin-experimental/issues/134)) ([95d0c2c](https://github.com/ForestAdmin/forestadmin-experimental/commit/95d0c2ca9428cc9a5be2ccded9d5ef2e250958b5))
+* **filtered relationship:** now work with collection with different pk type ([2f18851](https://github.com/ForestAdmin/forestadmin-experimental/commit/2f18851e688109e49c5f92e468f003779a330e99))
+* **rpc datasource:** handle basic SA form ([#135](https://github.com/ForestAdmin/forestadmin-experimental/issues/135)) ([1c687d3](https://github.com/ForestAdmin/forestadmin-experimental/commit/1c687d339ae102b0c986159b417d6b7e15fab63a))
+
+
+### Features
+
+* **agent-tester:** add isRequired getter on action fields ([#133](https://github.com/ForestAdmin/forestadmin-experimental/issues/133)) ([a6778af](https://github.com/ForestAdmin/forestadmin-experimental/commit/a6778af0af30445aaa0c837d6318f0bfa4f601da))
+
 # 1.0.0 (2025-03-24)
 
 
