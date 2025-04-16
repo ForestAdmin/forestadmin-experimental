@@ -1,3 +1,23 @@
+# [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-define-enum@1.0.1...plugin-define-enum@1.1.0) (2025-04-16)
+
+
+### Bug Fixes
+
+* **agent nodejs testing:** action enum field check ([#128](https://github.com/ForestAdmin/forestadmin-experimental/issues/128)) ([997644a](https://github.com/ForestAdmin/forestadmin-experimental/commit/997644a75b1bc95d6201acc099cfe49072951240))
+* **agent-tester:** fix mock server ([#127](https://github.com/ForestAdmin/forestadmin-experimental/issues/127)) ([ab1983d](https://github.com/ForestAdmin/forestadmin-experimental/commit/ab1983d5ed8854f901658f382e241b1f5f12bf17))
+* **agent-tester:** fix type for isRequired ([#134](https://github.com/ForestAdmin/forestadmin-experimental/issues/134)) ([95d0c2c](https://github.com/ForestAdmin/forestadmin-experimental/commit/95d0c2ca9428cc9a5be2ccded9d5ef2e250958b5))
+* change enum function name ([ce0323e](https://github.com/ForestAdmin/forestadmin-experimental/commit/ce0323ee0dcb0e7cca5e56d8c64244275ca91d14))
+* **filtered relationship:** now work with collection with different pk type ([2f18851](https://github.com/ForestAdmin/forestadmin-experimental/commit/2f18851e688109e49c5f92e468f003779a330e99))
+* release datasource-rpc ([2135d1e](https://github.com/ForestAdmin/forestadmin-experimental/commit/2135d1ecbecd3b4172e0ef02d43f5a061fd2625b))
+* **rpc datasource:** handle basic SA form ([#135](https://github.com/ForestAdmin/forestadmin-experimental/issues/135)) ([1c687d3](https://github.com/ForestAdmin/forestadmin-experimental/commit/1c687d339ae102b0c986159b417d6b7e15fab63a))
+
+
+### Features
+
+* add openapi-agent ([#132](https://github.com/ForestAdmin/forestadmin-experimental/issues/132)) ([195b584](https://github.com/ForestAdmin/forestadmin-experimental/commit/195b584970f6c88675d193c5ad0bda7db5f11c72))
+* **agent-tester:** add isRequired getter on action fields ([#133](https://github.com/ForestAdmin/forestadmin-experimental/issues/133)) ([a6778af](https://github.com/ForestAdmin/forestadmin-experimental/commit/a6778af0af30445aaa0c837d6318f0bfa4f601da))
+* **filtered relationship:** add option to select origin key target ([#131](https://github.com/ForestAdmin/forestadmin-experimental/issues/131)) ([37b0d38](https://github.com/ForestAdmin/forestadmin-experimental/commit/37b0d383ffdebb560357c4039f1dd13167e8480e))
+
 # 1.0.0 (2025-01-16)
 
 
