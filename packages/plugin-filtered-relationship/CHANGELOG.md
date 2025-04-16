@@ -1,3 +1,16 @@
+# [2.7.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.6.0...plugin-filtered-relationship@2.7.0) (2025-04-16)
+
+
+### Bug Fixes
+
+* **agent-tester:** fix type for isRequired ([#134](https://github.com/ForestAdmin/forestadmin-experimental/issues/134)) ([95d0c2c](https://github.com/ForestAdmin/forestadmin-experimental/commit/95d0c2ca9428cc9a5be2ccded9d5ef2e250958b5))
+* **rpc datasource:** handle basic SA form ([#135](https://github.com/ForestAdmin/forestadmin-experimental/issues/135)) ([1c687d3](https://github.com/ForestAdmin/forestadmin-experimental/commit/1c687d339ae102b0c986159b417d6b7e15fab63a))
+
+
+### Features
+
+* **agent-tester:** add isRequired getter on action fields ([#133](https://github.com/ForestAdmin/forestadmin-experimental/issues/133)) ([a6778af](https://github.com/ForestAdmin/forestadmin-experimental/commit/a6778af0af30445aaa0c837d6318f0bfa4f601da))
+
 # [2.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.5.0...plugin-filtered-relationship@2.6.0) (2025-04-08)
 
 
