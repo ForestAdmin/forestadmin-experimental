@@ -23,9 +23,9 @@ const agent = createAgent(options)
 We recommend creating a relationship between RPC agents on your gateway. However, if you want to specify the relationship in another way, you should use the provided plugin on the gateway.
 
 ```javascript
-import { generateRpcRelations } from '@forestadmin-experimental/datasource-rpc';
+import { reconciliateRpc } from '@forestadmin-experimental/datasource-rpc';
 
-agent.use(generateRpcRelations);
+agent.use(reconciliateRpc);
 ```
 
 To be used with [markCollectionsAsRpc](../rpc-agent/README.md#deal-with-nested-rpc-data-source-and-relationship).
@@ -36,7 +36,7 @@ Sometimes you may disable the search behavior on some collections of your RPC da
 If you want to do that on the RPC agent, you should use the provided plugin on the gateway.
 
 ```javascript
-import { generateRpcRelations } from '@forestadmin-experimental/datasource-rpc';
+import { reconciliateRpc } from '@forestadmin-experimental/datasource-rpc';
 
-agent.use(generateRpcRelations);
+agent.use(reconciliateRpc);
 ```

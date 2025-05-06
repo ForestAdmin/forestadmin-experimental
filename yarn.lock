@@ -446,7 +446,7 @@
     superagent "^8.0.6"
     uuid "^9.0.0"
 
-"@forestadmin/agent@^1.57.1", "@forestadmin/agent@^1.63.1":
+"@forestadmin/agent@^1.57.1":
   version "1.63.1"
   resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.63.1.tgz#1109fc8a905c34cd54d35fd8accdd189f106e580"
   integrity sha512-nqyXNVkOVQVivxM0RmtU8JT22TfZPAI/8tmJ6vuGE0d0sx/kOt93kCAp2QdLAu2ivKPqZkUZpSi02HYBtr7Dyw==
@@ -454,6 +454,31 @@
     "@fast-csv/format" "^4.3.5"
     "@fastify/express" "^1.1.0"
     "@forestadmin/datasource-customizer" "1.65.1"
+    "@forestadmin/datasource-toolkit" "1.50.0"
+    "@forestadmin/forestadmin-client" "1.36.12"
+    "@koa/cors" "^5.0.0"
+    "@koa/router" "^12.0.0"
+    "@types/koa__router" "^12.0.0"
+    forest-ip-utils "^1.0.1"
+    json-api-serializer "^2.6.6"
+    json-stringify-pretty-compact "^3.0.0"
+    jsonwebtoken "^9.0.0"
+    koa "^2.15.4"
+    koa-bodyparser "^4.3.0"
+    koa-jwt "^4.0.4"
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    superagent "^8.0.6"
+    uuid "11.0.2"
+
+"@forestadmin/agent@^1.63.3":
+  version "1.63.3"
+  resolved "https://registry.yarnpkg.com/@forestadmin/agent/-/agent-1.63.3.tgz#5d073938d9ed709c8e53632d5ee21a9822680cdd"
+  integrity sha512-unIyYDo8gHwXVqbJa32S52isXBgmGzeO1fInCW1yY02G7mpPrTSM67qKo8NqOuT/vyOmB2x3uyHHRYF/0M/p/Q==
+  dependencies:
+    "@fast-csv/format" "^4.3.5"
+    "@fastify/express" "^1.1.0"
+    "@forestadmin/datasource-customizer" "1.66.0"
     "@forestadmin/datasource-toolkit" "1.50.0"
     "@forestadmin/forestadmin-client" "1.36.12"
     "@koa/cors" "^5.0.0"
@@ -506,10 +531,22 @@
     object-hash "^3.0.0"
     uuid "^9.0.0"
 
-"@forestadmin/datasource-customizer@1.65.1", "@forestadmin/datasource-customizer@^1.59.0", "@forestadmin/datasource-customizer@^1.65.1":
+"@forestadmin/datasource-customizer@1.65.1", "@forestadmin/datasource-customizer@^1.59.0":
   version "1.65.1"
   resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.65.1.tgz#33a7e1cc6b0a793c0d11578e42ffa319dbbad986"
   integrity sha512-BoRut+pskF/WUwdxWh9nY0Dk9jEQ+XYo0+qV9wOEWrJ4jsRHiq37eW0vyvatv7Jl29ZfG4WWf5DFVVKbma8fLA==
+  dependencies:
+    "@forestadmin/datasource-toolkit" "1.50.0"
+    antlr4 "^4.13.1-patch-1"
+    file-type "^16.5.4"
+    luxon "^3.2.1"
+    object-hash "^3.0.0"
+    uuid "11.0.2"
+
+"@forestadmin/datasource-customizer@1.66.0", "@forestadmin/datasource-customizer@^1.66.0":
+  version "1.66.0"
+  resolved "https://registry.yarnpkg.com/@forestadmin/datasource-customizer/-/datasource-customizer-1.66.0.tgz#5f980d4f1c0208540d80b4aa23cba0334457ba28"
+  integrity sha512-9n+PLLb2nVl1cyUH5d2+X4w1brIlpdpwJpAKYNqA5Txhf+gVPFplOlhkRmjQkyFNAw3myHbwE9yobSZTUPq02g==
   dependencies:
     "@forestadmin/datasource-toolkit" "1.50.0"
     antlr4 "^4.13.1-patch-1"
