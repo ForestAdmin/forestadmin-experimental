@@ -5,6 +5,12 @@ npm install @forestadmin-experimental/openapi-agent
 ```
 on an existing forestadmin project.
 
+Then, replace the `import { createAgent } from @forestadmin/agent`  by
+
+```
+import { createAgentWithOpenAPIInterface } from '@forestadmin-experimental/openapi-agent';
+```
+
 Then, change your `createAgent<Schema>(...)` to `createAgentWithOpenAPIInterface<Schema>(...)`
 
 Finally, add your own API Keys in the options,
@@ -60,16 +66,19 @@ You should then be able to test on the right side that OpenAI is able to contact
       ],
       "command": "zsh",
       "env": {
-        "OPENAPI_MCP_HEADERS": "{\"x_signature\": \"<secret defined in the first part>\"}"
+        "OPENAPI_MCP_HEADERS": "{\"x_api_key\": \"<secret defined in the first part>\"}"
       }
     },
 ```
 
-** Notice the `<path to your source file>` part of the configuration. Claude sometimes embed a NodeJS installation along with it's executable, that seems to be incompatible with most of the MCP servers I tried.). To make sure Claude uses the same version of nodejs as you, source your main zsh/bash/... file here. **
+**Notice the `<path to your source file>` part of the configuration. Claude sometimes embed a NodeJS installation along with it's executable, that seems to be incompatible with most of the MCP servers I tried.). To make sure Claude uses the same version of nodejs as you, source your main zsh/bash/... file here.**
 
 Restart the Claude app and after a while, you should notice a small chain icon indicating that the MCP server is up-and-running.
 
 ## Notes (And possible evolutions)
+
+The base mecanism just re-use the rpc-agent - allowing to expose the route with an API KEY based authentication instead of the classic authentication flow. The main difference is in `openapi.ts` - which contains the openapi definition of the RPC Agent routes.
+This agent simply expose a `/openapi.json` route, which can be plugged via ChatGPT or via `openapi-mcp-server` to expose a fully functionnal MCP Server.
 
 - Currently, the integration don't support actions, collections charts, and datasources charts as well. However, complete CRUD & aggregation interface should be available.
 - Pre-prompt/System prompt may be used to fix discrepency in the actual tool use generation. Here's the one I'm currently using:
@@ -85,3 +94,12 @@ Example:
 - On list, can you make sure sort & page are embbeded inside the filter.
 ```
 - This integration is a WIP, so it's highly suggested not to use it on a production environment. This integration is able to create/update and delete one of multiple tables content.
+
+## Todos
+
+- [] Find a way to deal with the authentication/Caller issue. Currently, caller is emulated and filled at runtime
+- [] Handle read/read-write mode, along with an actual Caller implementation
+- [] Handle actions
+- [] Base filter/paginated filter on the actual agent capabilities
+- [] Implement deep ConditionTree component to use actual field name instead of strings
+- [] Integration tests, as some AI providers are still able to generate invalid requests
