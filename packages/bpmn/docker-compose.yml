@@ -1,0 +1,23 @@
+services:
+  elasticsearch_test:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: forest_elasticsearch_test
+    ports:
+      - 9201:9200
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elastic-network-test
+
+networks:
+  elastic-network-test:
+    driver: bridge
