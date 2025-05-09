@@ -46,13 +46,11 @@ function runRecon(
       },
     });
 
-    const a = Math.random();
-
     let reconnecting = false;
 
     es.onerror = error => {
       reconnecting = true;
-      logger('Debug', `SSE (${uri} ${a}) error: ${error.message}`);
+      logger('Debug', `SSE (${uri}) error: ${error.message}`);
     };
 
     es.onopen = async () => {
