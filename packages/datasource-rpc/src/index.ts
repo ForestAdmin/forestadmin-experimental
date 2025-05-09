@@ -9,6 +9,8 @@ import { appendHeaders, getAuthoriztionHeaders } from './utils';
 
 export { reconciliateRpc } from './plugins';
 
+const sseMap = new Map<string, EventSource>();
+
 async function getintrospection(logger: Logger, uri: string, authSecret: string) {
   logger('Info', `Getting schema from Rpc agent on ${uri}.`);
 
@@ -31,38 +33,43 @@ function runRecon(
   originalHash: string,
   restartAgent: () => Promise<void>,
 ) {
-  const es = new EventSource(`${uri}/forest/sse`, {
-    fetch: (input, init) => {
-      return fetch(input, {
-        ...init,
-        headers: {
-          ...init.headers,
-          ...getAuthoriztionHeaders(authSecret),
-        },
-      });
-    },
-  });
+  if (!sseMap.has(uri)) {
+    const es = new EventSource(`${uri}/forest/sse`, {
+      fetch: (input, init) => {
+        return fetch(input, {
+          ...init,
+          headers: {
+            ...init.headers,
+            ...getAuthoriztionHeaders(authSecret),
+          },
+        });
+      },
+    });
 
-  let reconnecting = false;
+    const a = Math.random();
 
-  es.onerror = error => {
-    reconnecting = true;
-    logger('Debug', `SSE error: ${error.message}`);
-  };
+    let reconnecting = false;
 
-  es.onopen = async () => {
-    if (reconnecting) {
-      logger('Info', `Reconnecting with RPC agent on ${uri}.`);
-      const newIntrospection = await getintrospection(logger, uri, authSecret);
-      const newHash = getHash(newIntrospection);
+    es.onerror = error => {
+      reconnecting = true;
+      logger('Debug', `SSE (${uri} ${a}) error: ${error.message}`);
+    };
 
-      if (originalHash !== newHash) {
-        logger('Info', `Schema of RPC agent on ${uri} change: restarting.`);
-        await restartAgent();
-        es.close();
+    es.onopen = async () => {
+      if (reconnecting) {
+        logger('Info', `Reconnecting with RPC agent on ${uri}.`);
+        const newIntrospection = await getintrospection(logger, uri, authSecret);
+        const newHash = getHash(newIntrospection);
+
+        if (originalHash !== newHash) {
+          logger('Info', `Schema of RPC agent on ${uri} change: restarting.`);
+          await restartAgent();
+        }
       }
-    }
-  };
+    };
+
+    sseMap.set(uri, es);
+  }
 }
 
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {

@@ -40,3 +40,6 @@ import { reconciliateRpc } from '@forestadmin-experimental/datasource-rpc';
 
 agent.use(reconciliateRpc);
 ```
+
+# TODOS
+- [ ] handle error properly
