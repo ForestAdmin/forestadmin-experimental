@@ -12,14 +12,15 @@
     "directory": "packages/datasource-rpc"
   },
   "dependencies": {
+    "eventsource": "3.0.6",
     "superagent": "^8.0.6"
   },
   "devDependencies": {
-    "@forestadmin/datasource-customizer": "^1.65.1",
+    "@forestadmin/datasource-customizer": "^1.66.0",
     "@forestadmin/datasource-toolkit": "^1.50.0"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-customizer": "^1.65.1",
+    "@forestadmin/datasource-customizer": "^1.66.0",
     "@forestadmin/datasource-toolkit": "^1.50.0"
   },
   "files": [
