@@ -15,6 +15,7 @@ const agent = createRpcAgent({
   loggerLevel: 'Info',
 });
 // use the agent like a real one.
+
 ```
 
 # Deal with nested RPC data source and relationship
