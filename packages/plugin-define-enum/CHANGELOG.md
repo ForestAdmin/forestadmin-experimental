@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-define-enum@1.1.0...plugin-define-enum@1.2.0) (2025-05-12)
+
+
+### Features
+
+* **rpc:** improve communication protocol ([#130](https://github.com/ForestAdmin/forestadmin-experimental/issues/130)) ([490585e](https://github.com/ForestAdmin/forestadmin-experimental/commit/490585eae26cde776d423f66b3bcf079fbbbb637))
+
 # [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-define-enum@1.0.1...plugin-define-enum@1.1.0) (2025-04-16)
 
 
