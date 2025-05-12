@@ -1,0 +1,2 @@
+# avoid release of all packages when update only one project package.json
+yarn.lock
