@@ -10,7 +10,7 @@ export default class RpcChartRoute extends CollectionRoute {
   public async handleChart(context: any) {
     const chart = context.query.chart as string;
     const recordId = context.query.recordId as CompositeId;
-    const caller = JSON.parse(context.query.caller as string);
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const chartResult = await this.collection.renderChart(caller, chart, recordId);
 

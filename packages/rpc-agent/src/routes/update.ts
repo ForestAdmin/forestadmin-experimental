@@ -9,8 +9,8 @@ export default class RpcUpdateRoute extends CollectionRoute {
   }
 
   public async handleUpdate(context: any) {
-    const queryFilter = JSON.parse(context.query.filter as string);
-    const caller = JSON.parse(context.query.caller as string);
+    const { filter: queryFilter, patch } = context.request.body;
+    const caller = JSON.parse(context.headers.forest_caller as string);
 
     const filter = new Filter({
       ...queryFilter,
@@ -19,7 +19,7 @@ export default class RpcUpdateRoute extends CollectionRoute {
         : undefined,
     });
 
-    await this.collection.update(caller, filter, context.request.body);
+    await this.collection.update(caller, filter, patch);
 
     context.response.status = HttpCode.NoContent;
   }
