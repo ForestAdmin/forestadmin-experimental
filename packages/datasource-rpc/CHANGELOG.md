@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.7.0...datasource-rpc@1.8.0) (2025-05-12)
+
+
+### Features
+
+* **rpc:** improve communication protocol ([#130](https://github.com/ForestAdmin/forestadmin-experimental/issues/130)) ([490585e](https://github.com/ForestAdmin/forestadmin-experimental/commit/490585eae26cde776d423f66b3bcf079fbbbb637))
+
 # [1.7.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.6.0...datasource-rpc@1.7.0) (2025-04-16)
 
 
