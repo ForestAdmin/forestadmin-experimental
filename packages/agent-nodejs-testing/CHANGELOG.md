@@ -1,3 +1,10 @@
+# [0.26.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.25.2...agent-nodejs-testing@0.26.0) (2025-05-12)
+
+
+### Features
+
+* **rpc:** improve communication protocol ([#130](https://github.com/ForestAdmin/forestadmin-experimental/issues/130)) ([490585e](https://github.com/ForestAdmin/forestadmin-experimental/commit/490585eae26cde776d423f66b3bcf079fbbbb637))
+
 ## [0.25.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.25.1...agent-nodejs-testing@0.25.2) (2025-04-16)
 
 
