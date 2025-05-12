@@ -1,3 +1,15 @@
+# [2.7.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.6.0...rpc-agent@2.7.0) (2025-05-12)
+
+
+### Bug Fixes
+
+* release agent-rpc ([fd47a08](https://github.com/ForestAdmin/forestadmin-experimental/commit/fd47a08cd17bdbdbb5369222e31ddf1cc80e1fcd))
+
+
+### Features
+
+* **rpc:** improve communication protocol ([#130](https://github.com/ForestAdmin/forestadmin-experimental/issues/130)) ([490585e](https://github.com/ForestAdmin/forestadmin-experimental/commit/490585eae26cde776d423f66b3bcf079fbbbb637))
+
 # [2.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.5.0...rpc-agent@2.6.0) (2025-04-16)
 
 
