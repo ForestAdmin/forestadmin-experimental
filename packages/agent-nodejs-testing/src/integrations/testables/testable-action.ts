@@ -8,6 +8,7 @@ import TestableActionFieldColorPicker from '../action-fields/testable-action-fie
 import TestableActionFieldDate from '../action-fields/testable-action-field-date';
 import TestableActionFieldDropdown from '../action-fields/testable-action-field-dropdown';
 import TestableActionFieldEnum from '../action-fields/testable-action-field-enum';
+import TestableActionFieldJson from '../action-fields/testable-action-field-json';
 import TestableActionFieldNumber from '../action-fields/testable-action-field-number';
 import TestableActionFieldNumberList from '../action-fields/testable-action-field-number-list';
 import TestableActionFieldRadioGroup from '../action-fields/testable-action-field-radio-group';
@@ -77,6 +78,10 @@ export default class TestableAction<TypingsSchema> {
 
   getFieldNumber(fieldName: string): TestableActionFieldNumber<TypingsSchema> {
     return new TestableActionFieldNumber<TypingsSchema>(fieldName, this.fieldsFormStates);
+  }
+
+  getFieldJson(fieldName: string): TestableActionFieldJson<TypingsSchema> {
+    return new TestableActionFieldJson<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
 
   getFieldNumberList(fieldName: string): TestableActionFieldNumberList<TypingsSchema> {

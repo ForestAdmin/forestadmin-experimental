@@ -27,6 +27,7 @@ describe('addAction', () => {
                 component: 'Separator',
                 type: 'Layout',
               },
+              { label: 'Metadata', type: 'Json', widget: 'JsonEditor' },
               { component: 'HtmlBlock', content: '<h1>Welcome</h1>', type: 'Layout' },
               { label: 'rating', type: 'Number', isRequired: true },
               {
@@ -91,13 +92,14 @@ describe('addAction', () => {
         execute: async context => {
           const rating = Number(context.formValues.rating);
           const comment = context.formValues['Put a comment'];
+          const metadata = context.formValues.Metadata;
 
           const { id } = await context.getRecord(['id']);
           await context.dataSource.getCollection('restaurants').update(
             {
               conditionTree: { field: 'id', operator: 'Equal', value: id },
             },
-            { comment, rating },
+            { comment, rating, metadata },
           );
         },
       });
@@ -113,6 +115,7 @@ describe('addAction', () => {
         name: { type: DataTypes.STRING },
         rating: { type: DataTypes.INTEGER },
         comment: { type: DataTypes.STRING },
+        metadata: { type: DataTypes.JSONB },
       },
       { tableName: 'restaurants' },
     );
@@ -143,7 +146,7 @@ describe('addAction', () => {
   });
 
   describe('when the rating is > 4', () => {
-    it('should add a comment and a rating', async () => {
+    it('should add a comment, rating and metadata', async () => {
       const action = await testableAgent
         .collection('restaurants')
         .action('Leave a review', { recordIds: [restaurantId] });
@@ -157,15 +160,21 @@ describe('addAction', () => {
       const commentField = action.getFieldString('Put a comment');
       await commentField.fill('A very nice restaurant');
 
+      const metadataField = action.getFieldJson('Metadata');
+      await metadataField.fill({ key: 'value' });
+
       await action.execute();
 
       // fetch the restaurant to check the rating and comment
-      const [restaurant] = await testableAgent.collection('restaurants').list<{ rating; comment }>({
-        filters: { conditionTree: { field: 'id', value: restaurantId, operator: 'Equal' } },
-      });
+      const [restaurant] = await testableAgent
+        .collection('restaurants')
+        .list<{ rating; comment; metadata }>({
+          filters: { conditionTree: { field: 'id', value: restaurantId, operator: 'Equal' } },
+        });
 
       expect(restaurant.rating).toEqual(5);
       expect(restaurant.comment).toEqual('A very nice restaurant');
+      expect(restaurant.metadata).toEqual({ key: 'value' });
     });
 
     it('should select the recommend option yes by default', async () => {
@@ -213,9 +222,9 @@ describe('addAction', () => {
       .action('Leave a review', { recordId: restaurantId });
 
     expect(action.getLayout().page(0).element(0).isSeparator()).toBe(true);
-    expect(action.getLayout().page(0).element(1).isHTMLBlock()).toBe(true);
-    expect(action.getLayout().page(0).element(1).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
-    expect(action.getLayout().page(0).element(1).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
+    expect(action.getLayout().page(0).element(2).isHTMLBlock()).toBe(true);
+    expect(action.getLayout().page(0).element(2).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
+    expect(action.getLayout().page(0).element(2).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
     expect(action.getLayout().page(0).nextButtonLabel).toBe('Next');
     expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
   });
@@ -253,5 +262,16 @@ describe('addAction', () => {
       .action('Leave a review', { recordId: restaurantId });
 
     expect(action.getFieldNumber('rating').isRequired()).toBe(true);
+  });
+
+  it('should check the JsonField', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    const jsonField = action.getFieldJson('Metadata');
+    await jsonField.fill({ key: 'value' });
+
+    expect(jsonField.getValue()).toEqual({ key: 'value' });
   });
 });
