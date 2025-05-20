@@ -1,3 +1,15 @@
+# [0.27.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.26.0...agent-nodejs-testing@0.27.0) (2025-05-20)
+
+
+### Bug Fixes
+
+* release agent-rpc ([fd47a08](https://github.com/ForestAdmin/forestadmin-experimental/commit/fd47a08cd17bdbdbb5369222e31ddf1cc80e1fcd))
+
+
+### Features
+
+* **testing:** add helper to get json field on action form ([#137](https://github.com/ForestAdmin/forestadmin-experimental/issues/137)) ([dfc25e9](https://github.com/ForestAdmin/forestadmin-experimental/commit/dfc25e91fdcfd39d26c4d386463bc20d997bb257))
+
 # [0.26.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.25.2...agent-nodejs-testing@0.26.0) (2025-05-12)
 
 
