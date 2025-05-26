@@ -1,8 +1,7 @@
 import type { HttpRequester } from '../http-requester';
 import type { SelectOptions } from '../types';
-import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
-import TestableAction, { BaseActionContext } from './testable-action';
+import TestableAction, { ActionEndpointsByCollection, BaseActionContext } from './testable-action';
 import TestableRelation from './testable-relation';
 import TestableSegment from './testable-segment';
 import QuerySerializer from '../query-serializer';
@@ -10,12 +9,16 @@ import QuerySerializer from '../query-serializer';
 export default class TestableCollection<TypingsSchema> {
   private readonly name: keyof TypingsSchema;
   private readonly httpRequester: HttpRequester;
-  private readonly schema?: ForestSchema;
+  private readonly actionEndpoints?: ActionEndpointsByCollection;
 
-  constructor(name: keyof TypingsSchema, httpRequester: HttpRequester, schema: ForestSchema) {
+  constructor(
+    name: keyof TypingsSchema,
+    httpRequester: HttpRequester,
+    actionEndpoints: ActionEndpointsByCollection,
+  ) {
     this.name = name;
     this.httpRequester = httpRequester;
-    this.schema = schema;
+    this.actionEndpoints = actionEndpoints;
   }
 
   async action(
@@ -26,7 +29,7 @@ export default class TestableCollection<TypingsSchema> {
       name,
       this.name,
       this.httpRequester,
-      this.schema,
+      this.actionEndpoints,
       actionContext,
     );
     await action.reloadForm();

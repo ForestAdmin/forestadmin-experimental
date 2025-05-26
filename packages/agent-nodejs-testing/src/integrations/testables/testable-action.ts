@@ -1,5 +1,4 @@
 import type { HttpRequester } from '../http-requester';
-import type { ForestSchema } from '@forestadmin/forestadmin-client';
 
 import FieldFormStates from '../action-fields/field-form-states';
 import TestableActionFieldCheckbox from '../action-fields/testable-action-field-checkbox';
@@ -21,10 +20,16 @@ export type BaseActionContext = {
   recordIds?: string[] | number[];
 };
 
+export type ActionEndpointsByCollection = {
+  [collectionName: string]: {
+    [actionName: string]: { name: string; endpoint: string };
+  };
+};
 export default class TestableAction<TypingsSchema> {
   private readonly name: string;
   private readonly collectionName: keyof TypingsSchema;
-  private readonly schema?: ForestSchema;
+  private readonly actionEndpoints: ActionEndpointsByCollection;
+
   private readonly httpRequester: HttpRequester;
   private readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
   private readonly ids: string[];
@@ -33,12 +38,12 @@ export default class TestableAction<TypingsSchema> {
     name: string,
     collectionName: keyof TypingsSchema,
     httpRequester: HttpRequester,
-    schema: ForestSchema,
+    actionEndpoints: ActionEndpointsByCollection,
     actionContext?: BaseActionContext,
   ) {
     this.name = name;
     this.collectionName = collectionName;
-    this.schema = schema;
+    this.actionEndpoints = actionEndpoints;
     this.httpRequester = httpRequester;
     this.ids = (actionContext?.recordIds ?? [actionContext?.recordId]).filter(Boolean).map(String);
 
@@ -133,16 +138,19 @@ export default class TestableAction<TypingsSchema> {
   }
 
   private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {
-    const { collections } = this.schema;
-    const collection = collections.find(c => c.name === collectionName);
+    const collection = this.actionEndpoints[collectionName as string];
     if (!collection) throw new Error(`Collection ${collectionName as string} not found in schema`);
 
-    const actionPath = collection.actions.find(action => action.name === actionName)?.endpoint;
+    const action = collection[actionName];
 
-    if (!actionPath) {
+    if (!action) {
       throw new Error(`Action ${actionName} not found in collection ${collectionName as string}`);
     }
 
-    return actionPath;
+    if (!action.endpoint) {
+      throw new Error(`Action ${actionName} not found in collection ${collectionName as string}`);
+    }
+
+    return action.endpoint;
   }
 }
