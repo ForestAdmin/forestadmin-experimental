@@ -1,3 +1,10 @@
+# [0.28.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.27.0...agent-nodejs-testing@0.28.0) (2025-05-26)
+
+
+### Features
+
+* **testing:** introduce a rpc client ([#139](https://github.com/ForestAdmin/forestadmin-experimental/issues/139)) ([c2a3259](https://github.com/ForestAdmin/forestadmin-experimental/commit/c2a3259b6db9106be9542dbf4febe2b147a605f9))
+
 # [0.27.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.26.0...agent-nodejs-testing@0.27.0) (2025-05-20)
 
 
