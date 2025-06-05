@@ -88,6 +88,12 @@ export default class Action<TypingsSchema> {
     }
   }
 
+  getFields() {
+    return this.fieldsFormStates.getFields().map(f => {
+      return this.getField(f.getName());
+    });
+  }
+
   getField(fieldName: string): Action<TypingsSchema> {
     const field = this.fieldsFormStates.getField(fieldName);
     const type = field.getType();
