@@ -2,12 +2,13 @@ import { Agent, TSchema } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
-import { createTestableAgent } from '../../src';
-import TestableAgent from '../../src/integrations/testable-agent';
-import { STORAGE_PREFIX, logger } from '../utils';
-import TestableActionFieldJson from '../../src/integrations/action-fields/testable-action-field-json';
+import { STORAGE_PREFIX, logger } from '../example/utils';
+import { TestableAgent, createTestableAgent } from '../src';
+import TestableActionFieldJson from '../src/integrations/action-fields/testable-action-field-json';
+import TestableActionFieldString from '../src/integrations/action-fields/testable-action-field-string';
+import TestableActionFieldStringList from '../src/integrations/action-fields/testable-action-field-string-list';
 
-describe('addAction', () => {
+describe('action', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
   let restaurantId: number;
@@ -146,133 +147,89 @@ describe('addAction', () => {
     restaurantId = createdRestaurant.dataValues.id;
   });
 
-  describe('when the rating is > 4', () => {
-    it('should add a comment, rating and metadata', async () => {
-      const action = await testableAgent
-        .collection('restaurants')
-        .action('Leave a review', { recordIds: [restaurantId] });
-      expect(action.doesFieldExist('Put a comment')).toEqual(false);
-
-      const fieldRating = action.getFieldNumber('rating');
-      await fieldRating.fill(5);
-
-      expect(action.doesFieldExist('Put a comment')).toEqual(true);
-
-      const commentField = action.getFieldString('Put a comment');
-      await commentField.fill('A very nice restaurant');
-
-      const metadataField = action.getFieldJson('Metadata');
-      await metadataField.fill({ key: 'value' });
-
-      await action.execute();
-
-      // fetch the restaurant to check the rating and comment
-      const [restaurant] = await testableAgent
-        .collection('restaurants')
-        .list<{ rating; comment; metadata }>({
-          filters: { conditionTree: { field: 'id', value: restaurantId, operator: 'Equal' } },
-        });
-
-      expect(restaurant.rating).toEqual(5);
-      expect(restaurant.comment).toEqual('A very nice restaurant');
-      expect(restaurant.metadata).toEqual({ key: 'value' });
-    });
-
-    it('should select the recommend option yes by default', async () => {
+  describe('getField', () => {
+    it('should return the field', async () => {
       const action = await testableAgent
         .collection('restaurants')
         .action('Leave a review', { recordId: restaurantId });
-      const recommendField = action.getRadioGroupField('Would you recommend us?');
 
-      expect(recommendField.getValue()).toEqual('yes');
+      const jsonField = action.getField('Metadata');
+      expect(jsonField).toBeInstanceOf(TestableActionFieldJson);
 
-      await recommendField.check('Not really...');
-
-      expect(recommendField.getValue()).toEqual('no');
+      const stringListField = action.getField('Why do you like us?');
+      expect(stringListField).toBeInstanceOf(TestableActionFieldStringList);
     });
+  });
 
-    it('should check the different choices', async () => {
+  describe('setFields', () => {
+    it('should set the fields', async () => {
       const action = await testableAgent
         .collection('restaurants')
         .action('Leave a review', { recordId: restaurantId });
-      const likeField = action.getCheckboxGroupField('Why do you like us?');
 
-      expect(likeField.getValue()).toBeUndefined();
+      await action.setFields({
+        Metadata: { key: 'value' },
+        rating: 5,
+        'Put a comment': 'Great food!',
+        'Would you recommend us?': 'yes',
+        'Why do you like us?': ['price', 'quality'],
+        'Current id': restaurantId,
+        enum: 'opt1',
+        'Rating again': 4,
+        'Put a comment again': 'Excellent service!',
+      });
 
-      await likeField.check('Build quality');
-      await likeField.check('Good price');
-      await likeField.check('It looks good');
-      await likeField.uncheck('It looks good');
-
-      expect(likeField.getValue()).toEqual(['quality', 'price']);
+      expect(action.getField('Metadata').getValue()).toEqual({ key: 'value' });
+      expect(action.getField('rating').getValue()).toEqual(5);
+      expect(action.getField('Put a comment').getValue()).toEqual('Great food!');
+      expect(action.getField('Would you recommend us?').getValue()).toEqual('yes');
+      expect(action.getField('Why do you like us?').getValue()).toEqual(['price', 'quality']);
+      expect(action.getField('Current id').getValue()).toEqual(restaurantId);
+      expect(action.getField('enum').getValue()).toEqual('opt1');
+      expect(action.getField('Rating again').getValue()).toEqual(4);
+      expect(action.getField('Put a comment again').getValue()).toEqual('Excellent service!');
     });
   });
 
-  it('should handle defaultValue with handler', async () => {
-    const action = await testableAgent
-      .collection('restaurants')
-      .action('Leave a review', { recordId: restaurantId });
-    const currentIdField = action.getFieldNumber('Current id');
+  describe('getFields', () => {
+    it('should return all fields', async () => {
+      const action = await testableAgent
+        .collection('restaurants')
+        .action('Leave a review', { recordId: restaurantId });
 
-    expect(currentIdField.getValue()).toBe(restaurantId);
-  });
+      const fields = action.getFields();
 
-  it('check layout on page 0', async () => {
-    const action = await testableAgent
-      .collection('restaurants')
-      .action('Leave a review', { recordId: restaurantId });
-
-    expect(action.getLayout().page(0).element(0).isSeparator()).toBe(true);
-    expect(action.getLayout().page(0).element(2).isHTMLBlock()).toBe(true);
-    expect(action.getLayout().page(0).element(2).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
-    expect(action.getLayout().page(0).element(2).getHtmlBlockContent()).toBe('<h1>Welcome</h1>');
-    expect(action.getLayout().page(0).nextButtonLabel).toBe('Next');
-    expect(action.getLayout().page(0).previousButtonLabel).toBe('Back');
-  });
-
-  it('check layout on page 1', async () => {
-    const action = await testableAgent
-      .collection('restaurants')
-      .action('Leave a review', { recordId: restaurantId });
-
-    expect(action.getLayout().page(1).element(0).isSeparator()).toBe(true);
-    expect(action.getLayout().page(1).element(1).isHTMLBlock()).toBe(true);
-    expect(action.getLayout().page(1).element(1).getHtmlBlockContent()).toBe('<h1>Thank you</h1>');
-    expect(action.getLayout().page(1).element(2).isSeparator()).toBe(true);
-    expect(action.getLayout().page(1).nextButtonLabel).toBe('Bye');
-    expect(action.getLayout().page(1).previousButtonLabel).toBe('Back');
-
-    expect(action.getLayout().page(1).element(3).isRow()).toBe(true);
-    expect(action.getLayout().page(1).element(3).rowElement(0).getInputId()).toEqual(
-      'Rating again',
-    );
-  });
-
-  it('should check value on EnumField', async () => {
-    const action = await testableAgent
-      .collection('restaurants')
-      .action('Leave a review', { recordId: restaurantId });
-
-    await action.getEnumField('enum').select('opt1');
-    expect(action.getEnumField('enum').getValue()).toBe('opt1');
-  });
-
-  it('the rating field should be required', async () => {
-    const action = await testableAgent
-      .collection('restaurants')
-      .action('Leave a review', { recordId: restaurantId });
-
-    expect(action.getFieldNumber('rating').isRequired()).toBe(true);
-  });
-
-  it('should check the JsonField', async () => {
-    const action = await testableAgent
-      .collection('restaurants')
-      .action('Leave a review', { recordId: restaurantId });
-
-    const jsonField = action.getFieldJson('Metadata');
-    await jsonField.fill({ key: 'value' });
-
-    expect(jsonField.getValue()).toEqual({ key: 'value' });
+      expect(fields.length).toBe(8);
+      expect(fields.map(f => f.getName())).toEqual([
+        'Metadata',
+        'rating',
+        'Would you recommend us?',
+        'Why do you like us?',
+        'Current id',
+        'enum',
+        'Rating again',
+        'Put a comment again',
+      ]);
+      expect(fields.map(f => f.getType())).toEqual([
+        'Json',
+        'Number',
+        'String',
+        ['String'],
+        'Number',
+        'Enum',
+        'Number',
+        'String',
+      ]);
+      expect(fields.map(f => f.getValue())).toEqual([
+        undefined,
+        undefined,
+        'yes',
+        undefined,
+        restaurantId,
+        null,
+        undefined,
+        undefined,
+      ]);
+    });
   });
 });

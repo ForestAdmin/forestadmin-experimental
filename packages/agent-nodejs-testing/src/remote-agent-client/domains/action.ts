@@ -96,7 +96,8 @@ export default class Action<TypingsSchema> {
 
   getField(fieldName: string): Action<TypingsSchema> {
     const field = this.fieldsFormStates.getField(fieldName);
-    const type = field.getType();
+    const type =
+      typeof field.getType() === 'string' ? field.getType() : JSON.stringify(field.getType());
 
     switch (type) {
       case 'Number':
@@ -104,8 +105,10 @@ export default class Action<TypingsSchema> {
       case 'Json':
         return this.getFieldJson(fieldName);
       case 'NumberList':
+      case '["Number"]':
         return this.getFieldNumberList(fieldName);
       case 'StringList':
+      case '["String"]':
         return this.getFieldStringList(fieldName);
       case 'Boolean':
         return this.getCheckboxField(fieldName);
