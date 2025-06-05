@@ -1,0 +1,25 @@
+{
+  "name": "@forestadmin-experimental/bpmn",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/bpmn"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "lint": "eslint src",
+    "publish:package": "semantic-release"
+  }
+}
