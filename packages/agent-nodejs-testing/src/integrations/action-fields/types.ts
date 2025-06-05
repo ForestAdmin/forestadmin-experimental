@@ -12,6 +12,7 @@ export type PlainFieldOption = {
 
 export type PlainField = {
   field: string;
+  type: string;
   value?: unknown;
   isRequired: boolean;
   widgetEdit?: {
