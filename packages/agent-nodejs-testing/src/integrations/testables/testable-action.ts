@@ -14,6 +14,7 @@ import TestableActionFieldRadioGroup from '../action-fields/testable-action-fiel
 import TestableActionFieldString from '../action-fields/testable-action-field-string';
 import TestableActionFieldStringList from '../action-fields/testable-action-field-string-list';
 import TestableActionLayoutRoot from '../action-layout/testable-action-layout-root';
+import TestableActionField from '../action-fields/testable-action-field';
 
 export type BaseActionContext = {
   recordId?: string | number;
@@ -79,6 +80,43 @@ export default class TestableAction<TypingsSchema> {
       path: actionPath,
       body: requestBody,
     });
+  }
+
+  getFields() {
+    return this.fieldsFormStates.getFields();
+  }
+
+  async setFields(fields: Record<string, unknown>): Promise<void> {
+    for (const [fieldName, value] of Object.entries(fields)) {
+      await this.fieldsFormStates.setFieldValue(fieldName, value);
+    }
+  }
+
+  getField(fieldName: string): TestableActionField<TypingsSchema> {
+    const field = this.fieldsFormStates.getField(fieldName);
+    const type =
+      typeof field.getType() === 'string' ? field.getType() : JSON.stringify(field.getType());
+    switch (type) {
+      case 'Number':
+        return this.getFieldNumber(fieldName);
+      case 'Json':
+        return this.getFieldJson(fieldName);
+      case 'NumberList':
+      case '["Number"]':
+        return this.getFieldNumberList(fieldName);
+      case 'StringList':
+      case '["String"]':
+        return this.getFieldStringList(fieldName);
+      case 'Boolean':
+        return this.getCheckboxField(fieldName);
+      case 'Date':
+        return this.getDateField(fieldName);
+      case 'Enum':
+        return this.getEnumField(fieldName);
+      case 'String':
+      default:
+        return this.getFieldString(fieldName);
+    }
   }
 
   getFieldNumber(fieldName: string): TestableActionFieldNumber<TypingsSchema> {

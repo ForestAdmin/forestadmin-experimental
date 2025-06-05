@@ -18,4 +18,8 @@ export default class FieldGetter {
   getName(): string {
     return this.plainField.field;
   }
+
+  getType(): string {
+    return this.plainField.type;
+  }
 }
