@@ -13,8 +13,10 @@ export type PlainFieldOption = {
 export type PlainField = {
   field: string;
   type: string;
+  description?: string;
   value?: unknown;
   isRequired: boolean;
+  isReadOnly: boolean;
   widgetEdit?: {
     parameters: {
       static: {
