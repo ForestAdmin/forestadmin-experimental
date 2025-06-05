@@ -48,6 +48,10 @@ export default class FieldFormStates<TypingsSchema> {
     return this.fields.find(f => f.getName() === name);
   }
 
+  getFields(): FieldGetter[] {
+    return this.fields;
+  }
+
   getLayout(): ForestServerActionFormLayoutElement[] {
     return this.layout;
   }

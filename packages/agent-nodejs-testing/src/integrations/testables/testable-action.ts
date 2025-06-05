@@ -82,6 +82,10 @@ export default class TestableAction<TypingsSchema> {
     });
   }
 
+  getFields() {
+    return this.fieldsFormStates.getFields();
+  }
+
   async setFields(fields: Record<string, unknown>): Promise<void> {
     for (const [fieldName, value] of Object.entries(fields)) {
       await this.fieldsFormStates.setFieldValue(fieldName, value);
