@@ -94,15 +94,18 @@ export default class TestableAction<TypingsSchema> {
 
   getField(fieldName: string): TestableActionField<TypingsSchema> {
     const field = this.fieldsFormStates.getField(fieldName);
-    const type = field.getType();
+    const type =
+      typeof field.getType() === 'string' ? field.getType() : JSON.stringify(field.getType());
     switch (type) {
       case 'Number':
         return this.getFieldNumber(fieldName);
       case 'Json':
         return this.getFieldJson(fieldName);
       case 'NumberList':
+      case '["Number"]':
         return this.getFieldNumberList(fieldName);
       case 'StringList':
+      case '["String"]':
         return this.getFieldStringList(fieldName);
       case 'Boolean':
         return this.getCheckboxField(fieldName);
