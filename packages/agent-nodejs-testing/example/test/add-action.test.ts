@@ -1,10 +1,11 @@
-import { Agent } from '@forestadmin/agent';
+import { Agent, TSchema } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
 import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
 import { STORAGE_PREFIX, logger } from '../utils';
+import TestableActionFieldJson from '../../src/integrations/action-fields/testable-action-field-json';
 
 describe('addAction', () => {
   let testableAgent: TestableAgent;
@@ -272,6 +273,29 @@ describe('addAction', () => {
     const jsonField = action.getFieldJson('Metadata');
     await jsonField.fill({ key: 'value' });
 
+    expect(jsonField.getValue()).toEqual({ key: 'value' });
+  });
+
+  it('should check the JsonField (with getField)', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    const jsonField = action.getField('Metadata');
+    expect(jsonField).toBeInstanceOf(TestableActionFieldJson);
+    await (jsonField as TestableActionFieldJson<TSchema>).fill({ key: 'value' });
+
+    expect(jsonField.getValue()).toEqual({ key: 'value' });
+  });
+
+  it('should check the JsonField (with setFields)', async () => {
+    const action = await testableAgent
+      .collection('restaurants')
+      .action('Leave a review', { recordId: restaurantId });
+
+    await action.setFields({ Metadata: { key: 'value' } });
+
+    const jsonField = action.getField('Metadata');
     expect(jsonField.getValue()).toEqual({ key: 'value' });
   });
 });

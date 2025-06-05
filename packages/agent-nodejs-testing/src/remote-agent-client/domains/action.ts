@@ -81,6 +81,38 @@ export default class Action<TypingsSchema> {
     });
   }
 
+  async setFields(fields: Record<string, unknown>): Promise<void> {
+    for (const [fieldName, value] of Object.entries(fields)) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.fieldsFormStates.setFieldValue(fieldName, value);
+    }
+  }
+
+  getField(fieldName: string): Action<TypingsSchema> {
+    const field = this.fieldsFormStates.getField(fieldName);
+    const type = field.getType();
+
+    switch (type) {
+      case 'Number':
+        return this.getFieldNumber(fieldName);
+      case 'Json':
+        return this.getFieldJson(fieldName);
+      case 'NumberList':
+        return this.getFieldNumberList(fieldName);
+      case 'StringList':
+        return this.getFieldStringList(fieldName);
+      case 'Boolean':
+        return this.getCheckboxField(fieldName);
+      case 'Date':
+        return this.getDateField(fieldName);
+      case 'Enum':
+        return this.getEnumField(fieldName);
+      case 'String':
+      default:
+        return this.getFieldString(fieldName);
+    }
+  }
+
   getFieldNumber(fieldName: string): ActionFieldNumber<TypingsSchema> {
     return new ActionFieldNumber<TypingsSchema>(fieldName, this.fieldsFormStates);
   }
