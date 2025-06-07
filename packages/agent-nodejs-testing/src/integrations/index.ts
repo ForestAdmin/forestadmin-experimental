@@ -5,12 +5,11 @@ import superagent from 'superagent';
 
 import ForestAdminClientMock from './forest-admin-client-mock';
 import ForestServerSandbox from './forest-server-sandbox';
-import { HttpRequester, createHttpRequester } from './http-requester';
+import { createHttpRequester } from './http-requester-mock';
 import SchemaConverter from './schema-converter';
 import SchemaPathManager from './schema-path-manager';
-import { ActionEndpointsByCollection } from './testables/testable-action';
-import TestableAgent from './testables/testable-agent';
-import TestableAgentBase from './testables/testable-agent-base';
+import TestableAgent from './testable-agent';
+import TestableAgentBase from './testable-agent-base';
 import { TestableAgentOptions } from './types';
 
 export { AgentOptions, Agent } from '@forestadmin/agent';
@@ -18,24 +17,6 @@ export * from './types';
 
 export { SchemaPathManager, ForestServerSandbox, TestableAgent };
 export type ForestAgentClient = TestableAgentBase;
-
-/**
- * Create a Forest RPC client
- * This client is used to call an agent anywhere on internet.
- * It is not recommended to use this client to test your agent.
- * You should use the createForestAgentClient and createForestServerSandbox instead.
- */
-export function createRpcClient(params: {
-  agentUrl: string;
-  forestAdminServerUrl: string;
-  token: string;
-  actionEndpoints: ActionEndpointsByCollection;
-}) {
-  return new TestableAgentBase({
-    actionEndpoints: params.actionEndpoints,
-    httpRequester: new HttpRequester(params.token, { url: params.agentUrl }),
-  });
-}
 
 /**
  * Create a forest server sandbox
@@ -100,7 +81,7 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
   customizer: (agent: Agent<TypingsSchema>) => void,
   options?: TestableAgentOptions,
 ): Promise<TestableAgent<TypingsSchema>> {
-  const agentOptions = {
+  const agentOptions: TestableAgentOptions = {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     logger: () => {},
     schemaPath: SchemaPathManager.generateTemporarySchemaPath(),
