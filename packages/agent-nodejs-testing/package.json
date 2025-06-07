@@ -6,6 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "packageManager": "yarn@1.22.19",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
@@ -25,14 +26,13 @@
   "dependencies": {
     "jsonapi-serializer": "^3.5.1",
     "jsonwebtoken": "^9.0.2",
-    "superagent": "^8.1.2"
+    "superagent": "^8.1.2",
+    "@forestadmin/agent": "1.64.1",
+    "@forestadmin/datasource-toolkit": "1.50.0",
+    "@forestadmin/forestadmin-client": "1.36.13"
   },
   "devDependencies": {
-    "@forestadmin/agent": "1.52.0",
-    "@forestadmin/datasource-customizer": "1.55.2",
-    "@forestadmin/datasource-sql": "1.14.31",
-    "@forestadmin/datasource-toolkit": "1.43.0",
-    "@forestadmin/forestadmin-client": "1.34.2",
+    "@forestadmin/datasource-sql": "1.17.1",
     "sequelize": "6.37.5",
     "sqlite3": "^5.1.7"
   },
