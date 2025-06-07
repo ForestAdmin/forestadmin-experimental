@@ -11,12 +11,15 @@ export default class TestableCollection<
     actionName: string,
     actionContext?: BaseActionContext,
   ): Promise<TestableAction<TypingsSchema>> {
-    return new TestableAction<TypingsSchema>(
+    const action = new TestableAction<TypingsSchema>(
       actionName,
       this.name,
       this.httpRequester,
       this.actionEndpoints,
       actionContext,
     );
+    await action.reloadForm();
+
+    return action;
   }
 }

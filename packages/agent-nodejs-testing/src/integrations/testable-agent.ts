@@ -5,12 +5,12 @@ import fs from 'fs/promises';
 import { createHttpRequester } from './http-requester-mock';
 import { SchemaPathManager, TestableAgentOptions } from './index';
 import SchemaConverter from './schema-converter';
+import TestableAgentBase from './testable-agent-base';
 import TestableCollection from './testable-collection';
-import RemoteControlAgent from '../remote-control-agent/domains/remote-controle-agent';
 
 export default class TestableAgent<
   TypingsSchema extends TSchema = TSchema,
-> extends RemoteControlAgent<TypingsSchema> {
+> extends TestableAgentBase<TypingsSchema> {
   private readonly agent: Agent<TypingsSchema>;
   private readonly agentOptions: TestableAgentOptions;
 
