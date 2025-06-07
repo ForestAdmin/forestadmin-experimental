@@ -14,11 +14,11 @@ export default class ActionLayoutElement {
   }
 
   getHtmlBlockContent() {
-    if (this.layoutItem?.component !== 'htmlBlock') {
+    if (!this.isHTMLBlock()) {
       throw new NotRightElementError('an htmlBlock', this.layoutItem);
     }
 
-    return this.layoutItem.content;
+    return (this.layoutItem as { content: string }).content;
   }
 
   getInputId(): string {
@@ -31,21 +31,30 @@ export default class ActionLayoutElement {
     ).getInputId();
   }
 
+  rowElement(n: number) {
+    if (!this.isRow) {
+      throw new NotRightElementError('a row', this.layoutItem);
+    }
+
+    const { fields } = this.layoutItem as { fields: ForestServerActionFormElementFieldReference[] };
+    if (n < 0 || n >= fields.length) throw new NotFoundElementError(0);
+
+    return new ActionLayoutInput(fields[n]);
+  }
+
   isRow() {
     return this.layoutItem?.component === 'row';
   }
 
-  rowElement(n: number) {
-    if (this.layoutItem?.component !== 'row') {
-      throw new NotRightElementError('a row', this.layoutItem);
-    }
-
-    if (n < 0 || n >= this.layoutItem.fields.length) throw new NotFoundElementError(0);
-
-    return new ActionLayoutInput(this.layoutItem.fields[n]);
+  isInput() {
+    return this.layoutItem?.component === 'input';
   }
 
-  protected isInput() {
-    return this.layoutItem?.component === 'input';
+  isHTMLBlock() {
+    return this.layoutItem?.component === 'htmlBlock';
+  }
+
+  isSeparator() {
+    return this.layoutItem?.component === 'separator';
   }
 }

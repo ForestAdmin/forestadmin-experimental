@@ -3,7 +3,7 @@ import { ForestServerActionFormLayoutElement } from '@forestadmin/forestadmin-cl
 import ActionLayoutElement from './action-layout-element';
 import { NotFoundElementError, NotRightElementError } from './errors';
 
-export default abstract class TestableActionLayoutElementsContainer {
+export default abstract class ActionLayoutElementsContainer {
   protected readonly layout: ForestServerActionFormLayoutElement[];
 
   constructor(layout: ForestServerActionFormLayoutElement[]) {
@@ -17,7 +17,7 @@ export default abstract class TestableActionLayoutElementsContainer {
     return new ActionLayoutElement(this.layout[n]);
   }
 
-  protected isPage(n: number) {
+  isPage(n: number) {
     return this.layout[n]?.component === 'page';
   }
 }

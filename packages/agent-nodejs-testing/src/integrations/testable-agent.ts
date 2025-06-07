@@ -6,7 +6,6 @@ import { createHttpRequester } from './http-requester-mock';
 import { SchemaPathManager, TestableAgentOptions } from './index';
 import SchemaConverter from './schema-converter';
 import TestableAgentBase from './testable-agent-base';
-import TestableCollection from './testable-collection';
 
 export default class TestableAgent<
   TypingsSchema extends TSchema = TSchema,
@@ -42,9 +41,5 @@ export default class TestableAgent<
       url: `http://localhost:${this.agent.standaloneServerPort}`,
       authSecret: this.agentOptions.authSecret,
     });
-  }
-
-  override collection(name: keyof TypingsSchema): TestableCollection<TypingsSchema> {
-    return new TestableCollection<TypingsSchema>(name, this.httpRequester, this.actionEndpoints);
   }
 }

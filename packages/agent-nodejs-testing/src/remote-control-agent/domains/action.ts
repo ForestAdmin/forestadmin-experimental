@@ -1,6 +1,5 @@
 import type HttpRequester from '../http-requester';
 
-import TestableActionLayoutRoot from '../../integrations/action-layout/testable-action-layout-root';
 import ActionFieldCheckbox from '../action-fields/action-field-checkbox';
 import ActionFieldCheckboxGroup from '../action-fields/action-field-checkbox-group';
 import ActionFieldColorPicker from '../action-fields/action-field-color-picker';
@@ -14,6 +13,7 @@ import ActionFieldRadioGroup from '../action-fields/action-field-radio-group';
 import ActionFieldString from '../action-fields/action-field-string';
 import ActionFieldStringList from '../action-fields/action-field-string-list';
 import FieldFormStates from '../action-fields/field-form-states';
+import ActionLayoutRoot from '../action-layout/action-layout-root';
 
 export type BaseActionContext = {
   recordId?: string | number;
@@ -130,7 +130,11 @@ export default class Action<TypingsSchema> {
   }
 
   getLayout() {
-    return new TestableActionLayoutRoot(this.fieldsFormStates.getLayout());
+    return new ActionLayoutRoot(this.fieldsFormStates.getLayout());
+  }
+
+  doesFieldExist(fieldName: string): boolean {
+    return Boolean(this.fieldsFormStates.getField(fieldName));
   }
 
   private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {
