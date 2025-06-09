@@ -5,7 +5,7 @@ import Chart from './chart';
 import Collection from './collection';
 import HttpRequester from '../http-requester';
 
-export default class RemoteControlAgent<TypingsSchema extends TSchema = TSchema> extends Chart {
+export default class RemoteAgentClient<TypingsSchema extends TSchema = TSchema> extends Chart {
   protected actionEndpoints?: ActionEndpointsByCollection;
 
   constructor(params?: {

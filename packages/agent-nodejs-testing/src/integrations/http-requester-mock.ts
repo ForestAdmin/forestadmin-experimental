@@ -1,7 +1,7 @@
 import jsonwebtoken from 'jsonwebtoken';
 
 import { CURRENT_USER } from './forest-admin-client-mock';
-import HttpRequester from '../remote-control-agent/http-requester';
+import HttpRequester from '../remote-agent-client/http-requester';
 
 // eslint-disable-next-line import/prefer-default-export
 export function createHttpRequester(options: {

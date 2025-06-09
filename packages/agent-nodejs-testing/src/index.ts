@@ -1,3 +1,3 @@
 export * from './integrations';
 export * from './units';
-export * from './remote-control-agent';
+export * from './remote-agent-client';
