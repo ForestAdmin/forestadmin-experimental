@@ -5,10 +5,10 @@ import HttpRequester from './http-requester';
 // eslint-disable-next-line import/prefer-default-export
 export function createRemoteAgentClient(params: {
   actionEndpoints?: ActionEndpointsByCollection;
-  httpRequester: HttpRequester;
+  token?: string;
+  url: string;
 }) {
-  return new RemoteAgentClient({
-    actionEndpoints: params.actionEndpoints,
-    httpRequester: params.httpRequester,
-  });
+  const httpRequester = new HttpRequester(params.token, { url: params.url });
+
+  return new RemoteAgentClient({ actionEndpoints: params.actionEndpoints, httpRequester });
 }
