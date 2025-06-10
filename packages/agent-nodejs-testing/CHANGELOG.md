@@ -1,3 +1,10 @@
+# [0.29.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.28.0...agent-nodejs-testing@0.29.0) (2025-06-10)
+
+
+### Features
+
+* **agent-testings:** split agent control and testing into separate directories ([#141](https://github.com/ForestAdmin/forestadmin-experimental/issues/141)) ([0bf4699](https://github.com/ForestAdmin/forestadmin-experimental/commit/0bf46998f10a06a85147ddb599707e3e738f264c))
+
 # [0.28.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.27.0...agent-nodejs-testing@0.28.0) (2025-05-26)
 
 
