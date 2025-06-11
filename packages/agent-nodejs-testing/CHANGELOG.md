@@ -1,3 +1,10 @@
+## [0.29.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.29.0...agent-nodejs-testing@0.29.1) (2025-06-11)
+
+
+### Bug Fixes
+
+* **agent-testing:** allow null or undefined values on fill helper ([#142](https://github.com/ForestAdmin/forestadmin-experimental/issues/142)) ([0230844](https://github.com/ForestAdmin/forestadmin-experimental/commit/0230844246d2d64db81190f718a50cf3645f7dad))
+
 # [0.29.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.28.0...agent-nodejs-testing@0.29.0) (2025-06-10)
 
 
