@@ -16,4 +16,8 @@ export default abstract class ActionField<TypingsSchema> {
   isRequired() {
     return this.fieldsFormStates.getField(this.name)?.getPlainField().isRequired;
   }
+
+  protected isValueUndefinedOrNull(value: any): boolean {
+    return value === undefined || value === null;
+  }
 }
