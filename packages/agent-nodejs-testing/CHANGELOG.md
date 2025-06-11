@@ -1,3 +1,10 @@
+## [0.29.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.29.1...agent-nodejs-testing@0.29.2) (2025-06-11)
+
+
+### Bug Fixes
+
+* **agent-testing:** fill helper on action form ([#143](https://github.com/ForestAdmin/forestadmin-experimental/issues/143)) ([fdf7bc7](https://github.com/ForestAdmin/forestadmin-experimental/commit/fdf7bc76401a48380a9d7a94e74934a7b6a6648e))
+
 ## [0.29.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.29.0...agent-nodejs-testing@0.29.1) (2025-06-11)
 
 
