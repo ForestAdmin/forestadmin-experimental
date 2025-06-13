@@ -1,24 +1,14 @@
 import FieldFormStates from './field-form-states';
+import FieldGetter from './field-getter';
 
-export default abstract class ActionField<TypingsSchema> {
+export default abstract class ActionField<TypingsSchema> extends FieldGetter {
   protected readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
   protected readonly name: string;
 
   constructor(name: string, fieldsFormStates: FieldFormStates<TypingsSchema>) {
-    this.name = name;
+    super(fieldsFormStates.getField(name).getPlainField());
     this.fieldsFormStates = fieldsFormStates;
-  }
-
-  getName(): string {
-    return this.name;
-  }
-
-  getType(): string {
-    return this.fieldsFormStates.getField(this.name)?.getType();
-  }
-
-  getValue() {
-    return this.fieldsFormStates.getField(this.name)?.getValue();
+    this.name = name;
   }
 
   isRequired() {
