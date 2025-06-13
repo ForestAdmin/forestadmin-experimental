@@ -1,4 +1,4 @@
-import { Agent, TSchema } from '@forestadmin/agent';
+import { Agent } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
@@ -11,7 +11,7 @@ describe('action', () => {
   let testableAgent: TestableAgent;
   let sequelize: Awaited<ReturnType<typeof buildSequelizeInstance>>;
   let restaurantId: number;
-  const storage = `${STORAGE_PREFIX}-action.db`;
+  const storage = `${STORAGE_PREFIX}-action-test.db`;
 
   const actionFormCustomizer = (agent: Agent) => {
     agent.customizeCollection('restaurants', collection => {

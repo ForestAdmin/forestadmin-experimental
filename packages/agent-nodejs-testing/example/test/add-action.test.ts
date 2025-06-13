@@ -1,4 +1,4 @@
-import { Agent, TSchema } from '@forestadmin/agent';
+import { Agent } from '@forestadmin/agent';
 import { buildSequelizeInstance, createSqlDataSource } from '@forestadmin/datasource-sql';
 import { DataTypes } from 'sequelize';
 
