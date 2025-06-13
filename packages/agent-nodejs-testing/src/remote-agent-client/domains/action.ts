@@ -1,5 +1,6 @@
 import type HttpRequester from '../http-requester';
 
+import ActionField from '../action-fields/action-field';
 import ActionFieldCheckbox from '../action-fields/action-field-checkbox';
 import ActionFieldCheckboxGroup from '../action-fields/action-field-checkbox-group';
 import ActionFieldColorPicker from '../action-fields/action-field-color-picker';
@@ -94,7 +95,7 @@ export default class Action<TypingsSchema> {
     });
   }
 
-  getField(fieldName: string): Action<TypingsSchema> {
+  getField(fieldName: string): ActionField<TypingsSchema> {
     const field = this.fieldsFormStates.getField(fieldName);
     const type =
       typeof field.getType() === 'string' ? field.getType() : JSON.stringify(field.getType());
