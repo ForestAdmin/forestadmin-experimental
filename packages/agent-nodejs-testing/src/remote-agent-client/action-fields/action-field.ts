@@ -9,20 +9,24 @@ export default abstract class ActionField<TypingsSchema> {
     this.fieldsFormStates = fieldsFormStates;
   }
 
+  private get field() {
+    return this.fieldsFormStates.getField(this.name);
+  }
+
   getName(): string {
     return this.name;
   }
 
   getType(): string {
-    return this.fieldsFormStates.getField(this.name)?.getType();
+    return this.field?.getType();
   }
 
   getValue() {
-    return this.fieldsFormStates.getField(this.name)?.getValue();
+    return this.field.getValue();
   }
 
   isRequired() {
-    return this.fieldsFormStates.getField(this.name)?.getPlainField().isRequired;
+    return this.field?.getPlainField().isRequired;
   }
 
   protected isValueUndefinedOrNull(value: any): boolean {
