@@ -4,9 +4,8 @@ import { DataTypes } from 'sequelize';
 
 import { STORAGE_PREFIX, logger } from '../example/utils';
 import { TestableAgent, createTestableAgent } from '../src';
-import TestableActionFieldJson from '../src/integrations/action-fields/testable-action-field-json';
-import TestableActionFieldString from '../src/integrations/action-fields/testable-action-field-string';
-import TestableActionFieldStringList from '../src/integrations/action-fields/testable-action-field-string-list';
+import ActionFieldJson from '../src/remote-agent-client/action-fields/action-field-json';
+import ActionFieldStringList from '../src/remote-agent-client/action-fields/action-field-string-list';
 
 describe('action', () => {
   let testableAgent: TestableAgent;
@@ -154,10 +153,10 @@ describe('action', () => {
         .action('Leave a review', { recordId: restaurantId });
 
       const jsonField = action.getField('Metadata');
-      expect(jsonField).toBeInstanceOf(TestableActionFieldJson);
+      expect(jsonField).toBeInstanceOf(ActionFieldJson);
 
       const stringListField = action.getField('Why do you like us?');
-      expect(stringListField).toBeInstanceOf(TestableActionFieldStringList);
+      expect(stringListField).toBeInstanceOf(ActionFieldStringList);
     });
   });
 

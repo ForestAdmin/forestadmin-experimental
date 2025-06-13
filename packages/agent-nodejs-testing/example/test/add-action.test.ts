@@ -5,7 +5,6 @@ import { DataTypes } from 'sequelize';
 import { createTestableAgent } from '../../src';
 import TestableAgent from '../../src/integrations/testable-agent';
 import { STORAGE_PREFIX, logger } from '../utils';
-import TestableActionFieldJson from '../../src/integrations/action-fields/testable-action-field-json';
 
 describe('addAction', () => {
   let testableAgent: TestableAgent;
