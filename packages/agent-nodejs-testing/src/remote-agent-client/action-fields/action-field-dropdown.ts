@@ -3,11 +3,10 @@ import { PlainFieldOption } from './types';
 
 export default class ActionFieldDropdown<TypingsSchema> extends ActionField<TypingsSchema> {
   getOptions(): PlainFieldOption[] | undefined {
-    return this.fieldsFormStates.getMultipleChoiceField(this.name).getOptions();
+    return this.getMultipleChoiceField().getOptions();
   }
 
   async select(option: string): Promise<void> {
-    const opt = this.fieldsFormStates.getMultipleChoiceField(this.name).getOption(option);
-    await this.fieldsFormStates.setFieldValue(this.name, opt.value);
+    await this.setValue(this.getMultipleChoiceField().getOption(option).value);
   }
 }
