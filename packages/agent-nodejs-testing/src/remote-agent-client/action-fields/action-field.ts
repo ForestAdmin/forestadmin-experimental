@@ -9,6 +9,14 @@ export default abstract class ActionField<TypingsSchema> {
     this.fieldsFormStates = fieldsFormStates;
   }
 
+  getName(): string {
+    return this.name;
+  }
+
+  getType(): string {
+    return this.fieldsFormStates.getField(this.name)?.getType();
+  }
+
   getValue() {
     return this.fieldsFormStates.getField(this.name)?.getValue();
   }

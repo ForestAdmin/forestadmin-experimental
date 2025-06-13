@@ -1,5 +1,6 @@
 import type HttpRequester from '../http-requester';
 
+import ActionField from '../action-fields/action-field';
 import ActionFieldCheckbox from '../action-fields/action-field-checkbox';
 import ActionFieldCheckboxGroup from '../action-fields/action-field-checkbox-group';
 import ActionFieldColorPicker from '../action-fields/action-field-color-picker';
@@ -79,6 +80,47 @@ export default class Action<TypingsSchema> {
       path: actionPath,
       body: requestBody,
     });
+  }
+
+  async setFields(fields: Record<string, unknown>): Promise<void> {
+    for (const [fieldName, value] of Object.entries(fields)) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.fieldsFormStates.setFieldValue(fieldName, value);
+    }
+  }
+
+  getFields() {
+    return this.fieldsFormStates.getFields().map(f => {
+      return this.getField(f.getName());
+    });
+  }
+
+  getField(fieldName: string): ActionField<TypingsSchema> {
+    const field = this.fieldsFormStates.getField(fieldName);
+    const type =
+      typeof field.getType() === 'string' ? field.getType() : JSON.stringify(field.getType());
+
+    switch (type) {
+      case 'Number':
+        return this.getFieldNumber(fieldName);
+      case 'Json':
+        return this.getFieldJson(fieldName);
+      case 'NumberList':
+      case '["Number"]':
+        return this.getFieldNumberList(fieldName);
+      case 'StringList':
+      case '["String"]':
+        return this.getFieldStringList(fieldName);
+      case 'Boolean':
+        return this.getCheckboxField(fieldName);
+      case 'Date':
+        return this.getDateField(fieldName);
+      case 'Enum':
+        return this.getEnumField(fieldName);
+      case 'String':
+      default:
+        return this.getFieldString(fieldName);
+    }
   }
 
   getFieldNumber(fieldName: string): ActionFieldNumber<TypingsSchema> {
