@@ -1,3 +1,10 @@
+# [0.30.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.29.2...agent-nodejs-testing@0.30.0) (2025-06-13)
+
+
+### Features
+
+* **actions:** ease the field set and the retrieval ([#140](https://github.com/ForestAdmin/forestadmin-experimental/issues/140)) ([8a924b4](https://github.com/ForestAdmin/forestadmin-experimental/commit/8a924b4f534c9ba667f32bc54e4e44dc8fb1b156))
+
 ## [0.29.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.29.1...agent-nodejs-testing@0.29.2) (2025-06-11)
 
 
