@@ -1,3 +1,21 @@
+# [1.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.8.0...datasource-rpc@1.9.0) (2025-06-19)
+
+
+### Bug Fixes
+
+* **agent-testing:** allow null or undefined values on fill helper ([#142](https://github.com/ForestAdmin/forestadmin-experimental/issues/142)) ([0230844](https://github.com/ForestAdmin/forestadmin-experimental/commit/0230844246d2d64db81190f718a50cf3645f7dad))
+* **agent-testing:** fill helper on action form ([#143](https://github.com/ForestAdmin/forestadmin-experimental/issues/143)) ([fdf7bc7](https://github.com/ForestAdmin/forestadmin-experimental/commit/fdf7bc76401a48380a9d7a94e74934a7b6a6648e))
+* release agent-rpc ([fd47a08](https://github.com/ForestAdmin/forestadmin-experimental/commit/fd47a08cd17bdbdbb5369222e31ddf1cc80e1fcd))
+
+
+### Features
+
+* **actions:** ease the field set and the retrieval ([#140](https://github.com/ForestAdmin/forestadmin-experimental/issues/140)) ([8a924b4](https://github.com/ForestAdmin/forestadmin-experimental/commit/8a924b4f534c9ba667f32bc54e4e44dc8fb1b156))
+* **agent-testings:** split agent control and testing into separate directories ([#141](https://github.com/ForestAdmin/forestadmin-experimental/issues/141)) ([0bf4699](https://github.com/ForestAdmin/forestadmin-experimental/commit/0bf46998f10a06a85147ddb599707e3e738f264c))
+* **rpc:** add introspection option ([f113580](https://github.com/ForestAdmin/forestadmin-experimental/commit/f1135801ef285ad19753991761a68f5b2ad42372))
+* **testing:** add helper to get json field on action form ([#137](https://github.com/ForestAdmin/forestadmin-experimental/issues/137)) ([dfc25e9](https://github.com/ForestAdmin/forestadmin-experimental/commit/dfc25e91fdcfd39d26c4d386463bc20d997bb257))
+* **testing:** introduce a rpc client ([#139](https://github.com/ForestAdmin/forestadmin-experimental/issues/139)) ([c2a3259](https://github.com/ForestAdmin/forestadmin-experimental/commit/c2a3259b6db9106be9542dbf4febe2b147a605f9))
+
 # [1.8.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.7.0...datasource-rpc@1.8.0) (2025-05-12)
 
 
