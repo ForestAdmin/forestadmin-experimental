@@ -11,7 +11,11 @@ export { reconciliateRpc } from './plugins';
 
 const sseMap = new Map<string, EventSource>();
 
-async function getintrospection(logger: Logger, uri: string, authSecret: string) {
+export async function getintrospection(
+  logger: Logger,
+  uri: string,
+  authSecret: string,
+): Promise<RpcSchema> {
   logger('Info', `Getting schema from Rpc agent on ${uri}.`);
 
   const introRq = superagent.get(`${uri}/forest/rpc-schema`);
@@ -73,11 +77,16 @@ function runRecon(
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {
   return async (logger: Logger, restartAgent: () => Promise<void>) => {
     const { authSecret, uri } = options;
+    let { introspection } = options;
 
-    const introspection = await getintrospection(logger, uri, authSecret);
-    const originalHash = getHash(introspection);
+    if (!introspection) {
+      introspection = await getintrospection(logger, uri, authSecret);
+    }
 
-    runRecon(logger, uri, authSecret, originalHash, restartAgent);
+    if (options.disableSSE) {
+      const originalHash = getHash(introspection);
+      runRecon(logger, uri, authSecret, originalHash, restartAgent);
+    }
 
     return new RpcDataSource(logger, options, introspection);
   };

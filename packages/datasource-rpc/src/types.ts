@@ -9,4 +9,6 @@ export type RpcSchema = {
 export type RpcDataSourceOptions = {
   authSecret: string;
   uri: string;
+  introspection?: RpcSchema;
+  disableSSE?: boolean;
 };
