@@ -39,9 +39,7 @@ export default class FieldFormStates<TypingsSchema> {
   }
 
   getMultipleChoiceField(name: string): ActionFieldMultipleChoice {
-    const field = this.getField(name);
-
-    return new ActionFieldMultipleChoice(field?.getPlainField());
+    return new ActionFieldMultipleChoice(this.getField(name)?.getPlainField());
   }
 
   getField(name: string): FieldGetter | undefined {
