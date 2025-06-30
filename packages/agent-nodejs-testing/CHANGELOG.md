@@ -1,3 +1,10 @@
+# [0.31.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.30.0...agent-nodejs-testing@0.31.0) (2025-06-30)
+
+
+### Features
+
+* **rpc:** add introspection option ([f113580](https://github.com/ForestAdmin/forestadmin-experimental/commit/f1135801ef285ad19753991761a68f5b2ad42372))
+
 # [0.30.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.29.2...agent-nodejs-testing@0.30.0) (2025-06-13)
 
 
