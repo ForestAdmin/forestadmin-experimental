@@ -12,6 +12,8 @@ export type UserInfoToSupportAnyAgents = UserInfo & {
   rendering_id: number;
   first_name: string;
   last_name: string;
+  permission_level: string;
+  role_id: number;
 };
 
 export const CURRENT_USER: UserInfoToSupportAnyAgents = {
@@ -29,9 +31,14 @@ export const CURRENT_USER: UserInfoToSupportAnyAgents = {
   lastName: 'admin',
 
   role: 'Admin',
+
   permissionLevel: 'admin',
+  permission_level: 'admin',
+
   tags: {},
+
   roleId: 1,
+  role_id: 1,
 };
 
 export default class ForestAdminClientMock implements ForestAdminClient {
