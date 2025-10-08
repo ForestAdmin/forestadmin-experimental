@@ -1,3 +1,10 @@
+## [0.31.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.31.0...agent-nodejs-testing@0.31.1) (2025-10-08)
+
+
+### Bug Fixes
+
+* **agent-tester:** add permission level for current user to support rails agent ([#146](https://github.com/ForestAdmin/forestadmin-experimental/issues/146)) ([7c50a2f](https://github.com/ForestAdmin/forestadmin-experimental/commit/7c50a2fa1f138b125cd52d71038612b16c87b7bb))
+
 # [0.31.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.30.0...agent-nodejs-testing@0.31.0) (2025-06-30)
 
 
