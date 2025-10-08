@@ -29,16 +29,18 @@ export default abstract class Chart {
     return this.dashboardChart(chartName);
   }
 
-  private dashboardChart<Data = unknown>(chartName: string): Promise<Data> {
+  private async dashboardChart<Data = unknown>(chartName: string): Promise<Data> {
     if (!this.httpRequester) {
       throw new Error(
         'HttpRequester is not initialized. Please ensure it is set before calling chart methods.',
       );
     }
 
-    return this.httpRequester.query<Data>({
-      method: 'get',
+    const result = await this.httpRequester.query<{ value: Data }>({
+      method: 'post',
       path: `/forest/_charts/${chartName}`,
     });
+
+    return result.value;
   }
 }
