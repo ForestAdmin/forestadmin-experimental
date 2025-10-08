@@ -1,3 +1,10 @@
+## [0.31.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.31.1...agent-nodejs-testing@0.31.2) (2025-10-08)
+
+
+### Bug Fixes
+
+* **agent-tester:** chart are not well loaded because a bad http method was used ([#147](https://github.com/ForestAdmin/forestadmin-experimental/issues/147)) ([4147916](https://github.com/ForestAdmin/forestadmin-experimental/commit/41479167011906d7f3e6628f216c81a013e77635))
+
 ## [0.31.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.31.0...agent-nodejs-testing@0.31.1) (2025-10-08)
 
 
