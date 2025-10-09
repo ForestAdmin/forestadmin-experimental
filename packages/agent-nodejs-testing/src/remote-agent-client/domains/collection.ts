@@ -2,7 +2,6 @@ import type { SelectOptions } from '../types';
 import type { TSchema } from '@forestadmin/agent';
 
 import Action, { ActionEndpointsByCollection, BaseActionContext } from './action';
-import Chart from './chart';
 import CollectionChart from './collection-chart';
 import Relation from './relation';
 import Segment from './segment';
