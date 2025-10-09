@@ -1,3 +1,10 @@
+# [0.32.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.31.2...agent-nodejs-testing@0.32.0) (2025-10-09)
+
+
+### Features
+
+* **agent-tester:** add charts to collection ([#149](https://github.com/ForestAdmin/forestadmin-experimental/issues/149)) ([3a2e8c8](https://github.com/ForestAdmin/forestadmin-experimental/commit/3a2e8c88507e291f3cb77649e73ef085c40632ef))
+
 ## [0.31.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.31.1...agent-nodejs-testing@0.31.2) (2025-10-08)
 
 
