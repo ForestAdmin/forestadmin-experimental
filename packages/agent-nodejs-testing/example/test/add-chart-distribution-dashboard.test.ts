@@ -17,6 +17,18 @@ describe('addDistributionChart on dashboard', () => {
 
       return resultBuilder.distribution({ users: userCount.length, totalUsers: 100 });
     });
+
+    agent.customizeCollection('customers', collection => {
+      collection.addChart(
+        'distributionCustomersChartCollection',
+        async (context, resultBuilder) => {
+          return resultBuilder.distribution({
+            users: parseInt(context.recordId.toString(), 10),
+            totalUsers: 100,
+          });
+        },
+      );
+    });
   };
 
   const createTable = async () => {
@@ -53,5 +65,22 @@ describe('addDistributionChart on dashboard', () => {
       { key: 'users', value: 1 },
       { key: 'totalUsers', value: 100 },
     ]);
+  });
+
+  describe('collection charts', () => {
+    it('should return the customers distribution chart', async () => {
+      await sequelize.models.customers.create({ firstName: 'John' });
+
+      const count = await testableAgent
+        .collection('customers')
+        .distributionChart('distributionCustomersChartCollection', {
+          recordId: '10',
+        });
+
+      expect(count).toEqual([
+        { key: 'users', value: 10 },
+        { key: 'totalUsers', value: 100 },
+      ]);
+    });
   });
 });

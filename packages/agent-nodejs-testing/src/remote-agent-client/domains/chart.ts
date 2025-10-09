@@ -1,5 +1,3 @@
-import type HttpRequester from '../http-requester';
-
 import {
   DistributionChart,
   LeaderboardChart,
@@ -9,34 +7,40 @@ import {
   ValueChart,
 } from '@forestadmin/datasource-toolkit';
 
+import HttpRequester from '../http-requester';
+
 export default abstract class Chart {
   protected httpRequester: HttpRequester;
+  private urlPrefix: string;
 
   async valueChart(chartName: string): Promise<ValueChart> {
-    return this.dashboardChart(chartName);
+    return this.loadChart(chartName);
   }
 
   async distributionChart(chartName: string): Promise<DistributionChart> {
-    return this.dashboardChart(chartName);
+    return this.loadChart(chartName);
   }
 
   async percentageChart(chartName: string): Promise<PercentageChart> {
-    return this.dashboardChart(chartName);
+    return this.loadChart(chartName);
   }
 
   async objectiveChart(chartName: string): Promise<ObjectiveChart> {
-    return this.dashboardChart(chartName);
+    return this.loadChart(chartName);
   }
 
   async leaderboardChart(chartName: string): Promise<LeaderboardChart> {
-    return this.dashboardChart(chartName);
+    return this.loadChart(chartName);
   }
 
   async timeBasedChart(chartName: string): Promise<TimeBasedChart> {
-    return this.dashboardChart(chartName);
+    return this.loadChart(chartName);
   }
 
-  private async dashboardChart<Type>(chartName: string): Promise<Type> {
+  protected async loadChart<Type>(
+    chartName: string,
+    body?: Record<string, unknown>,
+  ): Promise<Type> {
     if (!this.httpRequester) {
       throw new Error(
         'HttpRequester is not initialized. Please ensure it is set before calling chart methods.',
@@ -45,7 +49,8 @@ export default abstract class Chart {
 
     const result = await this.httpRequester.query<{ value: Type }>({
       method: 'post',
-      path: `/forest/_charts/${chartName}`,
+      path: `${HttpRequester.escapeUrlSlug(`/forest/_charts/${chartName}`)}`,
+      body,
     });
 
     return result.value;
