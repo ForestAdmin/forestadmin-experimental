@@ -61,4 +61,8 @@ export default class HttpRequester {
       );
     }
   }
+
+  static escapeUrlSlug(name: string): string {
+    return encodeURI(name).replace(/([+?*])/g, '\\$1');
+  }
 }

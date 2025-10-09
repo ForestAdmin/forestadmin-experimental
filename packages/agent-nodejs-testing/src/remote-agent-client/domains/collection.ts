@@ -1,15 +1,16 @@
-import type HttpRequester from '../http-requester';
 import type { SelectOptions } from '../types';
 import type { TSchema } from '@forestadmin/agent';
 
 import Action, { ActionEndpointsByCollection, BaseActionContext } from './action';
+import Chart from './chart';
+import CollectionChart from './collection-chart';
 import Relation from './relation';
 import Segment from './segment';
+import HttpRequester from '../http-requester';
 import QuerySerializer from '../query-serializer';
 
-export default class Collection<TypingsSchema extends TSchema = TSchema> {
+export default class Collection<TypingsSchema extends TSchema = TSchema> extends CollectionChart {
   protected readonly name: keyof TypingsSchema;
-  protected readonly httpRequester: HttpRequester;
   protected readonly actionEndpoints?: ActionEndpointsByCollection;
 
   constructor(
@@ -17,8 +18,9 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> {
     httpRequester: HttpRequester,
     actionEndpoints: ActionEndpointsByCollection,
   ) {
+    super(name as string, httpRequester);
+
     this.name = name;
-    this.httpRequester = httpRequester;
     this.actionEndpoints = actionEndpoints;
   }
 
