@@ -1,3 +1,11 @@
+## [0.32.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.1...agent-nodejs-testing@0.32.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* add an interface of chart ([#152](https://github.com/ForestAdmin/forestadmin-experimental/issues/152)) ([3e93638](https://github.com/ForestAdmin/forestadmin-experimental/commit/3e93638ee91a44b687cbbb12be7f7fb9b8d0046d))
+* force release ([#151](https://github.com/ForestAdmin/forestadmin-experimental/issues/151)) ([76b93bc](https://github.com/ForestAdmin/forestadmin-experimental/commit/76b93bcdde97d466da221116d69836ebfe0ff373))
+
 ## [0.32.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.0...agent-nodejs-testing@0.32.1) (2025-10-09)
 
 
