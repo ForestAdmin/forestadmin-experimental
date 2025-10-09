@@ -7,13 +7,14 @@ import {
   ValueChart,
 } from '@forestadmin/datasource-toolkit';
 
+import { ChartInterface } from './chart';
 import HttpRequester from '../http-requester';
 
 export type ChartContext = {
   recordId: string | number;
 };
 
-export default abstract class CollectionChart {
+export default abstract class CollectionChart implements ChartInterface {
   protected httpRequester: HttpRequester;
   private collectionName: string;
 
