@@ -5,9 +5,7 @@
 This library provides a set of utilities for testing agents with any Agent stack (NodeJS, Ruby, Python, PHP).
 
 It is in alpha version and is subject to breaking changes.
-For the moment, it only provides an incomplete set of utilities for integration and unit testing, but it will be
-extended in the future.
-
+For the moment, it only provides an incomplete set of utilities for integration but it will be extended in the future.
 
 ## Installation
 
@@ -29,8 +27,11 @@ It's a good way to test your agent customizations.
 ### For Any Agent stack (NodeJS, Ruby, Python, PHP)
 
 ```javascript
-const { createForestServerSandbox, createForestAgentClient, ForestServerSandbox } = require('@forestadmin-experimental/agent-nodejs-testing');
-
+const {
+  createForestServerSandbox,
+  createForestAgentClient,
+  ForestServerSandbox,
+} = require('@forestadmin-experimental/agent-nodejs-testing');
 
 describe('billing collection', () => {
   let serverSandbox: ForestServerSandbox;
@@ -41,16 +42,16 @@ describe('billing collection', () => {
     // 1. MUST BE DONE BEFORE STARTING THE AGENT
     // Start the server sandbox here or elsewhere
     serverSandbox = await createForestServerSandbox(serverSandboxPort);
-    
+
     // 2. START THE AGENT
     // DON'T FORGET TO SET THE SERVER URL when you starting your agent to reach the server sandbox.
     // The server URL is the URL of the server sandbox
     // Agent port is the port of the agent when you start it (it can be any port)
-    
+
     // If you don't use a NodeJs agent, you can use the createForestAgentClient function to call the agent
     // You must manage the agent lifecycle yourself in this case
   });
-  
+
   afterAll(async () => {
     await serverSandbox?.stop();
   });
@@ -58,7 +59,7 @@ describe('billing collection', () => {
   it('should return all the records of the billing collection', async () => {
     // create records in the database
     // ... or whatever you need to do before calling the agent
-    
+
     const clientAgent = await createForestAgentClient({
       agentForestEnvSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee4769955c29c0e90fd584f2',
       agentForestAuthSecret: 'aeba742f5bc73946b34da192816a4d717723233fee7769955c29c0e90fd584f2',
@@ -137,9 +138,5 @@ Please check the [example](./example) folder for more examples.
 ### How it works
 
 The library provides a way to test an agent with a server sandbox.
-The server sandbox is a fake server that simulates the behavior of the ForestAdmin server. 
+The server sandbox is a fake server that simulates the behavior of the ForestAdmin server.
 It allows you to test your agent without having to interact with the real server.
-
-## Unit Tests
-
-WIP
