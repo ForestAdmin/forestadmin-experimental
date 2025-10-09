@@ -9,9 +9,17 @@ import {
 
 import HttpRequester from '../http-requester';
 
-export default abstract class Chart {
+export interface ChartInterface {
+  valueChart(...args: unknown[]): Promise<ValueChart>;
+  distributionChart(...args: unknown[]): Promise<DistributionChart>;
+  percentageChart(...args: unknown[]): Promise<PercentageChart>;
+  objectiveChart(...args: unknown[]): Promise<ObjectiveChart>;
+  leaderboardChart(...args: unknown[]): Promise<LeaderboardChart>;
+  timeBasedChart(...args: unknown[]): Promise<TimeBasedChart>;
+}
+
+export default abstract class Chart implements ChartInterface {
   protected httpRequester: HttpRequester;
-  private urlPrefix: string;
 
   async valueChart(chartName: string): Promise<ValueChart> {
     return this.loadChart(chartName);
