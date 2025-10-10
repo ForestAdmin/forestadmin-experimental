@@ -139,4 +139,4 @@ Please check the [example](./example) folder for more examples.
 
 The library provides a way to test an agent with a server sandbox.
 The server sandbox is a fake server that simulates the behavior of the ForestAdmin server.
-It allows you to test your agent without having to interact with the real server.
+It allows you to test your agent in a sandbox.
