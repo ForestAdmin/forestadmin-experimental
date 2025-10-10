@@ -1,3 +1,10 @@
+## [0.32.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.2...agent-nodejs-testing@0.32.3) (2025-10-10)
+
+
+### Bug Fixes
+
+* **agent-tester:** force release ([#153](https://github.com/ForestAdmin/forestadmin-experimental/issues/153)) ([99864e0](https://github.com/ForestAdmin/forestadmin-experimental/commit/99864e0645756faf0c017d17ce5e9ca943526316))
+
 ## [0.32.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.1...agent-nodejs-testing@0.32.2) (2025-10-09)
 
 
