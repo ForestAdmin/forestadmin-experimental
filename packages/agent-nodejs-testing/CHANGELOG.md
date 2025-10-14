@@ -1,3 +1,10 @@
+## [0.32.4](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.3...agent-nodejs-testing@0.32.4) (2025-10-14)
+
+
+### Bug Fixes
+
+* **agent-tester:** remove load form and load layout ([#154](https://github.com/ForestAdmin/forestadmin-experimental/issues/154)) ([2af8652](https://github.com/ForestAdmin/forestadmin-experimental/commit/2af8652f74e022df6a8ad945aa70091861430ea0))
+
 ## [0.32.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.2...agent-nodejs-testing@0.32.3) (2025-10-10)
 
 
