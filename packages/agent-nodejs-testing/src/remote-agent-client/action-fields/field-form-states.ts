@@ -80,6 +80,7 @@ export default class FieldFormStates<TypingsSchema> {
       body: requestBody,
     });
 
+    this.clearFieldsAndLayout();
     this.layout.push(...queryResults.layout);
     this.addFields(queryResults.fields);
   }
@@ -88,7 +89,8 @@ export default class FieldFormStates<TypingsSchema> {
     plainFields.forEach(f => this.fields.push(new FieldGetter(f)));
   }
 
-  private clear(): void {
+  private clearFieldsAndLayout(): void {
+    this.layout.splice(0, this.layout.length);
     this.fields.splice(0, this.fields.length);
   }
 
@@ -111,7 +113,8 @@ export default class FieldFormStates<TypingsSchema> {
       body: requestBody,
     });
 
-    this.clear();
+    this.clearFieldsAndLayout();
     this.addFields(queryResults.fields);
+    this.layout.push(...queryResults.layout);
   }
 }

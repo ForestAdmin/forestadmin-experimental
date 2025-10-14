@@ -33,37 +33,28 @@ export default class Action<TypingsSchema> {
 
   private readonly httpRequester: HttpRequester;
   protected readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
-  private readonly ids: string[];
+  private readonly ids: (string | number)[];
+  private actionPath: string;
 
   constructor(
     name: string,
     collectionName: keyof TypingsSchema,
     httpRequester: HttpRequester,
     actionEndpoints: ActionEndpointsByCollection,
-    actionContext?: BaseActionContext,
+    actionPath: string,
+    fieldsFormStates: FieldFormStates<TypingsSchema>,
+    ids?: (string | number)[],
   ) {
     this.name = name;
     this.collectionName = collectionName;
     this.actionEndpoints = actionEndpoints;
     this.httpRequester = httpRequester;
-    this.ids = (actionContext?.recordIds ?? [actionContext?.recordId]).filter(Boolean).map(String);
-
-    this.fieldsFormStates = new FieldFormStates(
-      this.name,
-      this.getActionPath(collectionName, name),
-      collectionName,
-      this.httpRequester,
-      this.ids,
-    );
-  }
-
-  async reloadForm(): Promise<void> {
-    await this.fieldsFormStates.loadInitialState();
+    this.ids = ids ?? undefined;
+    this.actionPath = actionPath;
+    this.fieldsFormStates = fieldsFormStates;
   }
 
   async execute(): Promise<{ success: string; html?: string }> {
-    const actionPath = this.getActionPath(this.collectionName, this.name);
-
     const requestBody = {
       data: {
         attributes: {
@@ -77,7 +68,7 @@ export default class Action<TypingsSchema> {
 
     return this.httpRequester.query<{ success: string }>({
       method: 'post',
-      path: actionPath,
+      path: this.actionPath,
       body: requestBody,
     });
   }
@@ -177,22 +168,5 @@ export default class Action<TypingsSchema> {
 
   doesFieldExist(fieldName: string): boolean {
     return Boolean(this.fieldsFormStates.getField(fieldName));
-  }
-
-  private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {
-    const collection = this.actionEndpoints[collectionName as string];
-    if (!collection) throw new Error(`Collection ${collectionName as string} not found in schema`);
-
-    const action = collection[actionName];
-
-    if (!action) {
-      throw new Error(`Action ${actionName} not found in collection ${collectionName as string}`);
-    }
-
-    if (!action.endpoint) {
-      throw new Error(`Action ${actionName} not found in collection ${collectionName as string}`);
-    }
-
-    return action.endpoint;
   }
 }

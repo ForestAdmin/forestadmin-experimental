@@ -5,6 +5,7 @@ import Action, { ActionEndpointsByCollection, BaseActionContext } from './action
 import CollectionChart from './collection-chart';
 import Relation from './relation';
 import Segment from './segment';
+import FieldFormStates from '../action-fields/field-form-states';
 import HttpRequester from '../http-requester';
 import QuerySerializer from '../query-serializer';
 
@@ -27,14 +28,27 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
     actionName: string,
     actionContext?: BaseActionContext,
   ): Promise<Action<TypingsSchema>> {
+    const actionPath = this.getActionPath(this.name, actionName);
+    const ids = (actionContext?.recordIds ?? [actionContext?.recordId]).filter(Boolean).map(String);
+    const fieldsFormStates = new FieldFormStates(
+      actionName,
+      actionPath,
+      this.name,
+      this.httpRequester,
+      ids,
+    );
+
     const action = new Action<TypingsSchema>(
       actionName,
       this.name,
       this.httpRequester,
       this.actionEndpoints,
-      actionContext,
+      actionPath,
+      fieldsFormStates,
+      ids,
     );
-    await action.reloadForm();
+
+    await fieldsFormStates.loadInitialState();
 
     return action;
   }
@@ -108,5 +122,22 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
       path: `/forest/${this.name as string}/${id.toString()}`,
       body: requestBody,
     });
+  }
+
+  private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {
+    const collection = this.actionEndpoints[collectionName as string];
+    if (!collection) throw new Error(`Collection ${collectionName as string} not found in schema`);
+
+    const action = collection[actionName];
+
+    if (!action) {
+      throw new Error(`Action ${actionName} not found in collection ${collectionName as string}`);
+    }
+
+    if (!action.endpoint) {
+      throw new Error(`Action ${actionName} not found in collection ${collectionName as string}`);
+    }
+
+    return action.endpoint;
   }
 }
