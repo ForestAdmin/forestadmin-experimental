@@ -28,8 +28,9 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
     actionName: string,
     actionContext?: BaseActionContext,
   ): Promise<Action<TypingsSchema>> {
-    const actionPath = this.getActionPath(this.name, actionName);
+    const actionPath = this.getActionPath(this.actionEndpoints, this.name, actionName);
     const ids = (actionContext?.recordIds ?? [actionContext?.recordId]).filter(Boolean).map(String);
+
     const fieldsFormStates = new FieldFormStates(
       actionName,
       actionPath,
@@ -39,10 +40,8 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
     );
 
     const action = new Action<TypingsSchema>(
-      actionName,
       this.name,
       this.httpRequester,
-      this.actionEndpoints,
       actionPath,
       fieldsFormStates,
       ids,
@@ -124,8 +123,12 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
     });
   }
 
-  private getActionPath(collectionName: keyof TypingsSchema, actionName: string): string {
-    const collection = this.actionEndpoints[collectionName as string];
+  private getActionPath(
+    actionEndpoints: ActionEndpointsByCollection,
+    collectionName: keyof TypingsSchema,
+    actionName: string,
+  ): string {
+    const collection = actionEndpoints[collectionName as string];
     if (!collection) throw new Error(`Collection ${collectionName as string} not found in schema`);
 
     const action = collection[actionName];
