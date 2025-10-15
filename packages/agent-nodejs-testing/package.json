@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/agent-nodejs-testing",
-  "version": "0.33.0",
+  "version": "0.34.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {

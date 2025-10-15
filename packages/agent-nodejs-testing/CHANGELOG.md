@@ -1,3 +1,10 @@
+# [0.34.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.33.0...agent-nodejs-testing@0.34.0) (2025-10-15)
+
+
+### Features
+
+* **agent-tester:** add csv export on segment ([#157](https://github.com/ForestAdmin/forestadmin-experimental/issues/157)) ([0538935](https://github.com/ForestAdmin/forestadmin-experimental/commit/053893525f2c7187b4312f2eef37777b8d944e52))
+
 # [0.33.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.32.4...agent-nodejs-testing@0.33.0) (2025-10-15)
 
 
