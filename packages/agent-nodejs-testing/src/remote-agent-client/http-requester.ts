@@ -1,3 +1,4 @@
+import fs, { WriteStream } from 'fs';
 import { Deserializer } from 'jsonapi-serializer';
 import superagent from 'superagent';
 
@@ -17,49 +18,86 @@ export default class HttpRequester {
     this.deserializer = new Deserializer({ keyForAttribute: 'camelCase' });
   }
 
+  /**
+   * JSON-first request. Falls back to raw text if not JSON:API.
+   */
   async query<Data = unknown>({
     method,
     path,
     body,
     query,
     maxTimeAllowed,
+    contentType,
   }: {
     method: 'get' | 'post' | 'put' | 'delete';
     path: string;
     body?: Record<string, unknown>;
     query?: Record<string, unknown>;
-    maxTimeAllowed?: number; // Set a default value if not provided
+    maxTimeAllowed?: number;
+    contentType?: 'application/json' | 'text/csv';
   }): Promise<Data> {
     try {
-      const url = new URL(`${this.baseUrl}${path}`).toString();
+      const url = new URL(`${this.baseUrl}${HttpRequester.escapeUrlSlug(path)}`).toString();
 
-      const response = await superagent[method](url)
-        .timeout(maxTimeAllowed ?? 10000)
+      const req = superagent[method](url)
+        .timeout(maxTimeAllowed ?? 10_000)
         .set('Authorization', `Bearer ${this.token}`)
-        .query({ timezone: 'Europe/Paris', ...query })
-        .send(body);
+        .set('Content-Type', contentType ?? 'application/json')
+        .query({ timezone: 'Europe/Paris', ...query });
+
+      if (body) req.send(body);
+
+      const response = await req;
 
       try {
         return (await this.deserializer.deserialize(response.body)) as Data;
-      } catch (e) {
-        // when it fails, it means the response is not a JSON API response.
-        // It's the case for example when we execute an action.
-        return response.body as Data;
+      } catch {
+        return (response.body ?? response.text) as Data;
       }
-    } catch (error) {
+    } catch (error: any) {
       if (!error.response) throw error;
-
       throw new Error(
-        JSON.stringify(
-          {
-            error: (error as { response: { error: Record<string, string> } }).response.error,
-            body,
-          },
-          null,
-          4,
-        ),
+        JSON.stringify({ error: error.response.error as Record<string, string>, body }, null, 4),
       );
     }
+  }
+
+  /**
+   * Stream a response fully into memory and return its text content.
+   * Use for CSV or raw text exports.
+   */
+  async stream({
+    path: reqPath,
+    query,
+    contentType = 'text/csv',
+    maxTimeAllowed,
+    stream,
+  }: {
+    path: string;
+    query?: Record<string, unknown>;
+    contentType: 'text/csv';
+    maxTimeAllowed?: number;
+    stream: WriteStream;
+  }): Promise<void> {
+    const url = new URL(`${this.baseUrl}${HttpRequester.escapeUrlSlug(reqPath)}`).toString();
+
+    return new Promise<void>((resolve, reject) => {
+      superagent
+        .get(url)
+        .timeout(maxTimeAllowed ?? 10_000)
+        .set('Authorization', `Bearer ${this.token}`)
+        .set('Accept', contentType)
+        .query({ timezone: 'Europe/Paris', ...query })
+
+        .pipe(stream)
+        .on('finish', () => {
+          resolve();
+        })
+        .on('error', err => {
+          console.error('Error occurred while streaming response:', err);
+          reject(err);
+        });
+    });
   }
 
   static escapeUrlSlug(name: string): string {
