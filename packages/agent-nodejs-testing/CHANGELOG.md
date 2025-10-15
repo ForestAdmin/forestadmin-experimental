@@ -1,3 +1,10 @@
+# [0.35.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.34.0...agent-nodejs-testing@0.35.0) (2025-10-15)
+
+
+### Features
+
+* **agent-tester:** add live query segment ([#158](https://github.com/ForestAdmin/forestadmin-experimental/issues/158)) ([1961202](https://github.com/ForestAdmin/forestadmin-experimental/commit/19612027ca1d6780b657ea7644ec86871b58009f))
+
 # [0.34.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.33.0...agent-nodejs-testing@0.34.0) (2025-10-15)
 
 
