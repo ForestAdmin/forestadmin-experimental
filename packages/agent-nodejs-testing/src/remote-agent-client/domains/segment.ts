@@ -18,7 +18,10 @@ export default class Segment<TypingsSchema> {
     return this.httpRequester.query<Data[]>({
       method: 'get',
       path: `/forest/${this.collectionName as string}`,
-      query: QuerySerializer.serialize({ ...options, ...{ filters: { segment: this.name } } }),
+      query: QuerySerializer.serialize(
+        { ...options, ...{ filters: { segment: this.name } } },
+        this.collectionName as string,
+      ),
     });
   }
 }

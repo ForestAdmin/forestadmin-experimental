@@ -25,7 +25,7 @@ export default class Relation<TypingsSchema> {
     return this.httpRequester.query<Data[]>({
       method: 'get',
       path: `/forest/${this.collectionName as string}/${this.parentId}/relationships/${this.name}`,
-      query: QuerySerializer.serialize(options),
+      query: QuerySerializer.serialize(options, this.collectionName as string),
     });
   }
 }

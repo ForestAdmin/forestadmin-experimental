@@ -1,5 +1,7 @@
-import type { SelectOptions } from '../types';
+import type { ExportOptions, SelectOptions } from '../types';
 import type { TSchema } from '@forestadmin/agent';
+
+import { WriteStream } from 'fs';
 
 import Action, { ActionEndpointsByCollection, BaseActionContext } from './action';
 import CollectionChart from './collection-chart';
@@ -68,7 +70,19 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
     return this.httpRequester.query<Data[]>({
       method: 'get',
       path: `/forest/${this.name as string}`,
-      query: QuerySerializer.serialize(options),
+      query: QuerySerializer.serialize(options, this.name as string),
+    });
+  }
+
+  async exportCsv(stream: WriteStream, options?: ExportOptions): Promise<void> {
+    await this.httpRequester.stream({
+      path: `/forest/${this.name as string}.csv`,
+      contentType: 'text/csv',
+      query: {
+        ...QuerySerializer.serialize(options, this.name as string),
+        ...{ header: JSON.stringify(options?.projection) },
+      },
+      stream,
     });
   }
 
@@ -78,7 +92,7 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
         await this.httpRequester.query<{ count: number }>({
           method: 'get',
           path: `/forest/${this.name as string}/count`,
-          query: QuerySerializer.serialize(options),
+          query: QuerySerializer.serialize(options, this.name as string),
         })
       ).count,
     );
