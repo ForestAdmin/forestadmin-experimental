@@ -27,9 +27,7 @@ export type ActionEndpointsByCollection = {
   };
 };
 export default class Action<TypingsSchema> {
-  private readonly name: string;
   private readonly collectionName: keyof TypingsSchema;
-  private readonly actionEndpoints: ActionEndpointsByCollection;
 
   private readonly httpRequester: HttpRequester;
   protected readonly fieldsFormStates: FieldFormStates<TypingsSchema>;
@@ -37,17 +35,13 @@ export default class Action<TypingsSchema> {
   private actionPath: string;
 
   constructor(
-    name: string,
     collectionName: keyof TypingsSchema,
     httpRequester: HttpRequester,
-    actionEndpoints: ActionEndpointsByCollection,
     actionPath: string,
     fieldsFormStates: FieldFormStates<TypingsSchema>,
     ids?: (string | number)[],
   ) {
-    this.name = name;
     this.collectionName = collectionName;
-    this.actionEndpoints = actionEndpoints;
     this.httpRequester = httpRequester;
     this.ids = ids ?? undefined;
     this.actionPath = actionPath;
