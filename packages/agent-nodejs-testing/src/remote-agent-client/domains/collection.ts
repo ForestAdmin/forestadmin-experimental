@@ -1,4 +1,4 @@
-import type { SelectOptions } from '../types';
+import type { ExportOptions, SelectOptions } from '../types';
 import type { TSchema } from '@forestadmin/agent';
 
 import { WriteStream } from 'fs';
@@ -74,7 +74,7 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
     });
   }
 
-  async exportCsv(stream: WriteStream, options?: Omit<SelectOptions, 'pagination'>): Promise<void> {
+  async exportCsv(stream: WriteStream, options?: ExportOptions): Promise<void> {
     await this.httpRequester.stream({
       path: `/forest/${this.name as string}.csv`,
       contentType: 'text/csv',

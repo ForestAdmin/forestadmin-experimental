@@ -1,4 +1,4 @@
-import fs, { WriteStream } from 'fs';
+import { WriteStream } from 'fs';
 import { Deserializer } from 'jsonapi-serializer';
 import superagent from 'superagent';
 
@@ -18,9 +18,6 @@ export default class HttpRequester {
     this.deserializer = new Deserializer({ keyForAttribute: 'camelCase' });
   }
 
-  /**
-   * JSON-first request. Falls back to raw text if not JSON:API.
-   */
   async query<Data = unknown>({
     method,
     path,
@@ -62,10 +59,6 @@ export default class HttpRequester {
     }
   }
 
-  /**
-   * Stream a response fully into memory and return its text content.
-   * Use for CSV or raw text exports.
-   */
   async stream({
     path: reqPath,
     query,
