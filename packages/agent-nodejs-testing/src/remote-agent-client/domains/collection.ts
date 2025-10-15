@@ -1,4 +1,4 @@
-import type { ExportOptions, SelectOptions } from '../types';
+import type { ExportOptions, LiveQueryOptions, SelectOptions } from '../types';
 import type { TSchema } from '@forestadmin/agent';
 
 import { WriteStream } from 'fs';
@@ -56,6 +56,11 @@ export default class Collection<TypingsSchema extends TSchema = TSchema> extends
 
   segment(name: string): Segment<TypingsSchema> {
     return new Segment<TypingsSchema>(name, this.name, this.httpRequester);
+  }
+
+  liveQuerySegment(options: LiveQueryOptions): Segment<TypingsSchema> {
+    // there is no name for live query
+    return new Segment<TypingsSchema>(undefined, this.name, this.httpRequester, options);
   }
 
   relation(name: string, parentId: string | number): Relation<TypingsSchema> {
