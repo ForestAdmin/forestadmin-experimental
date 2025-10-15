@@ -31,7 +31,14 @@ describe('addSegment', () => {
   beforeAll(async () => {
     await createTable();
     testableAgent = await createTestableAgent((agent: Agent) => {
-      agent.addDataSource(createSqlDataSource({ dialect: 'sqlite', storage }));
+      agent.addDataSource(
+        createSqlDataSource(
+          { dialect: 'sqlite', storage },
+          {
+            liveQueryConnections: 'test-connection',
+          },
+        ),
+      );
       segmentCustomizer(agent);
     });
     await testableAgent.start();
@@ -42,12 +49,33 @@ describe('addSegment', () => {
     await sequelize?.close();
   });
 
+  beforeEach(async () => {
+    await sequelize.models.users.destroy({ where: {} });
+  });
+
   it('should return only minor users', async () => {
     await sequelize.models.users.create({ age: 19 });
     await sequelize.models.users.create({ age: 17 });
 
     // get the created user
     const users = await testableAgent.collection('users').segment('minorUsers').list<{ age }>();
+
+    // test the full name content
+    expect(users.length).toEqual(1);
+    expect(users[0].age).toEqual(17);
+  });
+
+  it('should return only minor users for live query segment', async () => {
+    await sequelize.models.users.create({ age: 19 });
+    await sequelize.models.users.create({ age: 17 });
+
+    const users = await testableAgent
+      .collection('users')
+      .liveQuerySegment({
+        connectionName: 'test-connection',
+        query: 'SELECT * from users WHERE age < 18',
+      })
+      .list<{ age }>();
 
     // test the full name content
     expect(users.length).toEqual(1);
