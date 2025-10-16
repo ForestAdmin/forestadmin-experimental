@@ -1,0 +1,34 @@
+{
+  "name": "@forestadmin-experimental/datasource-cosmos",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/datasource-cosmos"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "lint": "eslint src test",
+    "test": "docker compose up -d; sleep 10 && jest",
+    "publish:package": "semantic-release"
+  },
+  "peerDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "@azure/cosmos": "^4.0.0"
+  },
+  "devDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "@azure/cosmos": "^4.0.0"
+  }
+}
