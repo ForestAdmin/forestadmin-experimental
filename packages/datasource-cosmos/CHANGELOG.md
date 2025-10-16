@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.0...datasource-cosmos@1.0.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* cosmos nested agregation ([#162](https://github.com/ForestAdmin/forestadmin-experimental/issues/162)) ([a0c7c12](https://github.com/ForestAdmin/forestadmin-experimental/commit/a0c7c124fea4168fa07d831f8b8d5e64dad994f8))
+
 # 1.0.0 (2025-10-16)
 
 
