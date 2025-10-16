@@ -13,7 +13,9 @@
   },
   "files": [
     "dist/**/*.js",
-    "dist/**/*.d.ts"
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",
