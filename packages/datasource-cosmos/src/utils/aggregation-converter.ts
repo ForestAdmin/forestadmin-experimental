@@ -34,7 +34,7 @@ export default class AggregationConverter {
     // Handle simple aggregation without grouping
     if (!aggregation.groups || aggregation.groups.length === 0) {
       const selectClause = this.buildAggregateExpression(aggregation);
-      const query = `SELECT ${selectClause} as value FROM c ${whereFragment}`;
+      const query = `SELECT ${selectClause} as aggregateValue FROM c ${whereFragment}`;
 
       return { query, parameters };
     }
@@ -84,7 +84,7 @@ export default class AggregationConverter {
       // For Count operation without field, we need a different approach
       if (aggregation.operation === 'Count' && !aggregation.field) {
         const query = `
-          SELECT ${groupField} as groupKey, COUNT(1) as value
+          SELECT ${groupField} as groupKey, COUNT(1) as aggregateValue
           FROM c
           ${whereFragment}
           GROUP BY ${groupField}
@@ -99,7 +99,7 @@ export default class AggregationConverter {
 
       // For other aggregations
       const query = `
-        SELECT ${groupField} as groupKey, ${aggregateExpr} as value
+        SELECT ${groupField} as groupKey, ${aggregateExpr} as aggregateValue
         FROM c
         ${whereFragment}
         GROUP BY ${groupField}
@@ -166,7 +166,7 @@ export default class AggregationConverter {
 
       return [
         {
-          value: Serializer.serializeValue(rawResults[0].value),
+          value: Serializer.serializeValue(rawResults[0].aggregateValue ?? rawResults[0].value),
           group: {},
         },
       ];
@@ -185,7 +185,7 @@ export default class AggregationConverter {
       }
 
       return {
-        value: Serializer.serializeValue(result.value),
+        value: Serializer.serializeValue(result.aggregateValue ?? result.value),
         group,
       };
     });
@@ -212,14 +212,14 @@ export default class AggregationConverter {
     if (!field) {
       // COUNT(*) case
       selectClause = groupByField
-        ? `c.${groupByField} as groupKey, COUNT(1) as value`
-        : 'COUNT(1) as value';
+        ? `c.${groupByField} as groupKey, COUNT(1) as aggregateValue`
+        : 'COUNT(1) as aggregateValue';
     } else {
       const op = this.AGGREGATION_OPERATION[operation];
       const fieldPath = `c.${field}`;
       selectClause = groupByField
-        ? `c.${groupByField} as groupKey, ${op}(${fieldPath}) as value`
-        : `${op}(${fieldPath}) as value`;
+        ? `c.${groupByField} as groupKey, ${op}(${fieldPath}) as aggregateValue`
+        : `${op}(${fieldPath}) as aggregateValue`;
     }
 
     if (groupByField) {
