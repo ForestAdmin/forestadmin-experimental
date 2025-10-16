@@ -25,10 +25,10 @@
   },
   "peerDependencies": {
     "@forestadmin/datasource-toolkit": "^1.45.0",
-    "@azure/cosmos": ">=4.0.0 <4.2.0"
+    "@azure/cosmos": "^4.0.0"
   },
   "devDependencies": {
     "@forestadmin/datasource-toolkit": "^1.45.0",
-    "@azure/cosmos": ">=4.0.0 <4.2.0"
+    "@azure/cosmos": "^4.0.0"
   }
 }
