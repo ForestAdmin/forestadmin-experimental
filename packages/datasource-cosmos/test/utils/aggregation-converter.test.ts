@@ -1,8 +1,4 @@
-import {
-  Aggregation,
-  ConditionTreeLeaf,
-  Projection,
-} from '@forestadmin/datasource-toolkit';
+import { Aggregation, ConditionTreeLeaf } from '@forestadmin/datasource-toolkit';
 
 import AggregationConverter from '../../src/utils/aggregation-converter';
 
@@ -97,7 +93,9 @@ describe('AggregationConverter', () => {
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
       // Should generate c.address.city to navigate nested structure
-      expect(result.query).toContain('SELECT c.address.city as groupKey, COUNT(1) as aggregateValue');
+      expect(result.query).toContain(
+        'SELECT c.address.city as groupKey, COUNT(1) as aggregateValue',
+      );
       expect(result.query).toContain('GROUP BY c.address.city');
       expect(result.query).toContain('ORDER BY c.address.city');
     });
