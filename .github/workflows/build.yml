@@ -24,7 +24,7 @@ jobs:
           # https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/ci-configurations/github-actions.md#pushing-packagejson-changes-to-your-repository
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.20.1
+          node-version: 20.18.0
 
       - name: Install
         run: yarn

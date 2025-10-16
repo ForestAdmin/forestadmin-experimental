@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  cosmos-emulator:
+    container_name: cosmos-emulator
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    tty: true
+    mem_limit: 3GB
+    cpu_count: 2
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=false
+    ports:
+      - "8081:8081"
+      - "10250-10255:10250-10255"
+    networks:
+      - cosmos-network
+
+networks:
+  cosmos-network:
+    driver: bridge
