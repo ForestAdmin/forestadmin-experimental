@@ -1,4 +1,3 @@
-module.exports = {
-  extends: 'semantic-release-monorepo',
-  branches: ['main'],
-};
+const packageName = __dirname.split('/').pop();
+
+module.exports = { ...require('../../.releaserc.js'), tagFormat: packageName + '@${version}' };
