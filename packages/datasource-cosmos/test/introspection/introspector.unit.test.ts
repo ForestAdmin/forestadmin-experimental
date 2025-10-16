@@ -1,4 +1,5 @@
-import { CosmosClient, Containers } from '@azure/cosmos';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { CosmosClient } from '@azure/cosmos';
 
 import Introspector from '../../src/introspection/introspector';
 import ModelCosmos from '../../src/model-builder/model';
@@ -37,7 +38,7 @@ describe('Introspection > Introspector', () => {
       });
 
       // Mock each container's read and query
-      mockDatabase.container.mockImplementation((name: string) => ({
+      mockDatabase.container.mockImplementation(() => ({
         read: jest.fn().mockResolvedValue({
           resource: {
             partitionKey: { paths: ['/id'] },
@@ -84,7 +85,7 @@ describe('Introspection > Introspector', () => {
         }),
       });
 
-      mockDatabase.container.mockImplementation((name: string) => ({
+      mockDatabase.container.mockImplementation(() => ({
         read: jest.fn().mockResolvedValue({
           resource: {
             partitionKey: { paths: ['/id'] },
@@ -135,8 +136,8 @@ describe('Introspection > Introspector', () => {
         }),
       });
 
-      mockDatabase.container.mockImplementation((name: string) => {
-        if (name === 'failing') {
+      mockDatabase.container.mockImplementation((_name: string) => {
+        if (_name === 'failing') {
           return {
             read: jest.fn().mockRejectedValue(new Error('Container not accessible')),
             items: {

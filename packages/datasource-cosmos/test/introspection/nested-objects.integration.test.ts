@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Integration tests for nested object support in Cosmos DB NoSQL
  */
 import { CosmosClient } from '@azure/cosmos';
 
 import introspectContainer from '../../src/introspection/container-introspector';
-import ModelCosmos from '../../src/model-builder/model';
 
 describe('Nested Objects Support', () => {
   let mockCosmosClient: jest.Mocked<CosmosClient>;
@@ -165,9 +165,9 @@ describe('Nested Objects Support', () => {
 
       const schema = model.getAttributes();
 
-      expect(schema['flatField']).toBeDefined();
+      expect(schema.flatField).toBeDefined();
       expect(schema['nestedField.subField']).toBeDefined();
-      expect(schema['anotherFlat']).toBeDefined();
+      expect(schema.anotherFlat).toBeDefined();
 
       expect(schema.flatField.type).toBe('string');
       expect(schema['nestedField.subField'].type).toBe('string');
@@ -417,7 +417,7 @@ describe('Nested Objects Support', () => {
       expect(schema['payment.amount']).toBeDefined();
 
       // Verify items as array
-      expect(schema['items']).toBeDefined();
+      expect(schema.items).toBeDefined();
       expect(schema.items.type).toBe('array');
     });
   });

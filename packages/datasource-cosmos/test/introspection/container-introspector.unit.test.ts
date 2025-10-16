@@ -1,4 +1,5 @@
-import { CosmosClient, Container, ItemResponse } from '@azure/cosmos';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Container, CosmosClient } from '@azure/cosmos';
 
 import introspectContainer from '../../src/introspection/container-introspector';
 import ModelCosmos from '../../src/model-builder/model';

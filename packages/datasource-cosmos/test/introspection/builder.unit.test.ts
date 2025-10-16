@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-promise-executor-return */
 import { CosmosClient } from '@azure/cosmos';
 
 import { CosmosDatasourceBuilder } from '../../src/introspection/builder';
@@ -221,6 +222,7 @@ describe('Introspection > Builder', () => {
 
         mockCosmosClient.database.mockImplementation((dbName: string) => {
           if (dbName === 'db2') return mockDatabase2;
+
           return mockDatabase;
         });
 
@@ -245,13 +247,14 @@ describe('Introspection > Builder', () => {
 
       it('should resolve all collections in parallel', async () => {
         const startTime = Date.now();
-        let callOrder: string[] = [];
+        const callOrder: string[] = [];
 
         mockContainer.items.query = jest.fn().mockImplementation(() => ({
           fetchAll: jest.fn().mockImplementation(async () => {
             // Simulate async delay
             await new Promise(resolve => setTimeout(resolve, 50));
             callOrder.push('fetch');
+
             return { resources: [{ id: '1' }] };
           }),
         }));

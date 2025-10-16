@@ -1,5 +1,6 @@
-import { CosmosClient, Container, Database, ItemResponse, FeedResponse } from '@azure/cosmos';
-import { RecordData } from '@forestadmin/datasource-toolkit';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Container, CosmosClient, Database } from '@azure/cosmos';
+// RecordData import removed - not directly used from '@forestadmin/datasource-toolkit';
 
 import ModelCosmos, { CosmosSchema } from '../../src/model-builder/model';
 
@@ -565,9 +566,9 @@ describe('Model Builder > ModelCosmos', () => {
       // Create multiple records to test id generation
       await model.create([{}, {}, {}, {}, {}]);
 
-      const calls = (mockContainer.items.create as jest.Mock).mock.calls;
+      const { calls } = (mockContainer.items.create as jest.Mock).mock;
       calls.forEach(call => {
-        const id = call[0].id;
+        const { id } = call[0];
         expect(id).toBeDefined();
         expect(ids.has(id)).toBe(false);
         ids.add(id);

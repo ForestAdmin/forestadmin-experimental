@@ -1,10 +1,11 @@
-import { CosmosClient, Database, Container } from '@azure/cosmos';
+/* eslint-disable no-await-in-loop, no-underscore-dangle, @typescript-eslint/no-explicit-any */
+import { Container, CosmosClient, Database } from '@azure/cosmos';
 
 import {
   COSMOS_EMULATOR_ENDPOINT,
   COSMOS_EMULATOR_KEY,
-  COSMOS_TEST_DATABASE,
   COSMOS_TEST_CONTAINER,
+  COSMOS_TEST_DATABASE,
 } from './connection-details';
 
 /**
@@ -27,7 +28,7 @@ export async function setupTestDatabase(
   client: CosmosClient,
   databaseName: string = COSMOS_TEST_DATABASE,
   containerName: string = COSMOS_TEST_CONTAINER,
-  partitionKey: string = '/id',
+  partitionKey = '/id',
 ): Promise<{ database: Database; container: Container }> {
   // Create database if it doesn't exist
   const { database } = await client.databases.createIfNotExists({
