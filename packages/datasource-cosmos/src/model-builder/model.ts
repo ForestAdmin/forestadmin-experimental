@@ -86,14 +86,18 @@ export default class ModelCosmos {
     // In production, you might want to use stored procedures or batch operations
     // eslint-disable-next-line no-restricted-syntax
     for (const record of data) {
+      // Unflatten the record to restore nested structure for Cosmos DB
+      const unflattenedRecord = Serializer.unflatten(record);
+
       // Ensure the record has an id field (required by Cosmos DB)
       const itemToCreate: ItemDefinition = {
-        id: record.id || this.generateId(),
-        ...record,
+        id: unflattenedRecord.id || this.generateId(),
+        ...unflattenedRecord,
       };
 
       // eslint-disable-next-line no-await-in-loop
       const { resource } = await this.container.items.create(itemToCreate);
+      // Flatten and serialize the response
       createdRecords.push(Serializer.serialize(resource));
     }
 
@@ -105,14 +109,17 @@ export default class ModelCosmos {
     // We need to fetch the items first to get their partition keys
     const itemsToUpdate = await this.getItemsByIds(ids);
 
+    // Unflatten the patch to restore nested structure for Cosmos DB
+    const unflattenedPatch = Serializer.unflatten(patch);
+
     // eslint-disable-next-line no-restricted-syntax
     for (const item of itemsToUpdate) {
       const partitionKeyValue = this.getPartitionKeyValue(item);
 
-      // Merge the patch with the existing item
+      // Merge the unflattened patch with the existing item
       const updatedItem = {
         ...item,
-        ...patch,
+        ...unflattenedPatch,
       };
 
       // eslint-disable-next-line no-await-in-loop
