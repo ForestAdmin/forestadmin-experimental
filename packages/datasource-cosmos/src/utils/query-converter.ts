@@ -212,9 +212,24 @@ export default class QueryConverter {
     this.reset();
 
     // Build SELECT clause
+    // For nested fields like 'address.city', we need to alias them to preserve the dot notation
+    // e.g., "c.address.city AS 'address.city'" so the result has the flattened field name
     const selectClause =
       projection && projection.length > 0
-        ? projection.map(field => (field === 'id' ? 'c.id' : `c.${field}`)).join(', ')
+        ? projection
+            .map(field => {
+              if (field === 'id') {
+                return 'c.id';
+              }
+
+              // If field contains a dot (nested field), use an alias to preserve the name
+              if (field.includes('.')) {
+                return `c.${field} AS '${field}'`;
+              }
+
+              return `c.${field}`;
+            })
+            .join(', ')
         : 'c';
 
     // Build WHERE clause
