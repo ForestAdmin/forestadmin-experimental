@@ -1,3 +1,17 @@
+# [0.36.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.35.0...agent-nodejs-testing@0.36.0) (2025-10-17)
+
+
+### Bug Fixes
+
+* **agent-tester:** change collection name on segment export csv ([#165](https://github.com/ForestAdmin/forestadmin-experimental/issues/165)) ([18a11a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/18a11a0d2b7cacdad4759a98046ee59662f529d7))
+* cosmos nested agregation ([#162](https://github.com/ForestAdmin/forestadmin-experimental/issues/162)) ([a0c7c12](https://github.com/ForestAdmin/forestadmin-experimental/commit/a0c7c124fea4168fa07d831f8b8d5e64dad994f8))
+* improve nested fields support ([#164](https://github.com/ForestAdmin/forestadmin-experimental/issues/164)) ([8acc227](https://github.com/ForestAdmin/forestadmin-experimental/commit/8acc22742b2455b13834e3ecd5e36cb712270178))
+
+
+### Features
+
+* add cosmos db datasource ([#159](https://github.com/ForestAdmin/forestadmin-experimental/issues/159)) ([0b25187](https://github.com/ForestAdmin/forestadmin-experimental/commit/0b25187f5e2b7f939fad0c056d056af9872df91c))
+
 # [0.35.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.34.0...agent-nodejs-testing@0.35.0) (2025-10-15)
 
 
