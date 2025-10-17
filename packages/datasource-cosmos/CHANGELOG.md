@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.1...datasource-cosmos@1.0.2) (2025-10-17)
+
+
+### Bug Fixes
+
+* improve nested fields support ([#164](https://github.com/ForestAdmin/forestadmin-experimental/issues/164)) ([8acc227](https://github.com/ForestAdmin/forestadmin-experimental/commit/8acc22742b2455b13834e3ecd5e36cb712270178))
+
 ## [1.0.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.0...datasource-cosmos@1.0.1) (2025-10-16)
 
 
