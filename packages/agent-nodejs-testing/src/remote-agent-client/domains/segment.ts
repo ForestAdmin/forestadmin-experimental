@@ -33,7 +33,7 @@ export default class Segment<TypingsSchema> {
 
   async exportCsv(stream: WriteStream, options?: ExportOptions): Promise<void> {
     await this.httpRequester.stream({
-      path: `/forest/${this.name as string}.csv`,
+      path: `/forest/${this.collectionName as string}.csv`,
       contentType: 'text/csv',
       query: {
         ...this.serializeQuery(options),
