@@ -7,18 +7,36 @@ export default class Serializer {
    * @param shouldFlatten Whether to flatten nested objects (default: true)
    */
   static serialize(record: RecordData, shouldFlatten = true): RecordData {
+    // Remove Cosmos DB system fields before serialization
+    const cleanedRecord = this.removeCosmosSystemFields(record);
+
     if (shouldFlatten) {
-      return this.flattenAndSerialize(record);
+      return this.flattenAndSerialize(cleanedRecord);
     }
 
     // Legacy behavior: only serialize dates
-    Object.entries(record).forEach(([name, value]) => {
-      if (value instanceof Date) record[name] = this.serializeValue(value);
+    Object.entries(cleanedRecord).forEach(([name, value]) => {
+      if (value instanceof Date) cleanedRecord[name] = this.serializeValue(value);
       if (Array.isArray(value)) this.serializeValue(value); // the change is by references
-      if (value instanceof Object) return this.serialize(record[name], false);
+      if (value instanceof Object) return this.serialize(cleanedRecord[name], false);
     });
 
-    return record;
+    return cleanedRecord;
+  }
+
+  /**
+   * Remove Cosmos DB system fields that start with underscore
+   */
+  private static removeCosmosSystemFields(record: RecordData): RecordData {
+    const result: RecordData = {};
+
+    Object.entries(record).forEach(([key, value]) => {
+      if (!key.startsWith('_')) {
+        result[key] = value;
+      }
+    });
+
+    return result;
   }
 
   /**
@@ -150,5 +168,53 @@ export default class Serializer {
     }
 
     return value;
+  }
+
+  /**
+   * Deep merge two objects, properly handling nested objects
+   * Used when updating documents to preserve nested fields that aren't being modified
+   * @param target The original object
+   * @param source The patch to apply
+   * @returns Deeply merged object
+   */
+  static deepMerge(target: RecordData, source: RecordData): RecordData {
+    const result: RecordData = { ...target };
+
+    Object.entries(source).forEach(([key, sourceValue]) => {
+      const targetValue = result[key];
+
+      // If source value is null or undefined, use it directly
+      if (sourceValue === null || sourceValue === undefined) {
+        result[key] = sourceValue;
+
+        return;
+      }
+
+      // If both values are plain objects, merge them recursively
+      if (this.isPlainObject(targetValue) && this.isPlainObject(sourceValue)) {
+        result[key] = this.deepMerge(targetValue as RecordData, sourceValue as RecordData);
+
+        return;
+      }
+
+      // Otherwise, source value overwrites target value
+      result[key] = sourceValue;
+    });
+
+    return result;
+  }
+
+  /**
+   * Check if a value is a plain object (not an array, Date, or other special object)
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static isPlainObject(value: any): boolean {
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      !(value instanceof Date) &&
+      !this.isGeoPoint(value)
+    );
   }
 }

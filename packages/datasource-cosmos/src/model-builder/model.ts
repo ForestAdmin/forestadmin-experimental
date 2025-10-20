@@ -116,11 +116,8 @@ export default class ModelCosmos {
     for (const item of itemsToUpdate) {
       const partitionKeyValue = this.getPartitionKeyValue(item);
 
-      // Merge the unflattened patch with the existing item
-      const updatedItem = {
-        ...item,
-        ...unflattenedPatch,
-      };
+      // Deep merge the unflattened patch with the existing item
+      const updatedItem = Serializer.deepMerge(item, unflattenedPatch);
 
       // eslint-disable-next-line no-await-in-loop
       await this.container.item(item.id, partitionKeyValue).replace(updatedItem);
