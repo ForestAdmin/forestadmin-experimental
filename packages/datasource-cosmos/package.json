@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/datasource-cosmos",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {

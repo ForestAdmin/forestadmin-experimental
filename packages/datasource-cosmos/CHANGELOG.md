@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.3...datasource-cosmos@1.1.0) (2025-10-20)
+
+
+### Features
+
+* **nested object:** use arrow notation ([#167](https://github.com/ForestAdmin/forestadmin-experimental/issues/167)) ([58a99e0](https://github.com/ForestAdmin/forestadmin-experimental/commit/58a99e0944d0bfe4d9c0a0fcf7d0a8144e04f276))
+
 ## [1.0.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.2...datasource-cosmos@1.0.3) (2025-10-20)
 
 
