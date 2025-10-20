@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.2...datasource-cosmos@1.0.3) (2025-10-20)
+
+
+### Bug Fixes
+
+* **agent-tester:** change collection name on segment export csv ([#165](https://github.com/ForestAdmin/forestadmin-experimental/issues/165)) ([18a11a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/18a11a0d2b7cacdad4759a98046ee59662f529d7))
+
 ## [1.0.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.1...datasource-cosmos@1.0.2) (2025-10-17)
 
 
