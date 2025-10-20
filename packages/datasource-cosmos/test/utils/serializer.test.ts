@@ -17,8 +17,8 @@ describe('Serializer', () => {
       expect(result).toEqual({
         id: '1',
         name: 'John',
-        'address.city': 'Paris',
-        'address.street': 'Main St',
+        'address->city': 'Paris',
+        'address->street': 'Main St',
       });
     });
 
@@ -38,7 +38,7 @@ describe('Serializer', () => {
 
       expect(result).toEqual({
         id: '1',
-        'user.profile.contact.email': 'test@example.com',
+        'user->profile->contact->email': 'test@example.com',
       });
     });
 
@@ -56,7 +56,7 @@ describe('Serializer', () => {
       expect(result).toEqual({
         id: '1',
         tags: ['admin', 'user'],
-        'metadata.roles': ['editor', 'viewer'],
+        'metadata->roles': ['editor', 'viewer'],
       });
     });
 
@@ -75,7 +75,7 @@ describe('Serializer', () => {
       expect(result).toEqual({
         id: '1',
         createdAt: '2023-01-15T10:00:00.000Z',
-        'metadata.updatedAt': '2023-01-15T10:00:00.000Z',
+        'metadata->updatedAt': '2023-01-15T10:00:00.000Z',
       });
     });
 
@@ -96,8 +96,8 @@ describe('Serializer', () => {
         id: '1',
         name: null,
         email: undefined,
-        'address.city': 'Paris',
-        'address.zipCode': null,
+        'address->city': 'Paris',
+        'address->zipCode': null,
       });
     });
 
@@ -117,8 +117,8 @@ describe('Serializer', () => {
 
       expect(result).toEqual({
         id: '1',
-        'location.name': 'Home',
-        'location.coordinates': {
+        'location->name': 'Home',
+        'location->coordinates': {
           type: 'Point',
           coordinates: [40.7128, -74.006],
         },
@@ -140,7 +140,7 @@ describe('Serializer', () => {
       expect(result).toEqual({
         id: '1',
         flatField: 'value',
-        'nestedField.subField': 'nestedValue',
+        'nestedField->subField': 'nestedValue',
         anotherFlat: 123,
       });
     });
@@ -163,12 +163,12 @@ describe('Serializer', () => {
   });
 
   describe('unflatten', () => {
-    it('should unflatten dot-notation fields to nested objects', () => {
+    it('should unflatten arrow-notation fields to nested objects', () => {
       const input = {
         id: '1',
         name: 'John',
-        'address.city': 'Paris',
-        'address.street': 'Main St',
+        'address->city': 'Paris',
+        'address->street': 'Main St',
       };
 
       const result = Serializer.unflatten(input);
@@ -186,8 +186,8 @@ describe('Serializer', () => {
     it('should unflatten deeply nested fields', () => {
       const input = {
         id: '1',
-        'user.profile.contact.email': 'test@example.com',
-        'user.profile.name': 'John Doe',
+        'user->profile->contact->email': 'test@example.com',
+        'user->profile->name': 'John Doe',
       };
 
       const result = Serializer.unflatten(input);
@@ -209,7 +209,7 @@ describe('Serializer', () => {
       const input = {
         id: '1',
         name: 'John',
-        'address.city': 'Paris',
+        'address->city': 'Paris',
         age: 30,
       };
 
@@ -229,7 +229,7 @@ describe('Serializer', () => {
       const input = {
         id: '1',
         tags: ['admin', 'user'],
-        'metadata.roles': ['editor', 'viewer'],
+        'metadata->roles': ['editor', 'viewer'],
       };
 
       const result = Serializer.unflatten(input);
@@ -246,8 +246,8 @@ describe('Serializer', () => {
     it('should handle null values', () => {
       const input = {
         id: '1',
-        'address.city': 'Paris',
-        'address.zipCode': null,
+        'address->city': 'Paris',
+        'address->zipCode': null,
       };
 
       const result = Serializer.unflatten(input);

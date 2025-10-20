@@ -162,8 +162,8 @@ describe('Introspection > containerIntrospector', () => {
       expect(schema.tags.type).toBe('array');
 
       // With nested object flattening, settings is flattened to settings.theme
-      expect(schema['settings.theme']).toBeDefined();
-      expect(schema['settings.theme'].type).toBe('string');
+      expect(schema['settings->theme']).toBeDefined();
+      expect(schema['settings->theme'].type).toBe('string');
 
       expect(schema).toHaveProperty('location');
       expect(schema.location.type).toBe('point');
