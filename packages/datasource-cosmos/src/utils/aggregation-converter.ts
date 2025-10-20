@@ -20,6 +20,13 @@ export default class AggregationConverter {
   };
 
   /**
+   * Convert Forest Admin field notation (arrow ->) to Cosmos DB notation (dot .)
+   */
+  private static toCosmosField(field: string): string {
+    return field.replace(/->/g, '.');
+  }
+
+  /**
    * Build SQL aggregation query for Cosmos DB
    */
   static buildAggregationQuery(
@@ -53,7 +60,8 @@ export default class AggregationConverter {
     }
 
     const operation = this.AGGREGATION_OPERATION[aggregation.operation];
-    const fieldPath = `c.${aggregation.field}`;
+    const cosmosField = this.toCosmosField(aggregation.field);
+    const fieldPath = `c.${cosmosField}`;
 
     return `${operation}(${fieldPath})`;
   }
@@ -79,7 +87,8 @@ export default class AggregationConverter {
 
     if (groups.length === 1 && !groups[0].operation) {
       // Simple single field grouping
-      const groupField = `c.${groups[0].field}`;
+      const cosmosGroupField = this.toCosmosField(groups[0].field);
+      const groupField = `c.${cosmosGroupField}`;
 
       // For Count operation without field, we need a different approach
       if (aggregation.operation === 'Count' && !aggregation.field) {
@@ -130,7 +139,8 @@ export default class AggregationConverter {
     operation: DateOperation,
     alias: string,
   ): string {
-    const fieldPath = `c.${field}`;
+    const cosmosField = this.toCosmosField(field);
+    const fieldPath = `c.${cosmosField}`;
 
     switch (operation) {
       case 'Year':
@@ -209,22 +219,25 @@ export default class AggregationConverter {
     let groupByClause = '';
     let orderByClause = '';
 
-    if (!field) {
+    const cosmosField = field ? this.toCosmosField(field) : null;
+    const cosmosGroupByField = groupByField ? this.toCosmosField(groupByField) : null;
+
+    if (!cosmosField) {
       // COUNT(*) case
-      selectClause = groupByField
-        ? `c.${groupByField} as groupKey, COUNT(1) as aggregateValue`
+      selectClause = cosmosGroupByField
+        ? `c.${cosmosGroupByField} as groupKey, COUNT(1) as aggregateValue`
         : 'COUNT(1) as aggregateValue';
     } else {
       const op = this.AGGREGATION_OPERATION[operation];
-      const fieldPath = `c.${field}`;
-      selectClause = groupByField
-        ? `c.${groupByField} as groupKey, ${op}(${fieldPath}) as aggregateValue`
+      const fieldPath = `c.${cosmosField}`;
+      selectClause = cosmosGroupByField
+        ? `c.${cosmosGroupByField} as groupKey, ${op}(${fieldPath}) as aggregateValue`
         : `${op}(${fieldPath}) as aggregateValue`;
     }
 
-    if (groupByField) {
-      groupByClause = `GROUP BY c.${groupByField}`;
-      orderByClause = `ORDER BY c.${groupByField}`;
+    if (cosmosGroupByField) {
+      groupByClause = `GROUP BY c.${cosmosGroupByField}`;
+      orderByClause = `ORDER BY c.${cosmosGroupByField}`;
     }
 
     const limitClause = limit && groupByField ? `OFFSET 0 LIMIT ${limit}` : '';

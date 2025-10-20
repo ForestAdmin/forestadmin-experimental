@@ -36,7 +36,9 @@ export default class QueryConverter {
    */
   private makeWhereClause(field: string, operator: Operator, value?: unknown): string {
     // Use 'c' as the root alias for Cosmos DB queries
-    const fieldPath = field === 'id' ? 'c.id' : `c.${field}`;
+    // Convert arrow notation (->) back to dot notation (.) for Cosmos DB
+    const cosmosField = field.replace(/->/g, '.');
+    const fieldPath = field === 'id' ? 'c.id' : `c.${cosmosField}`;
 
     switch (operator) {
       // Presence
@@ -212,8 +214,9 @@ export default class QueryConverter {
     this.reset();
 
     // Build SELECT clause
-    // For nested fields like 'address.city', we need to alias them to preserve the dot notation
-    // e.g., "c.address.city AS 'address.city'" so the result has the flattened field name
+    // For nested fields like 'address->city', we need to convert to Cosmos notation
+    // and alias them to preserve the arrow notation in results
+    // e.g., "c.address.city AS 'address->city'" so the result has the flattened field name
     const selectClause =
       projection && projection.length > 0
         ? projection
@@ -222,12 +225,15 @@ export default class QueryConverter {
                 return 'c.id';
               }
 
-              // If field contains a dot (nested field), use an alias to preserve the name
-              if (field.includes('.')) {
-                return `c.${field} AS '${field}'`;
+              // Convert arrow notation (->) to dot notation (.) for Cosmos DB
+              const cosmosField = field.replace(/->/g, '.');
+
+              // If field contains arrows (nested field), use an alias to preserve the original name
+              if (field.includes('->')) {
+                return `c.${cosmosField} AS '${field}'`;
               }
 
-              return `c.${field}`;
+              return `c.${cosmosField}`;
             })
             .join(', ')
         : 'c';
@@ -257,7 +263,9 @@ export default class QueryConverter {
 
     const sortClauses = sort
       .map(({ field, ascending }) => {
-        const fieldPath = field === 'id' ? 'c.id' : `c.${field}`;
+        // Convert arrow notation (->) to dot notation (.) for Cosmos DB
+        const cosmosField = field.replace(/->/g, '.');
+        const fieldPath = field === 'id' ? 'c.id' : `c.${cosmosField}`;
         const direction = ascending ? 'ASC' : 'DESC';
 
         return `${fieldPath} ${direction}`;

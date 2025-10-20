@@ -91,21 +91,21 @@ describe('Nested Objects Support', () => {
       expect(schema).toHaveProperty('name');
 
       // Check flattened nested fields with dot notation
-      expect(schema['address.street']).toBeDefined();
-      expect(schema['address.city']).toBeDefined();
-      expect(schema['address.state']).toBeDefined();
-      expect(schema['address.zipCode']).toBeDefined();
-      expect(schema['address.coordinates.lat']).toBeDefined();
-      expect(schema['address.coordinates.lng']).toBeDefined();
-      expect(schema['contact.email']).toBeDefined();
-      expect(schema['contact.phone']).toBeDefined();
+      expect(schema['address->street']).toBeDefined();
+      expect(schema['address->city']).toBeDefined();
+      expect(schema['address->state']).toBeDefined();
+      expect(schema['address->zipCode']).toBeDefined();
+      expect(schema['address->coordinates->lat']).toBeDefined();
+      expect(schema['address->coordinates->lng']).toBeDefined();
+      expect(schema['contact->email']).toBeDefined();
+      expect(schema['contact->phone']).toBeDefined();
 
       // Verify types
-      expect(schema['address.street'].type).toBe('string');
-      expect(schema['address.city'].type).toBe('string');
-      expect(schema['address.coordinates.lat'].type).toBe('number');
-      expect(schema['address.coordinates.lng'].type).toBe('number');
-      expect(schema['contact.email'].type).toBe('string');
+      expect(schema['address->street'].type).toBe('string');
+      expect(schema['address->city'].type).toBe('string');
+      expect(schema['address->coordinates->lat'].type).toBe('number');
+      expect(schema['address->coordinates->lng'].type).toBe('number');
+      expect(schema['contact->email'].type).toBe('string');
     });
 
     it('should handle deep nesting up to max depth', async () => {
@@ -136,8 +136,8 @@ describe('Nested Objects Support', () => {
 
       // Should flatten up to depth 5 (maxDepth is 5, so we stop at level 5)
       // At depth 5, the object itself is treated as 'object' type, not further flattened
-      expect(schema['level1.level2.level3.level4.level5']).toBeDefined();
-      expect(schema['level1.level2.level3.level4.level5'].type).toBe('object');
+      expect(schema['level1->level2->level3->level4->level5']).toBeDefined();
+      expect(schema['level1->level2->level3->level4->level5'].type).toBe('object');
     });
 
     it('should handle mixed nested and flat fields', async () => {
@@ -166,11 +166,11 @@ describe('Nested Objects Support', () => {
       const schema = model.getAttributes();
 
       expect(schema.flatField).toBeDefined();
-      expect(schema['nestedField.subField']).toBeDefined();
+      expect(schema['nestedField->subField']).toBeDefined();
       expect(schema.anotherFlat).toBeDefined();
 
       expect(schema.flatField.type).toBe('string');
-      expect(schema['nestedField.subField'].type).toBe('string');
+      expect(schema['nestedField->subField'].type).toBe('string');
       expect(schema.anotherFlat.type).toBe('number');
     });
 
@@ -201,13 +201,13 @@ describe('Nested Objects Support', () => {
 
       const schema = model.getAttributes();
 
-      expect(schema['user.name']).toBeDefined();
-      expect(schema['user.tags']).toBeDefined();
-      expect(schema['user.metadata.roles']).toBeDefined();
+      expect(schema['user->name']).toBeDefined();
+      expect(schema['user->tags']).toBeDefined();
+      expect(schema['user->metadata->roles']).toBeDefined();
 
-      expect(schema['user.name'].type).toBe('string');
-      expect(schema['user.tags'].type).toBe('array');
-      expect(schema['user.metadata.roles'].type).toBe('array');
+      expect(schema['user->name'].type).toBe('string');
+      expect(schema['user->tags'].type).toBe('array');
+      expect(schema['user->metadata->roles'].type).toBe('array');
     });
 
     it('should handle nullable nested fields', async () => {
@@ -248,8 +248,8 @@ describe('Nested Objects Support', () => {
 
       const schema = model.getAttributes();
 
-      expect(schema['profile.bio'].nullable).toBe(true);
-      expect(schema['profile.website'].nullable).toBe(true);
+      expect(schema['profile->bio'].nullable).toBe(true);
+      expect(schema['profile->website'].nullable).toBe(true);
     });
 
     it('should handle GeoJSON Point within nested objects', async () => {
@@ -279,11 +279,11 @@ describe('Nested Objects Support', () => {
 
       const schema = model.getAttributes();
 
-      expect(schema['location.name']).toBeDefined();
-      expect(schema['location.coordinates']).toBeDefined();
+      expect(schema['location->name']).toBeDefined();
+      expect(schema['location->coordinates']).toBeDefined();
 
-      expect(schema['location.name'].type).toBe('string');
-      expect(schema['location.coordinates'].type).toBe('point');
+      expect(schema['location->name'].type).toBe('string');
+      expect(schema['location->coordinates'].type).toBe('point');
     });
 
     it('should handle Date objects within nested structures', async () => {
@@ -308,9 +308,9 @@ describe('Nested Objects Support', () => {
 
       const schema = model.getAttributes();
 
-      expect(schema['metadata.created'].type).toBe('date');
-      expect(schema['metadata.modified'].type).toBe('date');
-      expect(schema['metadata.tags.lastUpdated'].type).toBe('date');
+      expect(schema['metadata->created'].type).toBe('date');
+      expect(schema['metadata->modified'].type).toBe('date');
+      expect(schema['metadata->tags->lastUpdated'].type).toBe('date');
     });
 
     it('should handle inconsistent nested structures across documents', async () => {
@@ -352,16 +352,16 @@ describe('Nested Objects Support', () => {
       const schema = model.getAttributes();
 
       // All fields should be present
-      expect(schema['data.field1']).toBeDefined();
-      expect(schema['data.field2']).toBeDefined();
-      expect(schema['data.field3']).toBeDefined();
-      expect(schema['data.field4']).toBeDefined();
+      expect(schema['data->field1']).toBeDefined();
+      expect(schema['data->field2']).toBeDefined();
+      expect(schema['data->field3']).toBeDefined();
+      expect(schema['data->field4']).toBeDefined();
 
       // Fields should be nullable when not present in all documents
-      expect(schema['data.field1'].nullable).toBe(true);
-      expect(schema['data.field2'].nullable).toBe(true);
-      expect(schema['data.field3'].nullable).toBe(true);
-      expect(schema['data.field4'].nullable).toBe(true);
+      expect(schema['data->field1'].nullable).toBe(true);
+      expect(schema['data->field2'].nullable).toBe(true);
+      expect(schema['data->field3'].nullable).toBe(true);
+      expect(schema['data->field4'].nullable).toBe(true);
     });
   });
 
@@ -408,13 +408,13 @@ describe('Nested Objects Support', () => {
       const schema = model.getAttributes();
 
       // Verify nested shipping address
-      expect(schema['shipping.address.street']).toBeDefined();
-      expect(schema['shipping.address.city']).toBeDefined();
-      expect(schema['shipping.tracking.number']).toBeDefined();
+      expect(schema['shipping->address->street']).toBeDefined();
+      expect(schema['shipping->address->city']).toBeDefined();
+      expect(schema['shipping->tracking->number']).toBeDefined();
 
       // Verify nested payment info
-      expect(schema['payment.method']).toBeDefined();
-      expect(schema['payment.amount']).toBeDefined();
+      expect(schema['payment->method']).toBeDefined();
+      expect(schema['payment->amount']).toBeDefined();
 
       // Verify items as array
       expect(schema.items).toBeDefined();
