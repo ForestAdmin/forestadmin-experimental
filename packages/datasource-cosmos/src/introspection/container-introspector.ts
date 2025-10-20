@@ -7,8 +7,8 @@ import TypeConverter, { CosmosDataType } from '../utils/type-converter';
 
 export interface IntrospectionOptions {
   /**
-   * Whether to flatten nested objects into dot-notation fields
-   * Example: { address: { city: 'NYC' } } becomes { 'address.city': 'NYC' }
+   * Whether to flatten nested objects into arrow-notation fields
+   * Example: { address: { city: 'NYC' } } becomes { 'address->city': 'NYC' }
    * Default: true (recommended for Forest Admin compatibility)
    */
   flattenNestedObjects?: boolean;
@@ -234,7 +234,7 @@ function analyzeDocument(
 
     // Regular object - recursively analyze properties
     for (const [key, value] of Object.entries(obj)) {
-      const fieldName = prefix ? `${prefix}.${key}` : key;
+      const fieldName = prefix ? `${prefix}->${key}` : key;
 
       if (
         value &&

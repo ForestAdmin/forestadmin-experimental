@@ -40,15 +40,15 @@ export default class Serializer {
   }
 
   /**
-   * Flatten nested objects into dot-notation fields and serialize values
-   * Example: {address: {city: "Paris"}} -> {"address.city": "Paris"}
+   * Flatten nested objects into arrow-notation fields and serialize values
+   * Example: {address: {city: "Paris"}} -> {"address->city": "Paris"}
    */
   static flattenAndSerialize(record: RecordData): RecordData {
     const flattened: RecordData = {};
 
     const flatten = (obj: RecordData, prefix = '') => {
       Object.entries(obj).forEach(([key, value]) => {
-        const fullKey = prefix ? `${prefix}.${key}` : key;
+        const fullKey = prefix ? `${prefix}->${key}` : key;
 
         // Handle null and undefined
         if (value === null || value === undefined) {
@@ -123,15 +123,15 @@ export default class Serializer {
   }
 
   /**
-   * Unflatten dot-notation fields back to nested objects
-   * Example: {"address.city": "Paris"} -> {address: {city: "Paris"}}
+   * Unflatten arrow-notation fields back to nested objects
+   * Example: {"address->city": "Paris"} -> {address: {city: "Paris"}}
    * Used when writing data back to Cosmos DB
    */
   static unflatten(record: RecordData): RecordData {
     const result: RecordData = {};
 
     Object.entries(record).forEach(([key, value]) => {
-      const keys = key.split('.');
+      const keys = key.split('->');
 
       if (keys.length === 1) {
         // No nesting, direct assignment
