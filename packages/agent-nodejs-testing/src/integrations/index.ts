@@ -11,6 +11,7 @@ import SchemaPathManager from './schema-path-manager';
 import TestableAgent from './testable-agent';
 import TestableAgentBase from './testable-agent-base';
 import { TestableAgentOptions } from './types';
+import { PermissionsOverride } from '../remote-agent-client/domains/remote-agent-client';
 
 export { AgentOptions, Agent } from '@forestadmin/agent';
 export * from './types';
@@ -61,9 +62,17 @@ export async function createForestAgentClient(options: {
     url: agentUrl,
   });
 
+  const overridePermissions = async (permissions: PermissionsOverride) => {
+    await superagent
+      .post(`${serverUrl}/permission-override`)
+      .set('forest-secret-key', options.agentForestEnvSecret)
+      .send(permissions);
+  };
+
   return new TestableAgentBase({
     actionEndpoints: SchemaConverter.extractActionEndpoints(schema),
     httpRequester,
+    overridePermissions,
   });
 }
 

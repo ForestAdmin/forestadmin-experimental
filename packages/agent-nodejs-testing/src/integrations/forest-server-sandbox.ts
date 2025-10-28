@@ -1,6 +1,5 @@
 import { ForestSchema } from '@forestadmin/forestadmin-client';
 import {
-  EnvironmentCollectionAccessPermissionsV4,
   EnvironmentCollectionPermissionsV4,
   EnvironmentPermissionsV4Remote,
   EnvironmentSmartActionPermissionsV4,
@@ -8,12 +7,20 @@ import {
 import http from 'node:http';
 
 import { CURRENT_USER } from './forest-admin-client-mock';
+import {
+  CollectionPermissionsOverride,
+  PermissionsOverride,
+  SmartActionPermissionsOverride,
+} from '../remote-agent-client/domains/remote-agent-client';
 
 export default class ForestServerSandbox {
   private fakeForestServer: http.Server;
 
   // cache the agent schema for every client to avoid to start several servers when testing agent.
   private readonly agentSchemaCache: Map<string, ForestSchema> = new Map();
+
+  // allow to override some permissions directly from the agent
+  private readonly permissionsOverrideCache: Map<string, PermissionsOverride> = new Map();
 
   port: number;
 
@@ -77,6 +84,18 @@ export default class ForestServerSandbox {
           break;
         }
 
+        case '/permission-override': {
+          let data = '';
+          req.on('data', chunk => {
+            data += chunk;
+          });
+          req.on('end', () => {
+            this.permissionsOverrideCache.set(agentSchemaCacheIdentifier, JSON.parse(data));
+            sendResponse(200);
+          });
+          break;
+        }
+
         case '/liana/v4/subscribe-to-events':
           sendResponse(200);
           break;
@@ -89,6 +108,12 @@ export default class ForestServerSandbox {
           try {
             const permissionsV4 = this.transformForestSchemaToEnvironmentPermissionsV4Remote(
               this.agentSchemaCache.get(agentSchemaCacheIdentifier),
+              this.permissionsOverrideCache.get(agentSchemaCacheIdentifier),
+            );
+
+            console.log(
+              'permissions:',
+              JSON.stringify(permissionsV4.collections.Api__BankAccount?.actions, null, 2),
             );
             sendResponse(200, permissionsV4);
           } catch {
@@ -121,35 +146,60 @@ export default class ForestServerSandbox {
 
   private transformForestSchemaToEnvironmentPermissionsV4Remote(
     schema: ForestSchema,
+    permissionsOverride?: PermissionsOverride,
   ): EnvironmentPermissionsV4Remote {
+    const collections = {};
+
+    schema.collections.forEach(collection => {
+      const actionPermissions = {};
+
+      collection.actions.forEach(action => {
+        actionPermissions[action.name] = this.getCollectionActionPermissions(
+          permissionsOverride?.[collection.name]?.actions?.[action.name] || {},
+        );
+      });
+
+      collections[collection.name] = {
+        collection: this.getCollectionCrudPermissions(
+          permissionsOverride?.[collection.name]?.collection || {},
+        ),
+        actions: actionPermissions,
+      };
+    });
+
+    return { collections };
+  }
+
+  private getCollectionCrudPermissions(
+    override: CollectionPermissionsOverride,
+  ): EnvironmentCollectionPermissionsV4['collection'] {
     return {
-      collections: schema.collections.reduce((collectionAcc, collection) => {
-        collectionAcc[collection.name] = {
-          collection: {
-            browseEnabled: { roles: [1] },
-            deleteEnabled: { roles: [1] },
-            editEnabled: { roles: [1] },
-            exportEnabled: { roles: [1] },
-            addEnabled: { roles: [1] },
-            readEnabled: { roles: [1] },
-          } as EnvironmentCollectionAccessPermissionsV4,
-          actions: collection.actions.reduce((actionAcc, action) => {
-            actionAcc[action.name] = {
-              approvalRequired: { roles: [0] },
-              userApprovalEnabled: { roles: [1] },
-              selfApprovalEnabled: { roles: [1] },
-              triggerEnabled: { roles: [1] },
-              triggerConditions: [],
-              userApprovalConditions: [],
-              approvalRequiredConditions: [],
-            } as EnvironmentSmartActionPermissionsV4;
+      browseEnabled: { roles: [override.browseEnabled === false ? 0 : 1] },
+      deleteEnabled: { roles: [override.deleteEnabled === false ? 0 : 1] },
+      editEnabled: { roles: [override.editEnabled === false ? 0 : 1] },
+      exportEnabled: { roles: [override.exportEnabled === false ? 0 : 1] },
+      addEnabled: { roles: [override.addEnabled === false ? 0 : 1] },
+      readEnabled: { roles: [override.readEnabled === false ? 0 : 1] },
+    };
+  }
 
-            return actionAcc;
-          }, {}),
-        } as EnvironmentCollectionPermissionsV4;
-
-        return collectionAcc;
-      }, {}),
+  private getCollectionActionPermissions(
+    override: SmartActionPermissionsOverride,
+  ): EnvironmentSmartActionPermissionsV4 {
+    return {
+      approvalRequired: { roles: [override.approvalRequired === true ? 1 : 0] },
+      userApprovalEnabled: { roles: [override.userApprovalEnabled === false ? 0 : 1] },
+      selfApprovalEnabled: { roles: [override.selfApprovalEnabled === false ? 0 : 1] },
+      triggerEnabled: { roles: [override.triggerEnabled === false ? 0 : 1] },
+      triggerConditions: override.triggerConditions
+        ? [{ roleId: 1, filter: override.triggerConditions }]
+        : [],
+      userApprovalConditions: override.userApprovalConditions
+        ? [{ roleId: 1, filter: override.userApprovalConditions }]
+        : [],
+      approvalRequiredConditions: override.approvalRequiredConditions
+        ? [{ roleId: 1, filter: override.approvalRequiredConditions }]
+        : [],
     };
   }
 }
