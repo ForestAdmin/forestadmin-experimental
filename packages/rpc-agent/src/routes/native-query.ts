@@ -4,42 +4,28 @@ import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/typ
 import { DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
-import { BuildedSchema } from '../types';
-
-export default class RpcSchemaRoute extends BaseRoute {
+export default class RpcDatasourceChartRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
   protected readonly dataSource: DataSource;
-  private readonly buildedSchema: BuildedSchema;
 
   constructor(
     services: ForestAdminHttpDriverServices,
     options: AgentOptionsWithDefaults,
     dataSource: DataSource,
-    buildedSchema: BuildedSchema,
   ) {
     super(services, options);
 
     this.dataSource = dataSource;
-    this.buildedSchema = buildedSchema;
   }
 
   override setupRoutes(router: Router): void {
-    router.get('/rpc-schema', this.handleRpc.bind(this));
+    router.post(`/rpc-native-query`, this.handleNativeQuery.bind(this));
   }
 
-  async handleRpc(context: any) {
-    const { 'if-none-match': etag } = context.headers;
+  async handleNativeQuery(context: any) {
+    const { connection_name: connectionName, query, binds } = context.request.body;
 
-    context.set('ETag', this.buildedSchema.etag);
-
-    if (etag && this.buildedSchema.etag === etag) {
-      this.options.logger('Debug', 'ETag matches, returning 304 Not Modified');
-      context.status = 304;
-
-      return;
-    }
-
-    context.response.body = this.buildedSchema.schema;
+    context.response.body = await this.dataSource.executeNativeQuery(connectionName, query, binds);
   }
 }

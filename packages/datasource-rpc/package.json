@@ -12,7 +12,6 @@
     "directory": "packages/datasource-rpc"
   },
   "dependencies": {
-    "eventsource": "3.0.6",
     "superagent": "^8.0.6"
   },
   "devDependencies": {
