@@ -15,7 +15,7 @@ import {
 import superagent from 'superagent';
 
 import { RpcDataSourceOptions } from './types';
-import { appendHeaders } from './utils';
+import { appendHeaders, keysToCamel } from './utils';
 
 export default class RpcCollection extends BaseCollection {
   private readonly logger: Logger;
@@ -64,7 +64,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send(data);
+    const response = await request.send({ data });
 
     return response.body;
   }
@@ -82,11 +82,11 @@ export default class RpcCollection extends BaseCollection {
   }
 
   async update(caller: Caller, filter: Filter, patch: RecordData) {
-    const url = `${this.rpcCollectionUri}/update?filter=${JSON.stringify(filter)}`;
+    const url = `${this.rpcCollectionUri}/update`;
 
     this.logger('Debug', `Forwarding '${this.name}' update call to the Rpc agent on ${url}.`);
 
-    const request = superagent.put(url);
+    const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
     await request.send({ patch, filter });
   }
@@ -96,7 +96,7 @@ export default class RpcCollection extends BaseCollection {
 
     this.logger('Debug', `Forwarding '${this.name}' deletion call to the Rpc agent on ${url}.`);
 
-    const request = superagent.delete(url);
+    const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
     await request.send({ filter });
   }
@@ -114,7 +114,7 @@ export default class RpcCollection extends BaseCollection {
   }
 
   override async execute(caller: Caller, name: string, formValues: RecordData, filter?: Filter) {
-    const url = `${this.rpcCollectionUri}/action-execute?action=${name}`;
+    const url = `${this.rpcCollectionUri}/action-execute`;
 
     this.logger(
       'Debug',
@@ -123,13 +123,13 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ filter, formValues });
+    const response = await request.send({ action: name, filter, data: formValues });
 
     response.body.invalidated = new Set(response.body.invalidated);
 
     // TODO action with file
 
-    return response.body;
+    return keysToCamel(response.body);
   }
 
   override async getForm(
@@ -139,7 +139,7 @@ export default class RpcCollection extends BaseCollection {
     filter?: Filter,
     metas?: GetFormMetas,
   ) {
-    const url = `${this.rpcCollectionUri}/action-form?action=${name}`;
+    const url = `${this.rpcCollectionUri}/action-form`;
 
     this.logger(
       'Debug',
@@ -148,22 +148,22 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ filter, metas, formValues });
+    const response = await request.send({ action: name, filter, metas, data: formValues });
 
-    return response.body;
+    return keysToCamel(response.body);
   }
 
   override async renderChart(caller: Caller, name: string, recordId: CompositeId) {
-    const url = `${this.rpcCollectionUri}/chart?chart=${name}&recordId=${recordId}`;
+    const url = `${this.rpcCollectionUri}/chart`;
 
     this.logger(
       'Debug',
       `Forwarding '${this.name}' chart '${name}' call to the Rpc agent on ${url}.`,
     );
 
-    const request = superagent.get(url);
+    const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send();
+    const response = await request.send({ chart: name, record_id: recordId });
 
     return response.body;
   }
