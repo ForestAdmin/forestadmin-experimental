@@ -29,23 +29,34 @@ export default class RpcSchemaRoute extends BaseRoute {
   }
 
   buildCollection(collection: Collection) {
-    const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
-      fileds[name] = keysToSnake({
-        ...schema,
-        filterOperators:
-          schema.type === 'Column' ? transformFilteroperator(schema.filterOperators) : [],
-      });
+    const buildedFields = Object.entries(collection.schema.fields).reduce(
+      (fields, [name, schema]) => {
+        fields[name] = keysToSnake({
+          ...schema,
+          filterOperators:
+            schema.type === 'Column' ? transformFilteroperator(schema.filterOperators) : [],
+        });
 
-      return fileds;
-    }, {});
+        return fields;
+      },
+      {},
+    );
 
-    const actions = Object.entries(collection.schema.actions).reduce((actions, [name, schema]) => {
-      actions[name] = keysToSnake(schema);
+    const buildedActions = Object.entries(collection.schema.actions).reduce(
+      (actions, [name, schema]) => {
+        actions[name] = keysToSnake(schema);
 
-      return actions;
-    }, {});
+        return actions;
+      },
+      {},
+    );
 
-    return { name: collection.name, ...collection.schema, fields, actions };
+    return {
+      name: collection.name,
+      ...collection.schema,
+      fields: buildedFields,
+      actions: buildedActions,
+    };
   }
 
   async handleRpc(context: any) {
