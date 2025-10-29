@@ -1,3 +1,11 @@
+# [0.37.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.36.0...agent-nodejs-testing@0.37.0) (2025-10-29)
+
+
+### Features
+
+* **agent-tester:** add a way to override permissions from the agent tester ([#168](https://github.com/ForestAdmin/forestadmin-experimental/issues/168)) ([1d219cb](https://github.com/ForestAdmin/forestadmin-experimental/commit/1d219cb369b584a49ae535f6ea12a7435c4ff2a6))
+* **nested object:** use arrow notation ([#167](https://github.com/ForestAdmin/forestadmin-experimental/issues/167)) ([58a99e0](https://github.com/ForestAdmin/forestadmin-experimental/commit/58a99e0944d0bfe4d9c0a0fcf7d0a8144e04f276))
+
 # [0.36.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.35.0...agent-nodejs-testing@0.36.0) (2025-10-17)
 
 
