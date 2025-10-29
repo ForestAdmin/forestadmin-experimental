@@ -29,6 +29,14 @@ export default class RpcDataSource extends BaseDataSource {
 
     this._charts = introspection.charts;
     this.rpcRelations = introspection.rpcRelations;
+    this._nativeQueryConnections = introspection.nativeQueryConnections.reduce(
+      (connections, conn) => {
+        connections[conn.name] = conn.name;
+
+        return connections;
+      },
+      {},
+    );
   }
 
   override get schema() {
@@ -36,14 +44,35 @@ export default class RpcDataSource extends BaseDataSource {
   }
 
   override async renderChart(caller: Caller, name: string) {
-    const url = `${this.options.uri}/forest/rpc-datasource-chart?chart=${name}`;
+    const url = `${this.options.uri}/forest/rpc-datasource-chart`;
 
     this.logger('Debug', `Forwarding datasource chart '${name}' call to the Rpc agent on ${url}.`);
 
-    const request = superagent.get(url);
+    const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
 
-    const response = await request.send();
+    const response = await request.send({ chart: name });
+
+    return response.body;
+  }
+
+  override async executeNativeQuery(
+    connectionName: string,
+    query: string,
+    contextVariables: Record<string, unknown>,
+  ): Promise<unknown> {
+    const url = `${this.options.uri}/forest/rpc-native-query`;
+
+    this.logger('Debug', `Forwarding datasource native query call to the Rpc agent on ${url}.`);
+
+    const request = superagent.post(url);
+    appendHeaders(request, this.options.authSecret);
+
+    const response = await request.send({
+      connection_name: connectionName,
+      query,
+      binds: contextVariables,
+    });
 
     return response.body;
   }

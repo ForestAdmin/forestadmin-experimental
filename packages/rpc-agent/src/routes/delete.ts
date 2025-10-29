@@ -1,25 +1,18 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
 import { HttpCode } from '@forestadmin/agent/dist/types';
-import { ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
+
+import { parseCaller, parseFilter } from '../utils';
 
 export default class RpcDeleteRoute extends CollectionRoute {
   setupRoutes(router: Router): void {
-    router.delete(`/rpc/${this.collectionUrlSlug}/delete`, this.handleDelete.bind(this));
+    router.post(`/rpc/${this.collectionUrlSlug}/delete`, this.handleDelete.bind(this));
   }
 
   public async handleDelete(context: any) {
-    const queryFilter = context.request.body.filter;
-    const caller = JSON.parse(context.headers.forest_caller as string);
+    const { filter } = context.request.body;
 
-    const filter = new Filter({
-      ...queryFilter,
-      conditionTree: queryFilter?.conditionTree
-        ? ConditionTreeFactory.fromPlainObject(queryFilter.conditionTree)
-        : undefined,
-    });
-
-    await this.collection.delete(caller, filter);
+    await this.collection.delete(parseCaller(context), parseFilter(this.collection, filter));
 
     context.response.status = HttpCode.NoContent;
   }

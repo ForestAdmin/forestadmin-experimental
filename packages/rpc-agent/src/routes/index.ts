@@ -14,6 +14,7 @@ import RpcCreateRoute from './create';
 import RpcDatasourceChartRoute from './datasource-chart';
 import RpcDeleteRoute from './delete';
 import RpcListRoute from './list';
+import RpcNativeQueryRoute from './native-query';
 import RpcSchemaRoute from './schema';
 import SseRoute from './sse';
 import RpcUpdateRoute from './update';
@@ -69,6 +70,7 @@ export function makeRpcRoutes(
     new RpcSchemaRoute(services, options, dataSource, rpcCollections),
     ...getRpcCollectionsRoutes(dataSource, options, services),
     new RpcDatasourceChartRoute(services, options, dataSource),
+    new RpcNativeQueryRoute(services, options, dataSource),
   ];
 
   // Ensure routes and middlewares are loaded in the right order.

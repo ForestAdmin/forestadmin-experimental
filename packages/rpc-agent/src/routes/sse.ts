@@ -29,6 +29,10 @@ export default class SseRoute extends BaseRoute {
     context.body = this.stream;
 
     this.stream.write('ok');
+
+    setInterval(() => {
+      this.stream.write('ok');
+    }, 3000);
   }
 
   endSse() {
