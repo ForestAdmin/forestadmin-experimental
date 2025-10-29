@@ -111,10 +111,6 @@ export default class ForestServerSandbox {
               this.permissionsOverrideCache.get(agentSchemaCacheIdentifier),
             );
 
-            console.log(
-              'permissions:',
-              JSON.stringify(permissionsV4.collections.Api__BankAccount?.actions, null, 2),
-            );
             sendResponse(200, permissionsV4);
           } catch {
             sendResponse(400, { error: 'Provide a valid schema path' });
