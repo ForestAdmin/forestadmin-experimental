@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.1.0...datasource-cosmos@1.2.0) (2025-10-30)
+
+
+### Features
+
+* **agent-tester:** add a way to override permissions from the agent tester ([#168](https://github.com/ForestAdmin/forestadmin-experimental/issues/168)) ([1d219cb](https://github.com/ForestAdmin/forestadmin-experimental/commit/1d219cb369b584a49ae535f6ea12a7435c4ff2a6))
+
 # [1.1.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.0.3...datasource-cosmos@1.1.0) (2025-10-20)
 
 
