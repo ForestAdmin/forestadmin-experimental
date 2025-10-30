@@ -127,7 +127,7 @@ function inferSchemaFromDocuments(
       if (flattenNestedObjects) {
         const childFieldPattern = `${fieldName}->`;
         const hasDirectChildFields = Object.keys(fieldTypes).some(
-          otherField => otherField !== fieldName && otherField.startsWith(childFieldPattern)
+          otherField => otherField !== fieldName && otherField.startsWith(childFieldPattern),
         );
 
         if (hasDirectChildFields) {
