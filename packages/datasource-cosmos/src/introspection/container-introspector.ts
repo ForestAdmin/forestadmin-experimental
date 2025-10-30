@@ -123,6 +123,24 @@ function inferSchemaFromDocuments(
   for (const [fieldName, types] of Object.entries(fieldTypes)) {
     // Skip Cosmos DB system fields (start with _)
     if (!fieldName.startsWith('_') || fieldName === '_id') {
+      // Skip parent fields if we have child fields (when flattening is enabled)
+      if (flattenNestedObjects) {
+        const childFieldPattern = `${fieldName}->`;
+        const hasDirectChildFields = Object.keys(fieldTypes).some(
+          otherField => otherField !== fieldName && otherField.startsWith(childFieldPattern),
+        );
+
+        if (hasDirectChildFields) {
+          // Don't skip if it's an array or other type that doesn't get flattened
+          const wasFlattened = types.includes('object');
+
+          if (wasFlattened) {
+            // eslint-disable-next-line no-continue
+            continue; // Skip this parent field since it was flattened
+          }
+        }
+      }
+
       // Get the most specific common type
       const commonType = TypeConverter.getMostSpecificType(types);
       // Field is nullable if it contains null OR is not present in all documents

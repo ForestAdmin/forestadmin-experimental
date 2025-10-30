@@ -62,16 +62,41 @@ export default class CosmosCollection extends BaseCollection {
     filter: PaginatedFilter,
     projection: Projection,
   ): Promise<RecordData[]> {
+    // Filter out 'id' field and deeply nested fields from sort as Cosmos DB doesn't support
+    // sorting on them without proper indexing
+    let filteredSort = filter.sort;
+
+    if (filter.sort && filter.sort.length > 0) {
+      filteredSort = filter.sort.replaceClauses(clause => {
+        // Skip 'id' field
+        if (clause.field === 'id') {
+          return [];
+        }
+
+        // Skip deeply nested fields (2+ levels like receiver->authorizationBalance->value)
+        const nestingLevel = (clause.field.match(/->/g) || []).length;
+
+        if (nestingLevel >= 2) {
+          return [];
+        }
+
+        return clause;
+      });
+
+      // If all sort clauses were filtered out, set to undefined
+      if (filteredSort.length === 0) {
+        filteredSort = undefined;
+      }
+    }
+
+    // Build query with projection to only fetch needed fields
+    const querySpec = this.queryConverter.getSqlQuerySpec(
+      filter.conditionTree,
+      filteredSort,
+      projection,
+    );
+
     try {
-      // Build the SQL query from the filter
-      const projectionFields = projection.columns.length > 0 ? projection.columns : undefined;
-
-      const querySpec = this.queryConverter.getSqlQuerySpec(
-        filter.conditionTree,
-        filter.sort,
-        projectionFields,
-      );
-
       // Execute the query with pagination
       const recordsResponse = await this.internalModel.query(
         querySpec,
@@ -79,9 +104,20 @@ export default class CosmosCollection extends BaseCollection {
         filter.page?.limit,
       );
 
-      // Apply projection to only return projected fields
-      return projection.apply(recordsResponse);
+      return recordsResponse;
     } catch (error) {
+      // Check if this is a Cosmos DB indexing issue with nested fields
+      if (
+        error.message.includes('One of the input values is invalid') &&
+        querySpec.query.includes('.')
+      ) {
+        throw new Error(
+          `Cosmos DB query failed. This may be due to querying/filtering on nested fields ` +
+            `without proper indexing. Please configure your Cosmos DB container's indexing policy ` +
+            `to include the nested paths being queried. Original error: ${error.message}`,
+        );
+      }
+
       throw new Error(`Failed to list records: ${error.message}`);
     }
   }
