@@ -1,3 +1,10 @@
+# [0.38.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.37.0...agent-nodejs-testing@0.38.0) (2025-10-30)
+
+
+### Features
+
+* **approvals:** add a parameter in action.execute to validate approval ([#171](https://github.com/ForestAdmin/forestadmin-experimental/issues/171)) ([b8b4333](https://github.com/ForestAdmin/forestadmin-experimental/commit/b8b43339ae93a83c8445a5feaff7679a01ac1298))
+
 # [0.37.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.36.0...agent-nodejs-testing@0.37.0) (2025-10-29)
 
 
