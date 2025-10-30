@@ -9,6 +9,9 @@ export type CosmosDataType =
   | 'number'
   | 'boolean'
   | 'date'
+  | 'dateonly'
+  | 'timeonly'
+  | 'enum'
   | 'object'
   | 'array'
   | 'null'
@@ -24,7 +27,7 @@ export default class TypeConverter {
    * Map Cosmos DB data types to Forest Admin column types
    * Since Cosmos DB is schemaless, these types are inferred from sample documents
    */
-  private static getColumnTypeFromDataType(dataType: CosmosDataType): PrimitiveTypes {
+  public static getColumnTypeFromDataType(dataType: CosmosDataType): PrimitiveTypes {
     switch (dataType) {
       case 'boolean':
         return 'Boolean';
@@ -32,11 +35,20 @@ export default class TypeConverter {
       case 'date':
         return 'Date';
 
+      case 'dateonly':
+        return 'Dateonly';
+
+      case 'timeonly':
+        return 'Timeonly';
+
       case 'number':
         return 'Number';
 
       case 'string':
         return 'String';
+
+      case 'enum':
+        return 'Enum';
 
       case 'binary':
         return 'String'; // Base64 encoded strings
@@ -65,7 +77,13 @@ export default class TypeConverter {
     if (typeof value === 'number') return 'number';
 
     if (typeof value === 'string') {
-      // Try to detect if it's a date string
+      // Try to detect time-only strings (HH:MM:SS)
+      if (this.isTimeOnlyString(value)) return 'timeonly';
+
+      // Try to detect date-only strings (YYYY-MM-DD)
+      if (this.isDateOnlyString(value)) return 'dateonly';
+
+      // Try to detect full datetime strings
       if (this.isDateString(value)) return 'date';
 
       return 'string';
@@ -116,6 +134,31 @@ export default class TypeConverter {
   }
 
   /**
+   * Check if a string is a date-only format (YYYY-MM-DD)
+   */
+  private static isDateOnlyString(value: string): boolean {
+    const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!dateOnlyRegex.test(value)) {
+      return false;
+    }
+
+    // Validate that it's a real date
+    const date = new Date(value);
+
+    return !Number.isNaN(date.getTime());
+  }
+
+  /**
+   * Check if a string is a time-only format (HH:MM:SS or HH:MM:SS.SSS)
+   */
+  private static isTimeOnlyString(value: string): boolean {
+    const timeOnlyRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(\.\d+)?$/;
+
+    return timeOnlyRegex.test(value);
+  }
+
+  /**
    * Check if an object is a GeoJSON Point
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,7 +177,7 @@ export default class TypeConverter {
    */
   public static isSortable(dataType: CosmosDataType): boolean {
     // Complex types cannot be sorted
-    return !['object', 'array'].includes(dataType);
+    return !['object', 'array', 'enum'].includes(dataType);
   }
 
   /**
@@ -148,11 +191,11 @@ export default class TypeConverter {
       const orderables: Operator[] = ['LessThan', 'GreaterThan'];
       const strings: Operator[] = ['Like', 'ILike', 'NotContains', 'Contains'];
 
-      if (['Boolean', 'Enum', 'Uuid'].includes(columnType)) {
+      if (['Boolean', 'Enum'].includes(columnType)) {
         result.push(...equality);
       }
 
-      if (['Date', 'Dateonly', 'Number'].includes(columnType)) {
+      if (['Date', 'Dateonly', 'Timeonly', 'Number'].includes(columnType)) {
         result.push(...equality, ...orderables);
       }
 
@@ -192,11 +235,12 @@ export default class TypeConverter {
     if (uniqueTypes.length === 1) return uniqueTypes[0];
 
     // If we have mixed types, check for special cases
-    // number + null = number (nullable)
     if (uniqueTypes.every(t => ['number', 'null'].includes(t))) return 'number';
     if (uniqueTypes.every(t => ['string', 'null'].includes(t))) return 'string';
     if (uniqueTypes.every(t => ['boolean', 'null'].includes(t))) return 'boolean';
     if (uniqueTypes.every(t => ['date', 'null'].includes(t))) return 'date';
+    if (uniqueTypes.every(t => ['dateonly', 'null'].includes(t))) return 'dateonly';
+    if (uniqueTypes.every(t => ['timeonly', 'null'].includes(t))) return 'timeonly';
 
     // Mixed date/string/null types -> treat as date (string values might be dates in other formats)
     if (
@@ -206,8 +250,21 @@ export default class TypeConverter {
       return 'date';
     }
 
-    // Mixed numeric types -> number
-    if (uniqueTypes.every(t => ['number', 'null'].includes(t))) return 'number';
+    // Mixed dateonly/string/null types -> treat as dateonly
+    if (
+      uniqueTypes.every(t => ['dateonly', 'string', 'null'].includes(t)) &&
+      uniqueTypes.includes('dateonly')
+    ) {
+      return 'dateonly';
+    }
+
+    // Mixed timeonly/string/null types -> treat as timeonly
+    if (
+      uniqueTypes.every(t => ['timeonly', 'string', 'null'].includes(t)) &&
+      uniqueTypes.includes('timeonly')
+    ) {
+      return 'timeonly';
+    }
 
     // Otherwise, treat as object (Json)
     return 'object';

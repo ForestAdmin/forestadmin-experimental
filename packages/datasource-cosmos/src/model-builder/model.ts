@@ -72,6 +72,10 @@ export default class ModelCosmos {
     this.container = this.cosmosClient.database(databaseName).container(containerName);
   }
 
+  public getCosmosClient(): CosmosClient {
+    return this.cosmosClient;
+  }
+
   public async create(data: RecordData[]): Promise<RecordData[]> {
     const createdRecords: RecordData[] = [];
 

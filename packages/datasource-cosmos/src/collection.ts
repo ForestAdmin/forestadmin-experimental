@@ -47,6 +47,26 @@ export default class CosmosCollection extends BaseCollection {
     logger('Debug', `CosmosCollection - ${this.name} added`);
   }
 
+  /**
+   * Mark virtualized array fields as non-sortable
+   * This should be called after virtual collections are created from array fields
+   */
+  public markVirtualizedFieldsAsNonSortable(virtualizedFieldPaths: string[]): void {
+    for (const fieldPath of virtualizedFieldPaths) {
+      const field = this.schema.fields[fieldPath];
+
+      if (field && field.type === 'Column') {
+        // Create a new field object with isSortable set to false
+        const updatedField = {
+          ...field,
+          isSortable: false,
+        };
+        // Replace the field in the schema
+        this.schema.fields[fieldPath] = updatedField;
+      }
+    }
+  }
+
   async create(caller: Caller, data: RecordData[]): Promise<RecordData[]> {
     try {
       const recordsResponse = await this.internalModel.create(data);

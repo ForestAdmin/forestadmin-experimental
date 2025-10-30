@@ -24,6 +24,17 @@ export interface IntrospectionOptions {
    * Default: false (arrays are treated as Json type)
    */
   introspectArrayItems?: boolean;
+
+  /**
+   * Array fields to expose as virtual collections
+   * Default: [] (no virtual collections)
+   */
+  virtualArrayCollections?: string[];
+}
+
+export interface ArrayCollectionMetadata {
+  arrayFieldPath: string;
+  schema: CosmosSchema;
 }
 
 /**
