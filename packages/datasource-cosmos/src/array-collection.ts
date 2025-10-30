@@ -4,6 +4,7 @@ import {
   Caller,
   CollectionSchema,
   ColumnSchema,
+  ConditionTree,
   ConditionTreeLeaf,
   DataSource,
   Filter,
@@ -40,7 +41,8 @@ export default class ArrayCollection extends CosmosCollection {
     virtualizedChildFields?: string[],
   ) {
     // Get the parent model to extract Cosmos client info
-    const parentModel = (parentCollection as any).internalModel as ModelCosmos;
+    const parentModel = (parentCollection as unknown as { internalModel: ModelCosmos })
+      .internalModel;
 
     logger?.(
       'Debug',
@@ -70,8 +72,8 @@ export default class ArrayCollection extends CosmosCollection {
 
     logger?.(
       'Debug',
-      // eslint-disable-next-line max-len
-      `ArrayCollection: dbName=${dbName}, containerName=${containerName}, partitionKeyPath=${partitionKeyPath}`,
+      `ArrayCollection: dbName=${dbName}, containerName=${containerName}, ` +
+        `partitionKeyPath=${partitionKeyPath}`,
     );
 
     // Create a minimal model for the array collection
@@ -180,7 +182,7 @@ export default class ArrayCollection extends CosmosCollection {
   /**
    * Get the array field value from a parent record
    */
-  private getArrayFromParent(parentRecord: RecordData): any[] {
+  private getArrayFromParent(parentRecord: RecordData): unknown[] {
     // First try the flattened field name (e.g., "kycDetails->diligences")
     // This is how the datasource returns projected fields
     if (parentRecord[this.arrayFieldPath] !== undefined) {
@@ -207,10 +209,10 @@ export default class ArrayCollection extends CosmosCollection {
   /**
    * Set the array field value in a parent record
    */
-  private setArrayInParent(parentRecord: RecordData, newArray: any[]): RecordData {
+  private setArrayInParent(parentRecord: RecordData, newArray: unknown[]): RecordData {
     const parts = this.arrayFieldPath.split('->');
     const result = { ...parentRecord };
-    let current: any = result;
+    let current: RecordData = result;
 
     // Navigate to the parent object containing the array
     for (let i = 0; i < parts.length - 1; i += 1) {
@@ -236,9 +238,9 @@ export default class ArrayCollection extends CosmosCollection {
   override async list(
     caller: Caller,
     filter: PaginatedFilter,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     projection: Projection,
   ): Promise<RecordData[]> {
+    void projection; // Unused parameter required by interface
     // Extract filters
     const conditionTree = filter?.conditionTree;
     let parentFilter: PaginatedFilter | undefined;
@@ -293,7 +295,8 @@ export default class ArrayCollection extends CosmosCollection {
 
       arrayValues.forEach((item, index) => {
         // Filter out virtualized child fields (if any are configured)
-        const filteredItem = { ...item };
+        const filteredItem =
+          typeof item === 'object' && item !== null ? { ...(item as Record<string, unknown>) } : {};
 
         if (this.virtualizedChildFields && this.virtualizedChildFields.size > 0) {
           for (const field of this.virtualizedChildFields) {
@@ -336,7 +339,7 @@ export default class ArrayCollection extends CosmosCollection {
   /**
    * Apply condition tree filtering to items
    */
-  private applyConditionTree(items: RecordData[], conditionTree: any): RecordData[] {
+  private applyConditionTree(items: RecordData[], conditionTree: ConditionTree): RecordData[] {
     if (!conditionTree) return items;
 
     // Handle ConditionTreeLeaf (single condition)
@@ -352,18 +355,22 @@ export default class ArrayCollection extends CosmosCollection {
     }
 
     // Handle ConditionTreeBranch (AND/OR logic)
-    if (conditionTree.aggregator) {
-      const { aggregator, conditions } = conditionTree;
+    if ('aggregator' in conditionTree && conditionTree.aggregator) {
+      const branch = conditionTree as unknown as {
+        aggregator: string;
+        conditions: ConditionTree[];
+      };
+      const { aggregator, conditions } = branch;
 
       if (aggregator === 'And') {
         return items.filter(item =>
-          conditions.every((cond: any) => this.applyConditionTree([item], cond).length > 0),
+          conditions.every(cond => this.applyConditionTree([item], cond).length > 0),
         );
       }
 
       if (aggregator === 'Or') {
         return items.filter(item =>
-          conditions.some((cond: any) => this.applyConditionTree([item], cond).length > 0),
+          conditions.some(cond => this.applyConditionTree([item], cond).length > 0),
         );
       }
     }
@@ -378,7 +385,7 @@ export default class ArrayCollection extends CosmosCollection {
     record: RecordData,
     field: string,
     operator: string,
-    value: any,
+    value: unknown,
   ): boolean {
     const fieldValue = record[field];
 
@@ -457,28 +464,31 @@ export default class ArrayCollection extends CosmosCollection {
         const aValue = a[field];
         const bValue = b[field];
 
-        // Handle null/undefined
-        // eslint-disable-next-line no-continue
-        if (aValue == null && bValue == null) continue;
-        if (aValue == null) return ascending ? 1 : -1;
-        if (bValue == null) return ascending ? -1 : 1;
-
-        // Compare values
-        let comparison = 0;
-
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          comparison = aValue.localeCompare(bValue);
-        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-          comparison = aValue - bValue;
-        } else if (aValue instanceof Date && bValue instanceof Date) {
-          comparison = aValue.getTime() - bValue.getTime();
+        // Handle null/undefined - skip to next sort criteria if both are null
+        if (aValue == null && bValue == null) {
+          // Both null, continue to next sort field
+        } else if (aValue == null) {
+          return ascending ? 1 : -1;
+        } else if (bValue == null) {
+          return ascending ? -1 : 1;
         } else {
-          // Fallback: convert to string and compare
-          comparison = String(aValue).localeCompare(String(bValue));
-        }
+          // Compare values
+          let comparison = 0;
 
-        if (comparison !== 0) {
-          return ascending ? comparison : -comparison;
+          if (typeof aValue === 'string' && typeof bValue === 'string') {
+            comparison = aValue.localeCompare(bValue);
+          } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+            comparison = aValue - bValue;
+          } else if (aValue instanceof Date && bValue instanceof Date) {
+            comparison = aValue.getTime() - bValue.getTime();
+          } else {
+            // Fallback: convert to string and compare
+            comparison = String(aValue).localeCompare(String(bValue));
+          }
+
+          if (comparison !== 0) {
+            return ascending ? comparison : -comparison;
+          }
         }
       }
 
@@ -492,6 +502,8 @@ export default class ArrayCollection extends CosmosCollection {
   override async create(caller: Caller, data: RecordData[]): Promise<RecordData[]> {
     const results: RecordData[] = [];
 
+    // Sequential execution required: each array item must be added one at a time to maintain
+    // consistent ordering and prevent race conditions when multiple items target the same parent
     for (const item of data) {
       const parentId = item[this.parentIdField] as string;
 
@@ -499,12 +511,13 @@ export default class ArrayCollection extends CosmosCollection {
         throw new Error(`${this.parentIdField} is required to create array items`);
       }
 
-      // Remove parent ID and composite ID from the item data
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { id, [this.parentIdField]: _, ...itemData } = item;
+      // Remove parent ID and composite ID from the item data using destructuring
+      const { id: unusedItemId, [this.parentIdField]: unusedParentIdValue, ...itemData } = item;
+      void unusedItemId;
+      void unusedParentIdValue;
 
       // Fetch the parent record
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistent ordering
       const parentRecords = await this.parentCollection.list(
         caller,
         new PaginatedFilter({
@@ -524,9 +537,8 @@ export default class ArrayCollection extends CosmosCollection {
       const newArray = [...currentArray, itemData];
       const newIndex = currentArray.length;
 
-      // Update the parent record
-
-      // eslint-disable-next-line no-await-in-loop
+      // Update the parent record - sequential to prevent conflicts
+      // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
       await this.parentCollection.update(
         caller,
         new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
@@ -550,11 +562,13 @@ export default class ArrayCollection extends CosmosCollection {
     // List all records matching the filter
     const records = await this.list(caller, new PaginatedFilter(filter), new Projection('id'));
 
+    // Sequential execution required: updating array items must be done one at a time
+    // to prevent conflicts when multiple updates target the same parent document
     for (const record of records) {
       const { parentId, index } = this.parseCompositeId(record.id as string);
 
       // Fetch the parent record
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
       const parentRecords = await this.parentCollection.list(
         caller,
         new PaginatedFilter({
@@ -563,23 +577,27 @@ export default class ArrayCollection extends CosmosCollection {
         new Projection('id', this.arrayFieldPath),
       );
 
-      // eslint-disable-next-line no-continue
-      if (parentRecords.length === 0) continue;
+      // Skip if parent not found or item doesn't exist
+      if (parentRecords.length > 0) {
+        const parentRecord = parentRecords[0];
+        const array = this.getArrayFromParent(parentRecord);
 
-      const parentRecord = parentRecords[0];
-      const array = this.getArrayFromParent(parentRecord);
+        if (array[index]) {
+          // Update the item at the specified index
+          const currentItem =
+            typeof array[index] === 'object' && array[index] !== null
+              ? (array[index] as Record<string, unknown>)
+              : {};
+          array[index] = { ...currentItem, ...patch };
 
-      if (array[index]) {
-        // Update the item at the specified index
-        array[index] = { ...array[index], ...patch };
-
-        // Update the parent record
-        // eslint-disable-next-line no-await-in-loop
-        await this.parentCollection.update(
-          caller,
-          new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
-          { [this.arrayFieldPath]: array },
-        );
+          // Update the parent record - sequential to prevent conflicts
+          // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
+          await this.parentCollection.update(
+            caller,
+            new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
+            { [this.arrayFieldPath]: array },
+          );
+        }
       }
     }
   }
@@ -604,10 +622,11 @@ export default class ArrayCollection extends CosmosCollection {
       recordsByParent.get(parentId)?.push(index);
     }
 
-    // Delete items from each parent
+    // Sequential execution required: deleting array items must be done one parent at a time
+    // to prevent conflicts and ensure data consistency
     for (const [parentId, indices] of recordsByParent) {
       // Fetch the parent record
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
       const parentRecords = await this.parentCollection.list(
         caller,
         new PaginatedFilter({
@@ -616,26 +635,26 @@ export default class ArrayCollection extends CosmosCollection {
         new Projection('id', this.arrayFieldPath),
       );
 
-      // eslint-disable-next-line no-continue
-      if (parentRecords.length === 0) continue;
+      // Skip if parent not found
+      if (parentRecords.length > 0) {
+        const parentRecord = parentRecords[0];
+        const array = this.getArrayFromParent(parentRecord);
 
-      const parentRecord = parentRecords[0];
-      const array = this.getArrayFromParent(parentRecord);
+        // Remove items at the specified indices (sort in reverse to avoid index shifting)
+        const sortedIndices = indices.sort((a, b) => b - a);
 
-      // Remove items at the specified indices (sort in reverse to avoid index shifting)
-      const sortedIndices = indices.sort((a, b) => b - a);
+        for (const index of sortedIndices) {
+          array.splice(index, 1);
+        }
 
-      for (const index of sortedIndices) {
-        array.splice(index, 1);
+        // Update the parent record - sequential to prevent conflicts
+        // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
+        await this.parentCollection.update(
+          caller,
+          new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
+          { [this.arrayFieldPath]: array },
+        );
       }
-
-      // Update the parent record
-      // eslint-disable-next-line no-await-in-loop
-      await this.parentCollection.update(
-        caller,
-        new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
-        { [this.arrayFieldPath]: array },
-      );
     }
   }
 
@@ -646,14 +665,15 @@ export default class ArrayCollection extends CosmosCollection {
     caller: Caller,
     filter: Filter,
     aggregation: Aggregation,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     limit?: number,
-  ): Promise<any[]> {
+  ): Promise<Array<{ value: number; group: Record<string, unknown> }>> {
+    void limit; // Unused parameter required by interface
+
     // Only support Count operation
     if (aggregation.operation !== 'Count') {
       throw new Error(
-        // eslint-disable-next-line max-len
-        `Aggregation operation '${aggregation.operation}' is not supported for array collections. Only Count is supported.`,
+        `Aggregation operation '${aggregation.operation}' is not supported for ` +
+          `array collections. Only Count is supported.`,
       );
     }
 

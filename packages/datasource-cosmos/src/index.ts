@@ -1,9 +1,11 @@
 import { CosmosClient, CosmosClientOptions } from '@azure/cosmos';
 import {
+  Caller,
   CollectionSchema,
   ColumnSchema,
   DataSourceFactory,
   Logger,
+  PaginatedFilter,
   Projection,
 } from '@forestadmin/datasource-toolkit';
 
@@ -136,14 +138,14 @@ export function createCosmosDataSource(
     // Add virtual array collections if specified
     if (virtualArrayCollections && virtualArrayCollections.length > 0) {
       // Track created virtual collections for dependency resolution
-      const createdVirtualCollections = new Map<string, any>();
+      const createdVirtualCollections = new Map<string, ArrayCollection | CosmosCollection>();
 
       for (const config of virtualArrayCollections) {
         try {
           logger?.(
             'Info',
-            // eslint-disable-next-line max-len
-            `Creating virtual collection '${config.collectionName}' for array field '${config.arrayFieldPath}'`,
+            `Creating virtual collection '${config.collectionName}' for array ` +
+              `field '${config.arrayFieldPath}'`,
           );
 
           // Find the parent collection (could be physical or virtual)
@@ -152,169 +154,174 @@ export function createCosmosDataSource(
           if (!parentCollection) {
             logger?.(
               'Warn',
-              // eslint-disable-next-line max-len
-              `Parent collection '${config.parentContainerName}' not found for virtual array collection '${config.collectionName}'`,
+              `Parent collection '${config.parentContainerName}' not found for ` +
+                `virtual array collection '${config.collectionName}'`,
             );
-            // eslint-disable-next-line no-continue
-            continue;
-          }
+          } else {
+            let arraySchema: CosmosSchema | null = null;
 
-          let arraySchema: CosmosSchema;
+            // Check if parent is a virtual ArrayCollection
+            const isParentVirtual = parentCollection instanceof ArrayCollection;
 
-          // Check if parent is a virtual ArrayCollection
-          const isParentVirtual = parentCollection instanceof ArrayCollection;
-
-          if (isParentVirtual) {
-            // For nested virtual collections, introspect from the parent's schema
-            logger?.(
-              'Info',
-              // eslint-disable-next-line max-len
-              `Parent '${config.parentContainerName}' is a virtual collection, introspecting from its schema`,
-            );
-
-            // Get the field schema from the parent collection
-            const parentSchema = parentCollection.schema;
-            const arrayField = parentSchema.fields[config.arrayFieldPath];
-
-            if (!arrayField || arrayField.type !== 'Column') {
+            if (isParentVirtual) {
+              // For nested virtual collections, introspect from the parent's schema
               logger?.(
-                'Warn',
-                // eslint-disable-next-line max-len
-                `Array field '${config.arrayFieldPath}' not found in parent virtual collection '${config.parentContainerName}'`,
+                'Info',
+                `Parent '${config.parentContainerName}' is a virtual collection, ` +
+                  `introspecting from its schema`,
               );
-              // eslint-disable-next-line no-continue
-              continue;
-            }
 
-            // For nested arrays, we need to fetch actual data to introspect the structure
-            // Use the parent ArrayCollection to get sample data
-            // eslint-disable-next-line no-await-in-loop
-            const sampleRecords = await (parentCollection as ArrayCollection).list(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              {} as any,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              { limit: 100 } as any,
-              new Projection(config.arrayFieldPath),
-            );
+              // Get the field schema from the parent collection
+              const parentSchema = parentCollection.schema;
+              const arrayField = parentSchema.fields[config.arrayFieldPath];
 
-            // Collect array items from sample records
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const arrayItems: any[] = [];
+              if (!arrayField || arrayField.type !== 'Column') {
+                logger?.(
+                  'Warn',
+                  `Array field '${config.arrayFieldPath}' not found in parent ` +
+                    `virtual collection '${config.parentContainerName}'`,
+                );
+              } else {
+                // For nested arrays, we need to fetch actual data to introspect the structure
+                // Use the parent ArrayCollection to get sample data
+                // Sequential: we need sample data to introspect array structure
+                // eslint-disable-next-line no-await-in-loop -- Sequential introspection required
+                const sampleRecords = await (parentCollection as ArrayCollection).list(
+                  {} as Caller,
+                  new PaginatedFilter({
+                    page: { limit: 100, skip: 0, apply: (records: unknown[]) => records },
+                  }),
+                  new Projection(config.arrayFieldPath),
+                );
 
-            for (const record of sampleRecords) {
-              const value = record[config.arrayFieldPath];
+                // Collect array items from sample records
+                const arrayItems: unknown[] = [];
 
-              if (Array.isArray(value)) {
-                arrayItems.push(...value);
-              }
-            }
+                for (const record of sampleRecords) {
+                  const value = record[config.arrayFieldPath];
 
-            if (arrayItems.length === 0) {
-              logger?.(
-                'Warn',
-                // eslint-disable-next-line max-len
-                `No array items found in field '${config.arrayFieldPath}' of virtual collection '${config.parentContainerName}'`,
-              );
-              // eslint-disable-next-line no-continue
-              continue;
-            }
+                  if (Array.isArray(value)) {
+                    arrayItems.push(...value);
+                  }
+                }
 
-            // Analyze array items to infer schema
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const fieldTypes: Record<string, any[]> = {};
+                if (arrayItems.length === 0) {
+                  logger?.(
+                    'Warn',
+                    `No array items found in field '${config.arrayFieldPath}' of ` +
+                      `virtual collection '${config.parentContainerName}'`,
+                  );
+                } else {
+                  // Analyze array items to infer schema
+                  const fieldTypes: Record<string, CosmosDataType[]> = {};
 
-            for (const item of arrayItems) {
-              if (typeof item === 'object' && item !== null) {
-                // eslint-disable-next-line @typescript-eslint/no-shadow
-                for (const [key, value] of Object.entries(item)) {
-                  if (!fieldTypes[key]) {
-                    fieldTypes[key] = [];
+                  for (const item of arrayItems) {
+                    if (typeof item === 'object' && item !== null) {
+                      for (const [fieldKey, value] of Object.entries(item)) {
+                        if (!fieldTypes[fieldKey]) {
+                          fieldTypes[fieldKey] = [];
+                        }
+
+                        const type = TypeConverter.inferTypeFromValue(value);
+                        fieldTypes[fieldKey].push(type);
+                      }
+                    }
                   }
 
-                  const type = TypeConverter.inferTypeFromValue(value);
-                  fieldTypes[key].push(type);
+                  // Build schema from inferred types
+                  arraySchema = {};
+
+                  for (const [fieldName, types] of Object.entries(fieldTypes)) {
+                    const uniqueTypes = Array.from(new Set(types));
+                    const commonType = TypeConverter.getMostSpecificType(uniqueTypes);
+                    const nullable = uniqueTypes.includes('null');
+
+                    arraySchema[fieldName] = {
+                      type: commonType,
+                      nullable,
+                      indexed: true,
+                    };
+                  }
                 }
               }
+            } else if (!databaseName) {
+              // For physical containers, use the existing introspection method
+              // Sequential: we need to introspect the array field structure
+              logger?.(
+                'Warn',
+                `Database name is required to introspect physical container for ` +
+                  `virtual collection '${config.collectionName}'`,
+              );
+            } else {
+              // Sequential: we need to introspect the array field structure
+              // eslint-disable-next-line no-await-in-loop -- Sequential introspection required
+              arraySchema = await Introspector.introspectArrayField(
+                client,
+                databaseName,
+                config.parentContainerName,
+                config.arrayFieldPath,
+              );
             }
 
-            // Build schema from inferred types
-            arraySchema = {};
+            if (arraySchema) {
+              // Convert CosmosSchema to Forest Admin fields
+              const fields: Record<string, ColumnSchema> = {};
 
-            for (const [fieldName, types] of Object.entries(fieldTypes)) {
-              const uniqueTypes = Array.from(new Set(types));
-              const commonType = TypeConverter.getMostSpecificType(uniqueTypes as any);
-              const nullable = uniqueTypes.includes('null');
+              for (const [fieldName, fieldInfo] of Object.entries(arraySchema)) {
+                const columnType = TypeConverter.getColumnTypeFromDataType(
+                  fieldInfo.type as CosmosDataType,
+                );
+                const operators = TypeConverter.operatorsForColumnType(columnType);
+                fields[fieldName] = {
+                  columnType,
+                  filterOperators: operators,
+                  isPrimaryKey: false,
+                  isReadOnly: false,
+                  isSortable: TypeConverter.isSortable(fieldInfo.type as CosmosDataType),
+                  type: 'Column',
+                } as ColumnSchema;
+              }
 
-              arraySchema[fieldName] = {
-                type: commonType,
-                nullable,
-                indexed: true,
+              // Create collection schema with introspected fields
+              const collectionSchema: CollectionSchema = {
+                actions: {},
+                charts: [],
+                countable: true,
+                fields,
+                searchable: true,
+                segments: [],
               };
+
+              // Create the virtual array collection (without virtualized child fields yet)
+              const arrayCollection = new ArrayCollection(
+                datasource,
+                parentCollection as CosmosCollection,
+                config.collectionName,
+                config.arrayFieldPath,
+                collectionSchema,
+                logger,
+                client,
+                [], // Empty for now, will be set after all collections are created
+              );
+
+              // Add the collection to the datasource
+              datasource.addCollection(arrayCollection);
+              createdVirtualCollections.set(config.collectionName, arrayCollection);
+
+              logger?.(
+                'Info',
+                `Successfully created virtual collection '${config.collectionName}'`,
+              );
             }
-          } else {
-            // For physical containers, use the existing introspection method
-            // eslint-disable-next-line no-await-in-loop
-            arraySchema = await Introspector.introspectArrayField(
-              client,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              databaseName!,
-              config.parentContainerName,
-              config.arrayFieldPath,
-            );
           }
-
-          // Convert CosmosSchema to Forest Admin fields
-          const fields: Record<string, ColumnSchema> = {};
-
-          for (const [fieldName, fieldInfo] of Object.entries(arraySchema)) {
-            const columnType = TypeConverter.getColumnTypeFromDataType(
-              fieldInfo.type as CosmosDataType,
-            );
-            const operators = TypeConverter.operatorsForColumnType(columnType);
-            fields[fieldName] = {
-              columnType,
-              filterOperators: operators,
-              isPrimaryKey: false,
-              isReadOnly: false,
-              isSortable: TypeConverter.isSortable(fieldInfo.type as CosmosDataType),
-              type: 'Column',
-            } as ColumnSchema;
-          }
-
-          // Create collection schema with introspected fields
-          const collectionSchema: CollectionSchema = {
-            actions: {},
-            charts: [],
-            countable: true,
-            fields,
-            searchable: true,
-            segments: [],
-          };
-
-          // Create the virtual array collection (without virtualized child fields yet)
-          const arrayCollection = new ArrayCollection(
-            datasource,
-            parentCollection as any,
-            config.collectionName,
-            config.arrayFieldPath,
-            collectionSchema,
-            logger,
-            client,
-            [], // Empty for now, will be set after all collections are created
-          );
-
-          // Add the collection to the datasource
-          datasource.addCollection(arrayCollection);
-          createdVirtualCollections.set(config.collectionName, arrayCollection);
-
-          logger?.('Info', `Successfully created virtual collection '${config.collectionName}'`);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorStack = error instanceof Error ? error.stack : '';
           logger?.(
             'Warn',
-            // eslint-disable-next-line max-len
-            `Failed to create virtual array collection '${config.collectionName}': ${error.message}`,
+            `Failed to create virtual array collection '${config.collectionName}': ${errorMessage}`,
           );
-          logger?.('Debug', `Error stack: ${error.stack}`);
+          logger?.('Debug', `Error stack: ${errorStack}`);
         }
       }
 
@@ -338,10 +345,8 @@ export function createCosmosDataSource(
               parentCollection.setVirtualizedChildFields(childVirtualFields);
               logger?.(
                 'Info',
-                // eslint-disable-next-line max-len
-                `Set virtualized child fields for virtual collection '${parentName}': [${childVirtualFields.join(
-                  ', ',
-                )}]`,
+                `Set virtualized child fields for virtual collection '${parentName}': ` +
+                  `[${childVirtualFields.join(', ')}]`,
               );
             }
 
@@ -350,18 +355,17 @@ export function createCosmosDataSource(
               parentCollection.markVirtualizedFieldsAsNonSortable(childVirtualFields);
               logger?.(
                 'Info',
-                // eslint-disable-next-line max-len
-                `Marked virtualized array fields as non-sortable for '${parentName}': [${childVirtualFields.join(
-                  ', ',
-                )}]`,
+                `Marked virtualized array fields as non-sortable for '${parentName}': ` +
+                  `[${childVirtualFields.join(', ')}]`,
               );
             }
           }
         } catch (error) {
           // Parent collection might not exist
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           logger?.(
             'Debug',
-            `Skipping virtualized field setup for '${parentName}': ${error.message}`,
+            `Skipping virtualized field setup for '${parentName}': ${errorMessage}`,
           );
         }
       }

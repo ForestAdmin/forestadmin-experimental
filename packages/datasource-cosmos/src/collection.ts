@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable max-len */
 import { CosmosClient } from '@azure/cosmos';
 import {
   AggregateResult,
@@ -132,9 +130,10 @@ export default class CosmosCollection extends BaseCollection {
         querySpec.query.includes('.')
       ) {
         throw new Error(
-          `Cosmos DB query failed. This may be due to querying/filtering on nested fields ` +
-            `without proper indexing. Please configure your Cosmos DB container's indexing policy ` +
-            `to include the nested paths being queried. Original error: ${error.message}`,
+          `Cosmos DB query failed. This may be due to querying/filtering on ` +
+            `nested fields without proper indexing. Please configure your ` +
+            `Cosmos DB container's indexing policy to include the nested paths ` +
+            `being queried. Original error: ${error.message}`,
         );
       }
 

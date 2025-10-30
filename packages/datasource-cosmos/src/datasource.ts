@@ -114,9 +114,8 @@ export default class CosmosDataSource extends BaseDataSource<CosmosCollection> {
       if (key in values) {
         const paramName = `@param${paramCounter}`;
         paramCounter += 1;
-        // Type assertion: contextVariables should contain JSON-serializable values
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        parameters.push({ name: paramName, value: values[key] as any });
+        // Context variables should contain JSON-serializable values for Cosmos DB parameters
+        parameters.push({ name: paramName, value: values[key] as string | number | boolean });
 
         return paramName;
       }

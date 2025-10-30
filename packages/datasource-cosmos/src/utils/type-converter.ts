@@ -161,15 +161,14 @@ export default class TypeConverter {
   /**
    * Check if an object is a GeoJSON Point
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static isGeoPoint(value: any): boolean {
-    return (
-      value &&
-      typeof value === 'object' &&
-      value.type === 'Point' &&
-      Array.isArray(value.coordinates) &&
-      value.coordinates.length === 2
-    );
+  private static isGeoPoint(value: unknown): boolean {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const obj = value as Record<string, unknown>;
+
+    return obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length === 2;
   }
 
   /**

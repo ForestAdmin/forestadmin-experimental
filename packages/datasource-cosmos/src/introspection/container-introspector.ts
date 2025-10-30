@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { CosmosClient } from '@azure/cosmos';
 
 import { OverrideTypeConverter } from './builder';
@@ -38,142 +37,23 @@ export interface ArrayCollectionMetadata {
 }
 
 /**
- * Introspect a Cosmos DB container to infer the schema from sample documents
- * with support for complex nested objects
+ * Check if an object is a GeoJSON Point
  */
-export default async function introspectContainerV2(
-  cosmosClient: CosmosClient,
-  collectionName: string,
-  databaseName: string,
-  containerName: string,
-  partitionKeyPath?: string,
-  sampleSize = 100,
-  overrideTypeConverter?: OverrideTypeConverter,
-  enableCount?: boolean,
-  options: IntrospectionOptions = {},
-): Promise<ModelCosmos> {
-  const { flattenNestedObjects = true, maxDepth = 5, introspectArrayItems = false } = options;
-
-  const database = cosmosClient.database(databaseName);
-  const container = database.container(containerName);
-
-  // Get container metadata to determine partition key if not provided
-  let actualPartitionKeyPath = partitionKeyPath;
-
-  if (!actualPartitionKeyPath) {
-    const { resource: containerDef } = await container.read();
-    actualPartitionKeyPath = containerDef.partitionKey?.paths?.[0] || '/id';
+function isGeoPointInternal(value: unknown): boolean {
+  if (!value || typeof value !== 'object') {
+    return false;
   }
 
-  // Sample documents to infer schema
-  const querySpec = {
-    query: `SELECT TOP ${sampleSize} * FROM c`,
-  };
+  const obj = value as Record<string, unknown>;
 
-  const { resources: sampleDocuments } = await container.items.query(querySpec).fetchAll();
-
-  // Infer schema from sample documents with nested object support
-  const schema = inferSchemaFromDocuments(
-    sampleDocuments,
-    flattenNestedObjects,
-    maxDepth,
-    introspectArrayItems,
-  );
-
-  return new ModelCosmos(
-    cosmosClient,
-    collectionName,
-    databaseName,
-    containerName,
-    actualPartitionKeyPath,
-    schema,
-    overrideTypeConverter,
-    enableCount,
-  );
-}
-
-/**
- * Infer schema from a collection of sample documents with nested support
- */
-function inferSchemaFromDocuments(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  documents: any[],
-  flattenNestedObjects: boolean,
-  maxDepth: number,
-  introspectArrayItems: boolean,
-): CosmosSchema {
-  if (documents.length === 0) {
-    return {};
-  }
-
-  const schema: CosmosSchema = {};
-  const fieldTypes: Record<string, CosmosDataType[]> = {};
-  const fieldPresence: Record<string, number> = {}; // Track how many docs have each field
-
-  // Analyze each document to collect field types
-  for (const doc of documents) {
-    const fieldsInDoc = new Set<string>();
-    analyzeDocument(
-      doc,
-      fieldTypes,
-      '',
-      0,
-      maxDepth,
-      flattenNestedObjects,
-      introspectArrayItems,
-      fieldsInDoc,
-    );
-
-    // Track field presence
-    for (const field of fieldsInDoc) {
-      fieldPresence[field] = (fieldPresence[field] || 0) + 1;
-    }
-  }
-
-  // Convert collected field types to schema
-  for (const [fieldName, types] of Object.entries(fieldTypes)) {
-    // Skip Cosmos DB system fields (start with _)
-    if (!fieldName.startsWith('_') || fieldName === '_id') {
-      // Skip parent fields if we have child fields (when flattening is enabled)
-      if (flattenNestedObjects) {
-        const childFieldPattern = `${fieldName}->`;
-        const hasDirectChildFields = Object.keys(fieldTypes).some(
-          otherField => otherField !== fieldName && otherField.startsWith(childFieldPattern),
-        );
-
-        if (hasDirectChildFields) {
-          // Don't skip if it's an array or other type that doesn't get flattened
-          const wasFlattened = types.includes('object');
-
-          if (wasFlattened) {
-            // eslint-disable-next-line no-continue
-            continue; // Skip this parent field since it was flattened
-          }
-        }
-      }
-
-      // Get the most specific common type
-      const commonType = TypeConverter.getMostSpecificType(types);
-      // Field is nullable if it contains null OR is not present in all documents
-      const nullable = types.includes('null') || fieldPresence[fieldName] < documents.length;
-
-      schema[fieldName] = {
-        type: commonType,
-        nullable,
-        indexed: true, // Assume all fields can be indexed in Cosmos DB
-      };
-    }
-  }
-
-  return schema;
+  return obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length === 2;
 }
 
 /**
  * Recursively analyze a document to collect field types with nested object support
  */
-function analyzeDocument(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  obj: any,
+function analyzeDocumentInternal(
+  obj: unknown,
   fieldTypes: Record<string, CosmosDataType[]>,
   prefix: string,
   depth: number,
@@ -225,7 +105,7 @@ function analyzeDocument(
 
       for (const item of itemsToAnalyze) {
         if (typeof item === 'object' && item !== null) {
-          analyzeDocument(
+          analyzeDocumentInternal(
             item,
             fieldTypes,
             `${prefix}[]`,
@@ -253,7 +133,7 @@ function analyzeDocument(
       return;
     }
 
-    if (isGeoPoint(obj)) {
+    if (isGeoPointInternal(obj)) {
       if (prefix) {
         recordField(prefix, 'point');
       }
@@ -271,10 +151,10 @@ function analyzeDocument(
         !Array.isArray(value) &&
         flattenNestedObjects &&
         !(value instanceof Date) &&
-        !isGeoPoint(value)
+        !isGeoPointInternal(value)
       ) {
         // Recursively analyze nested objects if flattening is enabled
-        analyzeDocument(
+        analyzeDocumentInternal(
           value,
           fieldTypes,
           fieldName,
@@ -304,15 +184,125 @@ function analyzeDocument(
 }
 
 /**
- * Check if an object is a GeoJSON Point
+ * Infer schema from a collection of sample documents with nested support
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isGeoPoint(value: any): boolean {
-  return (
-    value &&
-    typeof value === 'object' &&
-    value.type === 'Point' &&
-    Array.isArray(value.coordinates) &&
-    value.coordinates.length === 2
+function inferSchemaFromDocumentsInternal(
+  documents: Array<Record<string, unknown>>,
+  flattenNestedObjects: boolean,
+  maxDepth: number,
+  introspectArrayItems: boolean,
+): CosmosSchema {
+  if (documents.length === 0) {
+    return {};
+  }
+
+  const schema: CosmosSchema = {};
+  const fieldTypes: Record<string, CosmosDataType[]> = {};
+  const fieldPresence: Record<string, number> = {}; // Track how many docs have each field
+
+  // Analyze each document to collect field types
+  for (const doc of documents) {
+    const fieldsInDoc = new Set<string>();
+    analyzeDocumentInternal(
+      doc,
+      fieldTypes,
+      '',
+      0,
+      maxDepth,
+      flattenNestedObjects,
+      introspectArrayItems,
+      fieldsInDoc,
+    );
+
+    // Track field presence
+    for (const field of fieldsInDoc) {
+      fieldPresence[field] = (fieldPresence[field] || 0) + 1;
+    }
+  }
+
+  // Convert collected field types to schema
+  for (const [fieldName, types] of Object.entries(fieldTypes)) {
+    // Skip Cosmos DB system fields (start with _)
+    if (!fieldName.startsWith('_') || fieldName === '_id') {
+      // Skip parent fields if we have child fields (when flattening is enabled)
+      if (flattenNestedObjects) {
+        const childFieldPattern = `${fieldName}->`;
+        const hasDirectChildFields = Object.keys(fieldTypes).some(
+          otherField => otherField !== fieldName && otherField.startsWith(childFieldPattern),
+        );
+
+        const wasFlattened = types.includes('object');
+
+        if (!(hasDirectChildFields && wasFlattened)) {
+          // Get the most specific common type
+          const commonType = TypeConverter.getMostSpecificType(types);
+          // Field is nullable if it contains null OR is not present in all documents
+          const nullable = types.includes('null') || fieldPresence[fieldName] < documents.length;
+
+          schema[fieldName] = {
+            type: commonType,
+            nullable,
+            indexed: true, // Assume all fields can be indexed in Cosmos DB
+          };
+        }
+      }
+    }
+  }
+
+  return schema;
+}
+
+/**
+ * Introspect a Cosmos DB container to infer the schema from sample documents
+ * with support for complex nested objects
+ */
+export default async function introspectContainer(
+  cosmosClient: CosmosClient,
+  collectionName: string,
+  databaseName: string,
+  containerName: string,
+  partitionKeyPath?: string,
+  sampleSize = 100,
+  overrideTypeConverter?: OverrideTypeConverter,
+  enableCount?: boolean,
+  options: IntrospectionOptions = {},
+): Promise<ModelCosmos> {
+  const { flattenNestedObjects = true, maxDepth = 5, introspectArrayItems = false } = options;
+
+  const database = cosmosClient.database(databaseName);
+  const container = database.container(containerName);
+
+  // Get container metadata to determine partition key if not provided
+  let actualPartitionKeyPath = partitionKeyPath;
+
+  if (!actualPartitionKeyPath) {
+    const { resource: containerDef } = await container.read();
+    actualPartitionKeyPath = containerDef.partitionKey?.paths?.[0] || '/id';
+  }
+
+  // Sample documents to infer schema
+  const querySpec = {
+    query: `SELECT TOP ${sampleSize} * FROM c`,
+  };
+
+  const { resources: sampleDocuments } = await container.items.query(querySpec).fetchAll();
+
+  // Infer schema from sample documents with nested object support
+  const schema = inferSchemaFromDocumentsInternal(
+    sampleDocuments,
+    flattenNestedObjects,
+    maxDepth,
+    introspectArrayItems,
+  );
+
+  return new ModelCosmos(
+    cosmosClient,
+    collectionName,
+    databaseName,
+    containerName,
+    actualPartitionKeyPath,
+    schema,
+    overrideTypeConverter,
+    enableCount,
   );
 }

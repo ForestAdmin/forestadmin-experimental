@@ -111,15 +111,14 @@ export default class Serializer {
   /**
    * Check if an object is a GeoJSON Point
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static isGeoPoint(value: any): boolean {
-    return (
-      value &&
-      typeof value === 'object' &&
-      value.type === 'Point' &&
-      Array.isArray(value.coordinates) &&
-      value.coordinates.length === 2
-    );
+  private static isGeoPoint(value: unknown): boolean {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const obj = value as Record<string, unknown>;
+
+    return obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length === 2;
   }
 
   /**
@@ -207,8 +206,7 @@ export default class Serializer {
   /**
    * Check if a value is a plain object (not an array, Date, or other special object)
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static isPlainObject(value: any): boolean {
+  private static isPlainObject(value: unknown): boolean {
     return (
       value !== null &&
       typeof value === 'object' &&
