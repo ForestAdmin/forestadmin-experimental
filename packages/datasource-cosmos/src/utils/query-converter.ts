@@ -214,28 +214,37 @@ export default class QueryConverter {
     this.reset();
 
     // Build SELECT clause
-    // For nested fields like 'address->city', we need to convert to Cosmos notation
-    // and alias them to preserve the arrow notation in results
-    // e.g., "c.address.city AS 'address->city'" so the result has the flattened field name
+    // Cosmos DB doesn't handle well selecting individual nested properties
+    // (e.g., c.accountingBalance.currency). Instead, select parent objects.
     const selectClause =
       projection && projection.length > 0
-        ? projection
-            .map(field => {
-              if (field === 'id') {
-                return 'c.id';
-              }
+        ? (() => {
+            const fieldsToSelect = new Set<string>();
 
-              // Convert arrow notation (->) to dot notation (.) for Cosmos DB
-              const cosmosField = field.replace(/->/g, '.');
-
-              // If field contains arrows (nested field), use an alias to preserve the original name
+            projection.forEach(field => {
               if (field.includes('->')) {
-                return `c.${cosmosField} AS '${field}'`;
+                // For nested fields like 'accountingBalance->currency',
+                // add the parent object 'accountingBalance' instead
+                const parentField = field.split('->')[0];
+                fieldsToSelect.add(parentField);
+              } else {
+                // Regular field, add as-is
+                fieldsToSelect.add(field);
               }
+            });
 
-              return `c.${cosmosField}`;
-            })
-            .join(', ')
+            return Array.from(fieldsToSelect)
+              .map(field => {
+                if (field === 'id') {
+                  return 'c.id';
+                }
+
+                const cosmosField = field.replace(/->/g, '.');
+
+                return `c.${cosmosField}`;
+              })
+              .join(', ');
+          })()
         : 'c';
 
     // Build WHERE clause
@@ -261,16 +270,14 @@ export default class QueryConverter {
   public getOrderByClause(sort?: Sort): string {
     if (!sort || sort.length === 0) return '';
 
-    const sortClauses = sort
-      .map(({ field, ascending }) => {
-        // Convert arrow notation (->) to dot notation (.) for Cosmos DB
-        const cosmosField = field.replace(/->/g, '.');
-        const fieldPath = field === 'id' ? 'c.id' : `c.${cosmosField}`;
-        const direction = ascending ? 'ASC' : 'DESC';
+    const sortClauses = sort.map(({ field, ascending }) => {
+      // Convert arrow notation (->) to dot notation (.) for Cosmos DB
+      const cosmosField = field.replace(/->/g, '.');
+      const fieldPath = `c.${cosmosField}`;
+      const direction = ascending ? 'ASC' : 'DESC';
 
-        return `${fieldPath} ${direction}`;
-      })
-      .filter(Boolean);
+      return `${fieldPath} ${direction}`;
+    });
 
     return sortClauses.join(', ');
   }

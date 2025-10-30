@@ -86,16 +86,33 @@ export default class TypeConverter {
   }
 
   /**
-   * Check if a string is a valid ISO date
+   * Check if a string is a valid date
    */
   private static isDateString(value: string): boolean {
-    // Match ISO 8601 date format
-    const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
-    if (!isoDateRegex.test(value)) return false;
+    // Match common date formats:
+    const isoDateRegex = /^\d{4}[-/]\d{2}[-/]\d{2}([T ]\d{2}:\d{2}:\d{2}(\.\d+)?Z?)?$/;
+    const usDateRegex = /^\d{2}\/\d{2}\/\d{4}( \d{2}:\d{2}:\d{2})?$/;
+    const shortDateRegex = /^\d{2}-\d{2}$/; // MM-DD format
 
-    const date = new Date(value);
+    const matches =
+      isoDateRegex.test(value) || usDateRegex.test(value) || shortDateRegex.test(value);
 
-    return !Number.isNaN(date.getTime());
+    if (!matches) {
+      return false;
+    }
+
+    // For short format (MM-DD), add current year to validate
+    let testValue = value;
+
+    if (shortDateRegex.test(value)) {
+      const currentYear = new Date().getFullYear();
+      testValue = `${currentYear}-${value}`;
+    }
+
+    const date = new Date(testValue);
+    const isValid = !Number.isNaN(date.getTime());
+
+    return isValid;
   }
 
   /**
@@ -180,6 +197,14 @@ export default class TypeConverter {
     if (uniqueTypes.every(t => ['string', 'null'].includes(t))) return 'string';
     if (uniqueTypes.every(t => ['boolean', 'null'].includes(t))) return 'boolean';
     if (uniqueTypes.every(t => ['date', 'null'].includes(t))) return 'date';
+
+    // Mixed date/string/null types -> treat as date (string values might be dates in other formats)
+    if (
+      uniqueTypes.every(t => ['date', 'string', 'null'].includes(t)) &&
+      uniqueTypes.includes('date')
+    ) {
+      return 'date';
+    }
 
     // Mixed numeric types -> number
     if (uniqueTypes.every(t => ['number', 'null'].includes(t))) return 'number';
