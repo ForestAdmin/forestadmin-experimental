@@ -79,7 +79,7 @@ export default class Action<TypingsSchema> {
             closed_at: null,
             updated_at: new Date().toISOString(),
             error_message: null,
-            role_ids_allowed_to_approve: [1],
+            requester_id: 1,
           },
         },
       },
