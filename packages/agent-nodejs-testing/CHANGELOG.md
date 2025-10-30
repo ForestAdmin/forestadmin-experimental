@@ -1,3 +1,10 @@
+## [0.38.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.38.0...agent-nodejs-testing@0.38.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* add requested_id in approval request ([#172](https://github.com/ForestAdmin/forestadmin-experimental/issues/172)) ([0a2876c](https://github.com/ForestAdmin/forestadmin-experimental/commit/0a2876ce18f9aafa712d2bb561ab70fec1f34533))
+
 # [0.38.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/agent-nodejs-testing@0.37.0...agent-nodejs-testing@0.38.0) (2025-10-30)
 
 
