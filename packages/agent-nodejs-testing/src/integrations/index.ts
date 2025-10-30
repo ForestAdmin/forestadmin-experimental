@@ -57,10 +57,17 @@ export async function createForestAgentClient(options: {
     .set('forest-secret-key', options.agentForestEnvSecret)
     .send(schema);
 
-  const httpRequester = createHttpRequester({
-    authSecret: options.agentForestAuthSecret,
-    url: agentUrl,
-  });
+  const httpRequester = createHttpRequester(
+    {
+      authSecret: options.agentForestAuthSecret,
+      url: agentUrl,
+    },
+    {
+      envSecret: options.agentForestEnvSecret,
+      authSecret: options.agentForestAuthSecret,
+      isProduction: false,
+    },
+  );
 
   const overridePermissions = async (permissions: PermissionsOverride) => {
     await superagent
@@ -99,8 +106,9 @@ export async function createTestableAgent<TypingsSchema extends TSchema = TSchem
     // 0 is a random port
     port: options?.port || 0,
     forestAdminClient: new ForestAdminClientMock(),
-    authSecret: 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
-    envSecret: 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
+    authSecret: options?.authSecret || 'b0bdf0a639c16bae8851dd24ee3d79ef0a352e957c5b86cb',
+    envSecret:
+      options?.envSecret || 'ceba742f5bc73946b34da192816a4d7177b3233fee7769955c29c0e90fd584f2',
   };
 
   const agent = createAgent<TypingsSchema>(agentOptions);

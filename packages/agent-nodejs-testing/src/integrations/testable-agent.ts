@@ -37,9 +37,12 @@ export default class TestableAgent<
     this.actionEndpoints = SchemaConverter.extractActionEndpoints(
       JSON.parse(await fs.readFile(this.agentOptions.schemaPath, 'utf8')),
     );
-    this.httpRequester = createHttpRequester({
-      url: `http://localhost:${this.agent.standaloneServerPort}`,
-      authSecret: this.agentOptions.authSecret,
-    });
+    this.httpRequester = createHttpRequester(
+      {
+        url: `http://localhost:${this.agent.standaloneServerPort}`,
+        authSecret: this.agentOptions.authSecret,
+      },
+      this.agentOptions,
+    );
   }
 }

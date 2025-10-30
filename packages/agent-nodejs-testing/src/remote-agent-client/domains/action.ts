@@ -1,5 +1,7 @@
 import type HttpRequester from '../http-requester';
 
+import jsonwebtoken from 'jsonwebtoken';
+
 import ActionField from '../action-fields/action-field';
 import ActionFieldCheckbox from '../action-fields/action-field-checkbox';
 import ActionFieldCheckboxGroup from '../action-fields/action-field-checkbox-group';
@@ -48,13 +50,14 @@ export default class Action<TypingsSchema> {
     this.fieldsFormStates = fieldsFormStates;
   }
 
-  async execute(): Promise<{ success: string; html?: string }> {
+  async execute(validateApproval?: boolean): Promise<{ success: string; html?: string }> {
     const requestBody = {
       data: {
         attributes: {
           collection_name: this.collectionName,
           ids: this.ids,
           values: this.fieldsFormStates.getFieldValues(),
+          signed_approval_request: validateApproval ? this.getSignedApprovalRequest() : undefined,
         },
         type: 'custom-action-requests',
       },
@@ -65,6 +68,24 @@ export default class Action<TypingsSchema> {
       path: this.actionPath,
       body: requestBody,
     });
+  }
+
+  private getSignedApprovalRequest(): string | undefined {
+    return jsonwebtoken.sign(
+      {
+        data: {
+          attributes: {
+            status: 'in-progress',
+            closed_at: null,
+            updated_at: new Date().toISOString(),
+            error_message: null,
+            role_ids_allowed_to_approve: [1],
+          },
+        },
+      },
+      this.httpRequester.agentOptions.envSecret,
+      { expiresIn: '1 hours' },
+    );
   }
 
   async setFields(fields: Record<string, unknown>): Promise<void> {

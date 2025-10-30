@@ -2,6 +2,8 @@ import { WriteStream } from 'fs';
 import { Deserializer } from 'jsonapi-serializer';
 import superagent from 'superagent';
 
+import { TestableAgentOptions } from '../integrations';
+
 export default class HttpRequester {
   private readonly deserializer: Deserializer;
 
@@ -14,6 +16,7 @@ export default class HttpRequester {
   constructor(
     private readonly token: string,
     private readonly options: { prefix?: string; url: string },
+    readonly agentOptions: TestableAgentOptions,
   ) {
     this.deserializer = new Deserializer({ keyForAttribute: 'camelCase' });
   }
