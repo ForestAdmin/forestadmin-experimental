@@ -647,6 +647,58 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
         // Note: Full create() test requires properly mocked parent collection
         // update chain and is better tested with real database
       });
+
+      it('should not store parent ID field in the physical array item', async () => {
+        let capturedUpdatePatch: any = null;
+
+        // Mock parent collection list to return the parent document
+        const mockParentList = jest.fn().mockResolvedValue([
+          {
+            id: 'order-1',
+            items: [{ sku: 'PROD-001', quantity: 2 }],
+          },
+        ]);
+
+        // Mock parent collection update to capture what gets written
+        const mockParentUpdate = jest.fn().mockImplementation((_caller, _filter, patch) => {
+          capturedUpdatePatch = patch;
+
+          return Promise.resolve();
+        });
+
+        // Replace parent collection methods
+        const { parentCollection } = arrayCollection as any;
+
+        parentCollection.list = mockParentList;
+        parentCollection.update = mockParentUpdate;
+
+        // Create a new item with parent ID included
+        await arrayCollection.create(caller, [
+          {
+            ordersId: 'order-1',
+            sku: 'PROD-004',
+            quantity: 5,
+            price: 99.99,
+          },
+        ]);
+
+        // Verify update was called
+        expect(mockParentUpdate).toHaveBeenCalled();
+
+        // Verify the parent ID field is NOT in the stored array item
+        expect(capturedUpdatePatch).toBeDefined();
+        expect(capturedUpdatePatch.items).toBeDefined();
+        expect(capturedUpdatePatch.items).toHaveLength(2);
+
+        const newItem = capturedUpdatePatch.items[1];
+        expect(newItem).toEqual({
+          sku: 'PROD-004',
+          quantity: 5,
+          price: 99.99,
+        });
+        expect(newItem).not.toHaveProperty('ordersId');
+        expect(newItem).not.toHaveProperty('id');
+      });
     });
 
     describe('Update operations', () => {
@@ -663,6 +715,80 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
 
         // Note: Full update() test requires properly mocked parent collection
         // and is better tested with real database
+      });
+
+      it('should not store parent ID field in the physical array item when updating', async () => {
+        let capturedUpdatePatch: any = null;
+
+        // Mock parent collection list to return records for filtering and parent fetching
+        const mockParentList = jest.fn().mockImplementation((_caller, filter) => {
+          // When filtering by composite ID (for list operation)
+          if (filter.conditionTree?.field === 'id') {
+            return Promise.resolve([
+              {
+                id: 'order-1',
+                items: [
+                  { sku: 'PROD-001', quantity: 2, price: 29.99 },
+                  { sku: 'PROD-002', quantity: 1, price: 49.99 },
+                ],
+              },
+            ]);
+          }
+
+          // Default case
+          return Promise.resolve([
+            {
+              id: 'order-1',
+              items: [
+                { sku: 'PROD-001', quantity: 2, price: 29.99 },
+                { sku: 'PROD-002', quantity: 1, price: 49.99 },
+              ],
+            },
+          ]);
+        });
+
+        // Mock parent collection update to capture what gets written
+        const mockParentUpdate = jest.fn().mockImplementation((_caller, _filter, patch) => {
+          capturedUpdatePatch = patch;
+
+          return Promise.resolve();
+        });
+
+        // Replace parent collection methods
+        const { parentCollection } = arrayCollection as any;
+
+        parentCollection.list = mockParentList;
+        parentCollection.update = mockParentUpdate;
+
+        // Update an item with parent ID included in the patch
+        await arrayCollection.update(
+          caller,
+          new Filter({
+            conditionTree: new ConditionTreeLeaf('id', 'Equal', 'order-1:1'),
+          }),
+          {
+            ordersId: 'order-1', // This should be filtered out
+            id: 'order-1:1', // This should be filtered out
+            quantity: 10,
+            price: 59.99,
+          },
+        );
+
+        // Verify update was called
+        expect(mockParentUpdate).toHaveBeenCalled();
+
+        // Verify the parent ID and composite ID fields are NOT in the stored array item
+        expect(capturedUpdatePatch).toBeDefined();
+        expect(capturedUpdatePatch.items).toBeDefined();
+
+        const updatedItem = capturedUpdatePatch.items[1];
+        expect(updatedItem).toMatchObject({
+          sku: 'PROD-002',
+          quantity: 10,
+          price: 59.99,
+        });
+        expect(updatedItem).not.toHaveProperty('ordersId');
+        expect(updatedItem).not.toHaveProperty('id');
       });
     });
 
