@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.0...datasource-cosmos@1.3.1) (2025-10-31)
+
+
+### Bug Fixes
+
+* **datasource-cosmos:** set cosmos id as non sortable ([#174](https://github.com/ForestAdmin/forestadmin-experimental/issues/174)) ([29baba2](https://github.com/ForestAdmin/forestadmin-experimental/commit/29baba2fbaae7050188f9ac7515f9773afe9edb8))
+
 # [1.3.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.2.0...datasource-cosmos@1.3.0) (2025-10-31)
 
 
