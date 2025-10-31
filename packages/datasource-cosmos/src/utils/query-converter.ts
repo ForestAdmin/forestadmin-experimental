@@ -25,8 +25,14 @@ export default class QueryConverter {
   private addParameter(value: unknown): string {
     const paramName = `@param${this.parameterCounter}`;
     this.parameterCounter += 1;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.parameters.push({ name: paramName, value: value as any });
+    // Cosmos DB parameters need to be cast as any since the Azure SDK accepts broader
+    // types than what TypeScript JSONValue allows (e.g., nested objects, arrays with
+    // mixed types). This is safe because Cosmos DB will serialize these values.
+    this.parameters.push({
+      name: paramName,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cosmos DB SDK
+      value: value as any,
+    });
 
     return paramName;
   }

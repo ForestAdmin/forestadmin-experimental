@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable max-len */
 import { CosmosClient } from '@azure/cosmos';
 import {
   AggregateResult,
@@ -45,6 +43,26 @@ export default class CosmosCollection extends BaseCollection {
     this.addSegments(modelSchema.segments);
 
     logger('Debug', `CosmosCollection - ${this.name} added`);
+  }
+
+  /**
+   * Mark virtualized array fields as non-sortable
+   * This should be called after virtual collections are created from array fields
+   */
+  public markVirtualizedFieldsAsNonSortable(virtualizedFieldPaths: string[]): void {
+    for (const fieldPath of virtualizedFieldPaths) {
+      const field = this.schema.fields[fieldPath];
+
+      if (field && field.type === 'Column') {
+        // Create a new field object with isSortable set to false
+        const updatedField = {
+          ...field,
+          isSortable: false,
+        };
+        // Replace the field in the schema
+        this.schema.fields[fieldPath] = updatedField;
+      }
+    }
   }
 
   async create(caller: Caller, data: RecordData[]): Promise<RecordData[]> {
@@ -112,9 +130,10 @@ export default class CosmosCollection extends BaseCollection {
         querySpec.query.includes('.')
       ) {
         throw new Error(
-          `Cosmos DB query failed. This may be due to querying/filtering on nested fields ` +
-            `without proper indexing. Please configure your Cosmos DB container's indexing policy ` +
-            `to include the nested paths being queried. Original error: ${error.message}`,
+          `Cosmos DB query failed. This may be due to querying/filtering on ` +
+            `nested fields without proper indexing. Please configure your ` +
+            `Cosmos DB container's indexing policy to include the nested paths ` +
+            `being queried. Original error: ${error.message}`,
         );
       }
 

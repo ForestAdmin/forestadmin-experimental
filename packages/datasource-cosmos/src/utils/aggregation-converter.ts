@@ -164,8 +164,7 @@ export default class AggregationConverter {
    * Process raw aggregation results into Forest Admin format
    */
   static processAggregationResults(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rawResults: any[],
+    rawResults: Array<Record<string, unknown>>,
     aggregation: Aggregation,
   ): AggregateResult[] {
     // Handle simple aggregation without grouping
@@ -174,9 +173,12 @@ export default class AggregationConverter {
         return [{ value: 0, group: {} }];
       }
 
+      const firstResult = rawResults[0];
+      const resultValue = (firstResult.aggregateValue ?? firstResult.value) as unknown;
+
       return [
         {
-          value: Serializer.serializeValue(rawResults[0].aggregateValue ?? rawResults[0].value),
+          value: Serializer.serializeValue(resultValue),
           group: {},
         },
       ];
@@ -184,8 +186,7 @@ export default class AggregationConverter {
 
     // Handle grouped aggregation
     return rawResults.map(result => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const group: Record<string, any> = {};
+      const group: Record<string, unknown> = {};
 
       if (aggregation.groups) {
         aggregation.groups.forEach((groupDef, index) => {

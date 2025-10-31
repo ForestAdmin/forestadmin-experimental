@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import { Container, CosmosClient, ItemDefinition, SqlQuerySpec } from '@azure/cosmos';
 import { RecordData } from '@forestadmin/datasource-toolkit';
 
@@ -72,6 +71,10 @@ export default class ModelCosmos {
     this.container = this.cosmosClient.database(databaseName).container(containerName);
   }
 
+  public getCosmosClient(): CosmosClient {
+    return this.cosmosClient;
+  }
+
   public async create(data: RecordData[]): Promise<RecordData[]> {
     const createdRecords: RecordData[] = [];
 
@@ -82,9 +85,10 @@ export default class ModelCosmos {
       });
     }
 
-    // Cosmos DB doesn't have a native bulk create, so we'll create items individually
-    // In production, you might want to use stored procedures or batch operations
-    // eslint-disable-next-line no-restricted-syntax
+    // Sequential execution required: Cosmos DB doesn't have a native bulk create API.
+    // While we could parallelize with Promise.all, we keep this sequential to maintain
+    // insertion order and ensure consistent error handling. This allows us to return
+    // partial results and provide better error context for each record.
     for (const record of data) {
       // Unflatten the record to restore nested structure for Cosmos DB
       const unflattenedRecord = Serializer.unflatten(record);
@@ -95,7 +99,7 @@ export default class ModelCosmos {
         ...unflattenedRecord,
       };
 
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- Sequential execution maintains order
       const { resource } = await this.container.items.create(itemToCreate);
       // Flatten and serialize the response
       createdRecords.push(Serializer.serialize(resource));
@@ -112,14 +116,15 @@ export default class ModelCosmos {
     // Unflatten the patch to restore nested structure for Cosmos DB
     const unflattenedPatch = Serializer.unflatten(patch);
 
-    // eslint-disable-next-line no-restricted-syntax
+    // Sequential execution required: Cosmos DB updates must be performed one at a time
+    // to ensure consistency and prevent conflicts with optimistic concurrency control
     for (const item of itemsToUpdate) {
       const partitionKeyValue = this.getPartitionKeyValue(item);
 
       // Deep merge the unflattened patch with the existing item
       const updatedItem = Serializer.deepMerge(item, unflattenedPatch);
 
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
       await this.container.item(item.id, partitionKeyValue).replace(updatedItem);
     }
   }
@@ -128,11 +133,12 @@ export default class ModelCosmos {
     // Similar to update, we need partition keys for deletion
     const itemsToDelete = await this.getItemsByIds(ids);
 
-    // eslint-disable-next-line no-restricted-syntax
+    // Sequential execution required: Cosmos DB deletes must be performed one at a time
+    // to ensure consistency and prevent conflicts
     for (const item of itemsToDelete) {
       const partitionKeyValue = this.getPartitionKeyValue(item);
 
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
       await this.container.item(item.id, partitionKeyValue).delete();
     }
   }
@@ -216,18 +222,17 @@ export default class ModelCosmos {
 
     // Handle nested paths (e.g., "/address/city")
     const keys = keyPath.split('/');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let value: any = item;
+    let value: unknown = item;
 
     for (const key of keys) {
-      if (value && typeof value === 'object') {
-        value = value[key];
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        value = (value as Record<string, unknown>)[key];
       } else {
         break;
       }
     }
 
-    return value;
+    return value as string | number;
   }
 
   /**
