@@ -58,7 +58,7 @@ export default class ModelToCollectionSchemaConverter {
       filterOperators: TypeConverter.operatorsForId(),
       validation: [],
       isReadOnly: false, // Can be set when creating documents
-      isSortable: true,
+      isSortable: false, // Cosmos DB doesn't support efficient sorting on id/partition key
       isPrimaryKey: true,
     };
 
