@@ -1,3 +1,13 @@
+## [1.3.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.1...datasource-cosmos@1.3.2) (2025-10-31)
+
+
+### Bug Fixes
+
+* **ci:** test ci ([#178](https://github.com/ForestAdmin/forestadmin-experimental/issues/178)) ([4268e92](https://github.com/ForestAdmin/forestadmin-experimental/commit/4268e9266dfe2f6035a8f931768b22d9262618f8))
+* **ci:** try the new setup ([#176](https://github.com/ForestAdmin/forestadmin-experimental/issues/176)) ([b03006f](https://github.com/ForestAdmin/forestadmin-experimental/commit/b03006f46a7cbeb6f1d8f2e6e0be85196872d875))
+* configure semantic-release npm plugin for OIDC auth ([ea6f439](https://github.com/ForestAdmin/forestadmin-experimental/commit/ea6f4395995e379effba6801b8b6f3249f510fb1))
+* use npm CLI with OIDC instead of semantic-release npm plugin ([d9e3386](https://github.com/ForestAdmin/forestadmin-experimental/commit/d9e3386b20b2688894363bc07f055ea572a0dfc8))
+
 ## [1.3.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.0...datasource-cosmos@1.3.1) (2025-10-31)
 
 
