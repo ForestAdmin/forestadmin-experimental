@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.2.0...datasource-cosmos@1.3.0) (2025-10-31)
+
+
+### Bug Fixes
+
+* add requested_id in approval request ([#172](https://github.com/ForestAdmin/forestadmin-experimental/issues/172)) ([0a2876c](https://github.com/ForestAdmin/forestadmin-experimental/commit/0a2876ce18f9aafa712d2bb561ab70fec1f34533))
+
+
+### Features
+
+* **approvals:** add a parameter in action.execute to validate approval ([#171](https://github.com/ForestAdmin/forestadmin-experimental/issues/171)) ([b8b4333](https://github.com/ForestAdmin/forestadmin-experimental/commit/b8b43339ae93a83c8445a5feaff7679a01ac1298))
+
 # [1.2.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.1.0...datasource-cosmos@1.2.0) (2025-10-30)
 
 
