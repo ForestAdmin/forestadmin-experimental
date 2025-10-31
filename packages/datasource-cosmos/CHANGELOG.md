@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.3...datasource-cosmos@1.3.4) (2025-10-31)
+
+
+### Bug Fixes
+
+* fix virtual object selection and edition ([#183](https://github.com/ForestAdmin/forestadmin-experimental/issues/183)) ([852ff32](https://github.com/ForestAdmin/forestadmin-experimental/commit/852ff325d51baece23be9423e94ca149f5d8341e))
+
 ## [1.3.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.2...datasource-cosmos@1.3.3) (2025-10-31)
 
 
