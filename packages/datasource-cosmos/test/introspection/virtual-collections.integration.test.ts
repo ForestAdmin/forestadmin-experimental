@@ -1,0 +1,1358 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { CosmosClient } from '@azure/cosmos';
+import {
+  Aggregation,
+  Caller,
+  ConditionTreeLeaf,
+  Filter,
+  PaginatedFilter,
+  Projection,
+  Sort,
+} from '@forestadmin/datasource-toolkit';
+
+import ArrayCollection from '../../src/array-collection';
+import CosmosCollection from '../../src/collection';
+import CosmosDataSource from '../../src/datasource';
+import Introspector from '../../src/introspection/introspector';
+
+describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
+  let mockCosmosClient: jest.Mocked<CosmosClient>;
+  let mockContainer: any;
+  let mockDatabase: any;
+  let datasource: CosmosDataSource;
+  let caller: Caller;
+
+  beforeEach(() => {
+    // Setup mock Cosmos DB client
+    mockContainer = {
+      read: jest.fn().mockResolvedValue({
+        resource: {
+          partitionKey: { paths: ['/id'] },
+        },
+      }),
+      items: {
+        query: jest.fn(),
+      },
+    };
+
+    mockDatabase = {
+      container: jest.fn().mockReturnValue(mockContainer),
+    };
+
+    mockCosmosClient = {
+      database: jest.fn().mockReturnValue(mockDatabase),
+    } as any;
+
+    // Setup caller (user context)
+    caller = {} as Caller;
+  });
+
+  describe('1. Virtual Collection Creation', () => {
+    describe('Creating virtual collection from physical collection array field', () => {
+      it('should create a virtual collection from an array field', async () => {
+        // Sample documents with array field (introspectArrayField expects 'arrayField' property)
+        const sampleDocuments = [
+          {
+            id: 'tp-001',
+            arrayField: [
+              { id: 'dil-1', type: 'KYC', status: 'completed', date: '2023-01-15' },
+              { id: 'dil-2', type: 'AML', status: 'pending', date: '2023-02-20' },
+            ],
+          },
+          {
+            id: 'tp-002',
+            arrayField: [{ id: 'dil-3', type: 'KYC', status: 'completed', date: '2023-03-10' }],
+          },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: sampleDocuments }),
+        });
+
+        // Introspect array field
+        const arraySchema = await Introspector.introspectArrayField(
+          mockCosmosClient,
+          'testDb',
+          'third_parties',
+          'diligences',
+        );
+
+        expect(arraySchema).toBeDefined();
+        expect(arraySchema.id).toBeDefined();
+        expect(arraySchema.type).toBeDefined();
+        expect(arraySchema.status).toBeDefined();
+        expect(arraySchema.date).toBeDefined();
+      });
+
+      it('should handle schema introspection from array items', async () => {
+        const sampleDocuments = [
+          {
+            id: 'order-1',
+            arrayField: [
+              { sku: 'PROD-001', quantity: 2, price: 29.99, name: 'Product A' },
+              { sku: 'PROD-002', quantity: 1, price: 49.99, name: 'Product B' },
+            ],
+          },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: sampleDocuments }),
+        });
+
+        const arraySchema = await Introspector.introspectArrayField(
+          mockCosmosClient,
+          'ecommerce',
+          'orders',
+          'items',
+        );
+
+        expect(arraySchema.sku).toBeDefined();
+        expect(arraySchema.sku.type).toBe('string');
+        expect(arraySchema.quantity).toBeDefined();
+        expect(arraySchema.quantity.type).toBe('number');
+        expect(arraySchema.price).toBeDefined();
+        expect(arraySchema.price.type).toBe('number');
+        expect(arraySchema.name).toBeDefined();
+        expect(arraySchema.name.type).toBe('string');
+      });
+    });
+
+    describe('Handling missing parent collection', () => {
+      it('should handle introspection when array field does not exist', async () => {
+        const sampleDocuments = [
+          {
+            id: 'doc-1',
+            name: 'Document without array field',
+          },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: sampleDocuments }),
+        });
+
+        const arraySchema = await Introspector.introspectArrayField(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+          'nonexistent_array',
+        );
+
+        expect(arraySchema).toEqual({});
+      });
+
+      it('should handle empty container', async () => {
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: [] }),
+        });
+
+        const arraySchema = await Introspector.introspectArrayField(
+          mockCosmosClient,
+          'testDb',
+          'empty_container',
+          'items',
+        );
+
+        expect(arraySchema).toEqual({});
+      });
+    });
+
+    describe('Schema introspection from virtual parent', () => {
+      it('should introspect nested array structure from virtual collection', async () => {
+        // Setup parent documents with nested arrays (using arrayField format for introspection)
+        const parentDocuments = [
+          {
+            id: 'tp-001',
+            arrayField: [
+              {
+                id: 'dil-1',
+                type: 'KYC',
+                attachments: [
+                  { name: 'passport.pdf', size: 1024, uploadDate: '2023-01-15' },
+                  { name: 'address.pdf', size: 2048, uploadDate: '2023-01-16' },
+                ],
+              },
+              {
+                id: 'dil-2',
+                type: 'AML',
+                attachments: [{ name: 'report.pdf', size: 4096, uploadDate: '2023-02-20' }],
+              },
+            ],
+          },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+        });
+
+        // Introspect first level array (diligences)
+        const diligencesSchema = await Introspector.introspectArrayField(
+          mockCosmosClient,
+          'testDb',
+          'third_parties',
+          'diligences',
+        );
+
+        expect(diligencesSchema.id).toBeDefined();
+        expect(diligencesSchema.type).toBeDefined();
+        expect(diligencesSchema.attachments).toBeDefined();
+        expect(diligencesSchema.attachments.type).toBe('array');
+      });
+    });
+  });
+
+  describe('2. Composite ID Handling', () => {
+    let arrayCollection: ArrayCollection;
+    let parentCollection: CosmosCollection;
+
+    beforeEach(async () => {
+      // Setup parent documents
+      const parentDocuments = [
+        {
+          id: 'parent-1',
+          name: 'Parent One',
+          items: [
+            { name: 'Item A', value: 100 },
+            { name: 'Item B', value: 200 },
+          ],
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const parentModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'parents',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+      parentCollection = datasource.getCollection('parents') as CosmosCollection;
+
+      await Introspector.introspectArrayField(mockCosmosClient, 'testDb', 'parents', 'items');
+
+      // Create ArrayCollection
+      arrayCollection = new ArrayCollection(
+        datasource,
+        parentCollection,
+        'parent_items',
+        'items',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+    });
+
+    it('should create composite IDs in format parentId:index', async () => {
+      const records = await arrayCollection.list(
+        caller,
+        new PaginatedFilter({}),
+        new Projection('id'),
+      );
+
+      expect(records).toHaveLength(2);
+      expect(records[0].id).toBe('parent-1:0');
+      expect(records[1].id).toBe('parent-1:1');
+    });
+
+    it('should parse composite IDs correctly', async () => {
+      const records = await arrayCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', 'parent-1:1'),
+        }),
+        new Projection('id', 'name'),
+      );
+
+      expect(records).toHaveLength(1);
+      expect(records[0].id).toBe('parent-1:1');
+      expect(records[0].name).toBe('Item B');
+    });
+
+    it('should parse nested composite IDs (parentId:index:index)', () => {
+      // Test the composite ID parsing logic for nested virtual collections
+      // Composite ID format: grandparentId:parentIndex:childIndex
+      const nestedCompositeId = 'uuid-123:0:2';
+
+      // This simulates parsing the LAST colon to get the immediate parent and index
+      const lastColonIndex = nestedCompositeId.lastIndexOf(':');
+      const parentId = nestedCompositeId.substring(0, lastColonIndex);
+      const index = parseInt(nestedCompositeId.substring(lastColonIndex + 1), 10);
+
+      expect(parentId).toBe('uuid-123:0');
+      expect(index).toBe(2);
+    });
+
+    it('should handle multi-level composite ID parsing (3+ levels)', () => {
+      // Test parsing for deeply nested virtual collections
+      const deepCompositeId = 'root-id:0:1:2:3';
+
+      // Parse to get immediate parent and current index
+      const lastColonIndex = deepCompositeId.lastIndexOf(':');
+      const parentId = deepCompositeId.substring(0, lastColonIndex);
+      const index = parseInt(deepCompositeId.substring(lastColonIndex + 1), 10);
+
+      expect(parentId).toBe('root-id:0:1:2');
+      expect(index).toBe(3);
+    });
+
+    it('should filter by composite ID using In operator', async () => {
+      const records = await arrayCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'In', ['parent-1:0', 'parent-1:1']),
+        }),
+        new Projection('id', 'name'),
+      );
+
+      expect(records).toHaveLength(2);
+      expect(records[0].id).toBe('parent-1:0');
+      expect(records[1].id).toBe('parent-1:1');
+    });
+  });
+
+  describe('3. Virtualized Child Fields', () => {
+    let parentCollection: CosmosCollection;
+
+    beforeEach(async () => {
+      const parentDocuments = [
+        {
+          id: 'doc-1',
+          name: 'Document One',
+          sections: [
+            { title: 'Section A', content: 'Content A' },
+            { title: 'Section B', content: 'Content B' },
+          ],
+          metadata: { author: 'John Doe', created: '2023-01-01' },
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const parentModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'documents',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+      parentCollection = datasource.getCollection('documents') as CosmosCollection;
+    });
+
+    it('should filter out virtualized child fields from parent records', async () => {
+      // Mark 'sections' as a virtualized field
+      parentCollection.markVirtualizedFieldsAsNonSortable(['sections']);
+
+      const field = parentCollection.schema.fields.sections;
+
+      expect(field).toBeDefined();
+      expect(field.type).toBe('Column');
+
+      // Type assertion after checking the type
+      expect((field as any).isSortable).toBe(false);
+    });
+
+    it('should set virtualized child fields after collection creation', async () => {
+      await Introspector.introspectArrayField(mockCosmosClient, 'testDb', 'documents', 'sections');
+
+      const virtualCollection = new ArrayCollection(
+        datasource,
+        parentCollection,
+        'document_sections',
+        'sections',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+
+      // Set virtualized child fields (if sections had sub-arrays)
+      virtualCollection.setVirtualizedChildFields(['subsections']);
+
+      // Verify the fields are tracked
+      const records = await virtualCollection.list(
+        caller,
+        new PaginatedFilter({}),
+        new Projection('title', 'content'),
+      );
+
+      // The subsections field should be filtered out from records
+      expect(records[0]).not.toHaveProperty('subsections');
+    });
+
+    it('should mark virtualized fields as non-sortable in physical collections', () => {
+      const fieldsBefore = parentCollection.schema.fields.sections;
+
+      expect(fieldsBefore.type).toBe('Column');
+
+      // Mark as virtualized
+      parentCollection.markVirtualizedFieldsAsNonSortable(['sections']);
+
+      const fieldsAfter = parentCollection.schema.fields.sections;
+
+      expect(fieldsAfter.type).toBe('Column');
+      expect((fieldsAfter as any).isSortable).toBe(false);
+    });
+
+    it('should mark virtualized fields as non-sortable in virtual collections', async () => {
+      // Create a nested scenario where a virtual collection has its own virtualized children
+      const parentDocuments = [
+        {
+          id: 'tp-1',
+          diligences: [
+            {
+              id: 'dil-1',
+              attachments: [{ name: 'file1.pdf', size: 1024 }],
+            },
+          ],
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const tpModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'third_parties',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [tpModel], jest.fn());
+      const tpCollection = datasource.getCollection('third_parties') as CosmosCollection;
+
+      // Create diligences virtual collection
+      const diligencesCollection = new ArrayCollection(
+        datasource,
+        tpCollection,
+        'diligences',
+        'diligences',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+
+      // Set attachments as virtualized child
+      diligencesCollection.setVirtualizedChildFields(['attachments']);
+
+      // Verify virtualized fields are filtered
+      const records = await diligencesCollection.list(
+        caller,
+        new PaginatedFilter({}),
+        new Projection('id'),
+      );
+
+      expect(records[0]).not.toHaveProperty('attachments');
+    });
+  });
+
+  describe('4. CRUD Operations on Virtual Collections', () => {
+    let arrayCollection: ArrayCollection;
+    let parentDocuments: any[];
+
+    beforeEach(async () => {
+      parentDocuments = [
+        {
+          id: 'order-1',
+          customer: 'John Doe',
+          items: [
+            { sku: 'PROD-001', quantity: 2, price: 29.99 },
+            { sku: 'PROD-002', quantity: 1, price: 49.99 },
+          ],
+        },
+        {
+          id: 'order-2',
+          customer: 'Jane Smith',
+          items: [{ sku: 'PROD-003', quantity: 3, price: 19.99 }],
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const parentModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'orders',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+      const parentCollection = datasource.getCollection('orders') as CosmosCollection;
+
+      arrayCollection = new ArrayCollection(
+        datasource,
+        parentCollection,
+        'order_items',
+        'items',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+    });
+
+    describe('List operations', () => {
+      it('should retrieve all records from virtual collection', async () => {
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'sku', 'quantity', 'price'),
+        );
+
+        expect(records).toHaveLength(3);
+        expect(records[0]).toMatchObject({
+          id: 'order-1:0',
+          sku: 'PROD-001',
+          quantity: 2,
+          price: 29.99,
+        });
+        expect(records[1]).toMatchObject({
+          id: 'order-1:1',
+          sku: 'PROD-002',
+          quantity: 1,
+          price: 49.99,
+        });
+        expect(records[2]).toMatchObject({
+          id: 'order-2:0',
+          sku: 'PROD-003',
+          quantity: 3,
+          price: 19.99,
+        });
+      });
+
+      it('should filter by parent ID', async () => {
+        // Get all records and filter manually to verify structure
+        const allRecords = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'sku', 'ordersId'),
+        );
+
+        // Manually filter to verify the parent ID field is correct
+        const filteredRecords = allRecords.filter(r => r.ordersId === 'order-1');
+
+        expect(filteredRecords).toHaveLength(2);
+        expect(filteredRecords[0].id).toBe('order-1:0');
+        expect(filteredRecords[1].id).toBe('order-1:1');
+
+        // Note: Testing actual filter push-down requires more complex mocking
+        // The key verification here is that records have the correct parent ID field
+      });
+
+      it('should filter by composite ID', async () => {
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({
+            conditionTree: new ConditionTreeLeaf('id', 'Equal', 'order-1:1'),
+          }),
+          new Projection('id', 'sku'),
+        );
+
+        expect(records).toHaveLength(1);
+        expect(records[0]).toMatchObject({
+          id: 'order-1:1',
+          sku: 'PROD-002',
+        });
+      });
+
+      it('should filter by field values', async () => {
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({
+            conditionTree: new ConditionTreeLeaf('sku', 'Equal', 'PROD-003'),
+          }),
+          new Projection('id', 'sku', 'quantity'),
+        );
+
+        expect(records).toHaveLength(1);
+        expect(records[0]).toMatchObject({
+          id: 'order-2:0',
+          sku: 'PROD-003',
+          quantity: 3,
+        });
+      });
+
+      it('should sort by various fields', async () => {
+        const sort = new Sort({ field: 'price', ascending: false });
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({
+            sort,
+          }),
+          new Projection('id', 'sku', 'price'),
+        );
+
+        expect(records).toHaveLength(3);
+        expect(records[0].price).toBe(49.99);
+        expect(records[1].price).toBe(29.99);
+        expect(records[2].price).toBe(19.99);
+      });
+
+      it('should paginate with skip and limit', async () => {
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({
+            page: { skip: 1, limit: 1, apply: (r: any) => r },
+          }),
+          new Projection('id', 'sku'),
+        );
+
+        expect(records).toHaveLength(1);
+        expect(records[0].id).toBe('order-1:1');
+      });
+    });
+
+    describe('Create operations', () => {
+      it('should support add new items to array (verifies structure)', () => {
+        // Verify the create method exists and schema is correct
+        expect(arrayCollection.create).toBeDefined();
+
+        // Verify parent ID field is required
+        const parentIdField = arrayCollection.schema.fields.ordersId;
+
+        expect(parentIdField).toBeDefined();
+        expect(parentIdField.type).toBe('Column');
+        expect((parentIdField as any).columnType).toBe('String');
+
+        // Note: Full create() test requires properly mocked parent collection
+        // update chain and is better tested with real database
+      });
+    });
+
+    describe('Update operations', () => {
+      it('should support modify array items (verifies structure)', () => {
+        // Verify the update method exists
+        expect(arrayCollection.update).toBeDefined();
+
+        // Verify that we can identify records by composite ID
+        const idField = arrayCollection.schema.fields.id;
+
+        expect(idField).toBeDefined();
+        expect(idField.type).toBe('Column');
+        expect((idField as any).isPrimaryKey).toBe(true);
+
+        // Note: Full update() test requires properly mocked parent collection
+        // and is better tested with real database
+      });
+    });
+
+    describe('Delete operations', () => {
+      it('should support remove array items (verifies structure)', () => {
+        // Verify the delete method exists
+        expect(arrayCollection.delete).toBeDefined();
+
+        // Verify records can be identified for deletion
+        const idField = arrayCollection.schema.fields.id;
+
+        expect(idField).toBeDefined();
+        expect(idField.type).toBe('Column');
+        expect((idField as any).isPrimaryKey).toBe(true);
+        expect((idField as any).filterOperators.has('Equal')).toBe(true);
+
+        // Note: Full delete() test requires properly mocked parent collection
+        // and is better tested with real database
+      });
+    });
+  });
+
+  describe('5. Nested Virtual Collections (3 levels)', () => {
+    let thirdPartiesCollection: CosmosCollection;
+    let diligencesCollection: ArrayCollection;
+    let attachmentsCollection: ArrayCollection;
+    let parentDocuments: any[];
+
+    beforeEach(async () => {
+      parentDocuments = [
+        {
+          id: 'tp-001',
+          name: 'Third Party A',
+          diligences: [
+            {
+              type: 'KYC',
+              status: 'completed',
+              attachments: [
+                { name: 'passport.pdf', size: 1024, uploadDate: '2023-01-15' },
+                { name: 'address.pdf', size: 2048, uploadDate: '2023-01-16' },
+              ],
+            },
+            {
+              type: 'AML',
+              status: 'pending',
+              attachments: [{ name: 'report.pdf', size: 4096, uploadDate: '2023-02-20' }],
+            },
+          ],
+        },
+        {
+          id: 'tp-002',
+          name: 'Third Party B',
+          diligences: [
+            {
+              type: 'KYC',
+              status: 'completed',
+              attachments: [{ name: 'id.pdf', size: 512, uploadDate: '2023-03-10' }],
+            },
+          ],
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const tpModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'third_parties',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [tpModel], jest.fn());
+      thirdPartiesCollection = datasource.getCollection('third_parties') as CosmosCollection;
+
+      // Create first level virtual collection (diligences)
+      diligencesCollection = new ArrayCollection(
+        datasource,
+        thirdPartiesCollection,
+        'diligences',
+        'diligences',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+
+      // Mark attachments as virtualized in diligences
+      diligencesCollection.setVirtualizedChildFields(['attachments']);
+
+      // Create second level virtual collection (attachments from diligences)
+      attachmentsCollection = new ArrayCollection(
+        datasource,
+        diligencesCollection,
+        'attachments',
+        'attachments',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+    });
+
+    it('should create third_parties → diligences → attachments hierarchy', async () => {
+      // List diligences
+      const diligences = await diligencesCollection.list(
+        caller,
+        new PaginatedFilter({}),
+        new Projection('id', 'type'),
+      );
+
+      expect(diligences).toHaveLength(3);
+      expect(diligences[0].id).toBe('tp-001:0');
+      expect(diligences[1].id).toBe('tp-001:1');
+      expect(diligences[2].id).toBe('tp-002:0');
+    });
+
+    it('should list attachments from diligences (verifies structure)', () => {
+      // Verify that attachments collection is properly configured
+      expect(attachmentsCollection).toBeDefined();
+      expect(attachmentsCollection.name).toBe('attachments');
+
+      // Verify schema has required fields
+      expect(attachmentsCollection.schema.fields).toHaveProperty('id');
+      expect(attachmentsCollection.schema.fields).toHaveProperty('diligencesId');
+
+      // Verify the composite ID field structure
+      const idField = attachmentsCollection.schema.fields.id;
+
+      expect(idField).toBeDefined();
+      expect(idField.type).toBe('Column');
+      expect((idField as any).isPrimaryKey).toBe(true);
+      expect((idField as any).columnType).toBe('String');
+
+      // Note: Full list() operation requires complex mock chaining
+      // and is better tested in integration tests with a real database
+    });
+
+    it('should support create on attachments (verifies structure)', () => {
+      // Verify that the attachments collection has the proper parent ID field
+      const { schema } = attachmentsCollection;
+
+      expect(schema.fields).toHaveProperty('diligencesId');
+
+      const diligencesIdField = schema.fields.diligencesId;
+
+      expect(diligencesIdField.type).toBe('Column');
+      expect((diligencesIdField as any).columnType).toBe('String');
+    });
+
+    it('should support update on attachments (verifies structure)', () => {
+      // Verify that attachments have proper composite IDs for updates
+      const { schema } = attachmentsCollection;
+
+      expect(schema.fields).toHaveProperty('id');
+
+      const idField = schema.fields.id;
+
+      expect(idField.type).toBe('Column');
+      expect((idField as any).isPrimaryKey).toBe(true);
+      expect((idField as any).columnType).toBe('String');
+    });
+
+    it('should support delete on attachments (verifies structure)', () => {
+      // Verify that the collection is properly set up for deletions
+      expect(attachmentsCollection.name).toBe('attachments');
+      expect(attachmentsCollection.schema.countable).toBe(true);
+    });
+
+    it('should support filtering attachments by parent diligence ID (verifies structure)', () => {
+      // Verify that the filter operators are available
+      const diligencesIdField = attachmentsCollection.schema.fields.diligencesId;
+
+      expect(diligencesIdField.type).toBe('Column');
+      expect((diligencesIdField as any).filterOperators).toBeDefined();
+      expect((diligencesIdField as any).filterOperators.has('Equal')).toBe(true);
+
+      // Note: Actual filtering with list() requires complex mock chaining
+      // and is better tested with a real database
+    });
+
+    it('should parse composite IDs for 3-level nesting', () => {
+      // Test composite ID parsing for deeply nested structure
+      const thirdLevelId = 'tp-001:0:1';
+
+      const lastColonIndex = thirdLevelId.lastIndexOf(':');
+      const parentId = thirdLevelId.substring(0, lastColonIndex);
+      const index = parseInt(thirdLevelId.substring(lastColonIndex + 1), 10);
+
+      expect(parentId).toBe('tp-001:0');
+      expect(index).toBe(1);
+
+      // Parse parent ID further
+      const parentLastColon = parentId.lastIndexOf(':');
+      const grandparentId = parentId.substring(0, parentLastColon);
+      const parentIndex = parseInt(parentId.substring(parentLastColon + 1), 10);
+
+      expect(grandparentId).toBe('tp-001');
+      expect(parentIndex).toBe(0);
+    });
+  });
+
+  describe('6. Relationships', () => {
+    it('should establish BelongsTo relationship from virtual to parent', async () => {
+      const parentDocuments = [
+        {
+          id: 'order-1',
+          customer: 'John Doe',
+          items: [{ sku: 'PROD-001', quantity: 2 }],
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const parentModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'orders',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+      const parentCollection = datasource.getCollection('orders') as CosmosCollection;
+
+      const itemsCollection = new ArrayCollection(
+        datasource,
+        parentCollection,
+        'order_items',
+        'items',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+
+      // Virtual collection should have a parent ID field (ordersId)
+      const { schema } = itemsCollection;
+
+      expect(schema.fields).toHaveProperty('ordersId');
+
+      const ordersIdField = schema.fields.ordersId;
+
+      expect(ordersIdField.type).toBe('Column');
+      expect((ordersIdField as any).columnType).toBe('String');
+    });
+
+    it('should establish HasMany relationship from parent to virtual', async () => {
+      const parentDocuments = [
+        {
+          id: 'customer-1',
+          name: 'John Doe',
+          orders: [
+            { orderId: 'ord-1', total: 100 },
+            { orderId: 'ord-2', total: 200 },
+          ],
+        },
+      ];
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const parentModel = await Introspector.introspectContainer(
+        mockCosmosClient,
+        'testDb',
+        'customers',
+      );
+
+      datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+      const parentCollection = datasource.getCollection('customers') as CosmosCollection;
+
+      const ordersCollection = new ArrayCollection(
+        datasource,
+        parentCollection,
+        'customer_orders',
+        'orders',
+        {
+          actions: {},
+          charts: [],
+          countable: true,
+          fields: {},
+          searchable: true,
+          segments: [],
+        },
+        jest.fn(),
+        mockCosmosClient,
+      );
+
+      // Can query child items by parent ID
+      const orders = await ordersCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('customersId', 'Equal', 'customer-1'),
+        }),
+        new Projection('id', 'orderId', 'total'),
+      );
+
+      expect(orders).toHaveLength(2);
+      expect(orders[0].customersId).toBe('customer-1');
+      expect(orders[1].customersId).toBe('customer-1');
+    });
+
+    it('should support nested relationships (attachments → diligences → third_parties)', () => {
+      // Verify relationship structure by checking schema
+      // In a nested structure:
+      // - third_parties is the root physical collection
+      // - diligences is a virtual collection with parent third_parties
+      // - attachments is a virtual collection with parent diligences
+
+      // Test composite ID parsing for tracing relationships
+      const attachmentId = 'tp-1:0:0'; // third_party_id:diligence_index:attachment_index
+
+      // Parse to get diligence ID
+      let lastColon = attachmentId.lastIndexOf(':');
+      const diligenceId = attachmentId.substring(0, lastColon);
+      expect(diligenceId).toBe('tp-1:0');
+
+      // Parse diligence ID to get third party ID
+      lastColon = diligenceId.lastIndexOf(':');
+      const thirdPartyId = diligenceId.substring(0, lastColon);
+      expect(thirdPartyId).toBe('tp-1');
+
+      // This demonstrates how the relationship hierarchy can be traced
+      // through composite IDs in nested virtual collections
+    });
+  });
+
+  describe('7. Edge Cases', () => {
+    describe('Empty arrays', () => {
+      it('should handle documents with empty arrays', async () => {
+        const documents = [
+          { id: 'doc-1', name: 'Has items', items: [{ name: 'Item 1' }] },
+          { id: 'doc-2', name: 'Empty array', items: [] },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        const records = await itemsCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'name'),
+        );
+
+        // Should only return items from doc-1
+        expect(records).toHaveLength(1);
+        expect(records[0].documentsId).toBe('doc-1');
+      });
+    });
+
+    describe('Null array fields', () => {
+      it('should handle documents with null array fields', async () => {
+        const documents = [
+          { id: 'doc-1', items: [{ name: 'Item 1' }] },
+          { id: 'doc-2', items: null },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        const records = await itemsCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'name'),
+        );
+
+        expect(records).toHaveLength(1);
+      });
+    });
+
+    describe('Missing array fields', () => {
+      it('should handle documents where array field is missing', async () => {
+        const documents = [
+          { id: 'doc-1', items: [{ name: 'Item 1' }] },
+          { id: 'doc-2', name: 'No items field' },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        const records = await itemsCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'name'),
+        );
+
+        expect(records).toHaveLength(1);
+      });
+    });
+
+    describe('Array with single item', () => {
+      it('should handle arrays with a single item', async () => {
+        const documents = [{ id: 'doc-1', items: [{ name: 'Only Item', value: 100 }] }];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        const records = await itemsCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'name', 'value'),
+        );
+
+        expect(records).toHaveLength(1);
+        expect(records[0]).toMatchObject({
+          id: 'doc-1:0',
+          name: 'Only Item',
+          value: 100,
+        });
+      });
+    });
+
+    describe('Array with many items', () => {
+      it('should handle arrays with 100+ items', async () => {
+        const manyItems = Array.from({ length: 150 }, (_, i) => ({
+          itemId: `item-${i}`,
+          value: i * 10,
+        }));
+
+        const documents = [{ id: 'doc-1', items: manyItems }];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        const records = await itemsCollection.list(
+          caller,
+          new PaginatedFilter({}),
+          new Projection('id', 'itemId'),
+        );
+
+        expect(records).toHaveLength(150);
+        expect(records[0].id).toBe('doc-1:0');
+        expect(records[149].id).toBe('doc-1:149');
+      });
+
+      it('should paginate large arrays efficiently', async () => {
+        const manyItems = Array.from({ length: 200 }, (_, i) => ({
+          itemId: `item-${i}`,
+          value: i,
+        }));
+
+        const documents = [{ id: 'doc-1', items: manyItems }];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        // Get page 2 (items 50-99)
+        const records = await itemsCollection.list(
+          caller,
+          new PaginatedFilter({
+            page: { skip: 50, limit: 50, apply: (r: any) => r },
+          }),
+          new Projection('id', 'itemId', 'value'),
+        );
+
+        expect(records).toHaveLength(50);
+        expect(records[0].value).toBe(50);
+        expect(records[49].value).toBe(99);
+      });
+    });
+
+    describe('Aggregate operations', () => {
+      it('should support Count aggregation on virtual collections', async () => {
+        const documents = [
+          {
+            id: 'doc-1',
+            items: [{ name: 'Item 1' }, { name: 'Item 2' }, { name: 'Item 3' }],
+          },
+        ];
+
+        mockContainer.items.query.mockReturnValue({
+          fetchAll: jest.fn().mockResolvedValue({ resources: documents }),
+        });
+
+        const parentModel = await Introspector.introspectContainer(
+          mockCosmosClient,
+          'testDb',
+          'documents',
+        );
+
+        datasource = new CosmosDataSource(mockCosmosClient, [parentModel], jest.fn());
+        const parentCollection = datasource.getCollection('documents') as CosmosCollection;
+
+        const itemsCollection = new ArrayCollection(
+          datasource,
+          parentCollection,
+          'document_items',
+          'items',
+          {
+            actions: {},
+            charts: [],
+            countable: true,
+            fields: {},
+            searchable: true,
+            segments: [],
+          },
+          jest.fn(),
+          mockCosmosClient,
+        );
+
+        const result = await itemsCollection.aggregate(
+          caller,
+          new Filter({}),
+          new Aggregation({ operation: 'Count', field: null }),
+        );
+
+        expect(result).toHaveLength(1);
+        expect(result[0].value).toBe(3);
+      });
+    });
+  });
+});

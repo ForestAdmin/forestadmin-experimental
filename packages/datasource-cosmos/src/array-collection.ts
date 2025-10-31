@@ -295,8 +295,7 @@ export default class ArrayCollection extends CosmosCollection {
 
       arrayValues.forEach((item, index) => {
         // Filter out virtualized child fields (if any are configured)
-        const filteredItem =
-          typeof item === 'object' && item !== null ? { ...(item as Record<string, unknown>) } : {};
+        const filteredItem = { ...(item as Record<string, unknown>) };
 
         if (this.virtualizedChildFields && this.virtualizedChildFields.size > 0) {
           for (const field of this.virtualizedChildFields) {
