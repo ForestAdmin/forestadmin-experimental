@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.2...datasource-cosmos@1.3.3) (2025-10-31)
+
+
+### Bug Fixes
+
+* explicitly set npm registry for publishing ([6b89230](https://github.com/ForestAdmin/forestadmin-experimental/commit/6b892309620a427c6e7ccc27c102f0f6bbf03983))
+
 ## [1.3.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.1...datasource-cosmos@1.3.2) (2025-10-31)
 
 
