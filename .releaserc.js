@@ -26,7 +26,7 @@ module.exports = {
     [
       '@semantic-release/exec',
       {
-        publishCmd: 'npm publish --provenance --access public',
+        publishCmd: 'npm publish --provenance --access public --registry https://registry.npmjs.org/',
       },
     ],
     [
