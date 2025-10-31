@@ -22,9 +22,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false # GITHUB_TOKEN must not be set for the semantic release
           # https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/ci-configurations/github-actions.md#pushing-packagejson-changes-to-your-repository
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20.18.0
+          node-version: 22.21.0
 
       - name: Upgrade npm
         run: npm install -g npm@latest
