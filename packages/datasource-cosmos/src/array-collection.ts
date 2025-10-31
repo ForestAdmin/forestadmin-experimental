@@ -245,19 +245,23 @@ export default class ArrayCollection extends CosmosCollection {
     let parentFilter: PaginatedFilter | undefined;
     let filterByCompositeId: string[] | undefined;
 
-    if (conditionTree instanceof ConditionTreeLeaf) {
-      if (conditionTree.field === this.parentIdField) {
+    // Check if conditionTree is a leaf node (has 'field' property)
+    const isLeaf = conditionTree && 'field' in conditionTree && 'operator' in conditionTree;
+
+    if (isLeaf) {
+      const leaf = conditionTree as ConditionTreeLeaf;
+
+      if (leaf.field === this.parentIdField) {
         // Filter by parent ID
         parentFilter = new PaginatedFilter({
-          conditionTree: new ConditionTreeLeaf('id', conditionTree.operator, conditionTree.value),
+          conditionTree: new ConditionTreeLeaf('id', leaf.operator, leaf.value),
         });
-      } else if (conditionTree.field === 'id') {
+      } else if (leaf.field === 'id') {
         // Filter by composite ID (e.g., "parent-id:0")
-        // Extract the composite IDs to filter
-        if (conditionTree.operator === 'Equal') {
-          filterByCompositeId = [conditionTree.value as string];
-        } else if (conditionTree.operator === 'In') {
-          filterByCompositeId = conditionTree.value as string[];
+        if (leaf.operator === 'Equal') {
+          filterByCompositeId = [leaf.value as string];
+        } else if (leaf.operator === 'In') {
+          filterByCompositeId = leaf.value as string[];
         }
 
         // Optimize by only fetching the parent IDs we need
@@ -353,9 +357,13 @@ export default class ArrayCollection extends CosmosCollection {
   private applyConditionTree(items: RecordData[], conditionTree: ConditionTree): RecordData[] {
     if (!conditionTree) return items;
 
+    // Use duck typing to check if it's a leaf
+    const isLeaf = 'field' in conditionTree && 'operator' in conditionTree;
+
     // Handle ConditionTreeLeaf (single condition)
-    if (conditionTree instanceof ConditionTreeLeaf) {
-      const { field, operator, value } = conditionTree;
+    if (isLeaf) {
+      const leaf = conditionTree as ConditionTreeLeaf;
+      const { field, operator, value } = leaf;
 
       // Skip ID and parentId filters as they're handled separately
       if (field === 'id' || field === this.parentIdField) {
@@ -594,12 +602,21 @@ export default class ArrayCollection extends CosmosCollection {
         const array = this.getArrayFromParent(parentRecord);
 
         if (array[index]) {
+          // Remove parent ID and composite ID from the patch data using destructuring
+          const {
+            id: unusedItemId,
+            [this.parentIdField]: unusedParentIdValue,
+            ...patchData
+          } = patch;
+          void unusedItemId;
+          void unusedParentIdValue;
+
           // Update the item at the specified index
           const currentItem =
             typeof array[index] === 'object' && array[index] !== null
               ? (array[index] as Record<string, unknown>)
               : {};
-          array[index] = { ...currentItem, ...patch };
+          array[index] = { ...currentItem, ...patchData };
 
           // Update the parent record - sequential to prevent conflicts
           // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
