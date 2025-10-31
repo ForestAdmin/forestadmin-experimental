@@ -20,7 +20,13 @@ module.exports = {
     [
       '@semantic-release/npm',
       {
-        npmPublish: true,
+        npmPublish: false, // Disable semantic-release npm publish, use npm CLI instead
+      },
+    ],
+    [
+      '@semantic-release/exec',
+      {
+        publishCmd: 'npm publish --provenance --access public',
       },
     ],
     [
