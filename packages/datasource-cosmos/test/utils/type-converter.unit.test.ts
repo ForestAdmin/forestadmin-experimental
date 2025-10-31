@@ -140,6 +140,16 @@ describe('Utils > TypeConverter', () => {
       expect(TypeConverter.getMostSpecificType(['timeonly', 'null'])).toBe('timeonly');
     });
 
+    it('should handle mixed date and dateonly types', () => {
+      // Example: null, "2025-12-23", "2025-12-23T11:34:32"
+      expect(TypeConverter.getMostSpecificType(['date', 'dateonly', 'null'])).toBe('date');
+      expect(TypeConverter.getMostSpecificType(['dateonly', 'date', 'null'])).toBe('date');
+      expect(TypeConverter.getMostSpecificType(['null', 'date', 'dateonly'])).toBe('date');
+
+      // Without datetime values, should remain dateonly
+      expect(TypeConverter.getMostSpecificType(['dateonly', 'null'])).toBe('dateonly');
+    });
+
     it('should handle mixed string-compatible types', () => {
       // If we see actual date values along with strings, prefer date
       expect(TypeConverter.getMostSpecificType(['date', 'string', 'null'])).toBe('date');

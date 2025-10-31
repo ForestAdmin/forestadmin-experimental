@@ -237,6 +237,13 @@ export default class TypeConverter {
     if (uniqueTypes.every(t => ['number', 'null'].includes(t))) return 'number';
     if (uniqueTypes.every(t => ['string', 'null'].includes(t))) return 'string';
     if (uniqueTypes.every(t => ['boolean', 'null'].includes(t))) return 'boolean';
+
+    // Mixed date/dateonly/null -> prefer 'date'
+    if (uniqueTypes.every(t => ['date', 'dateonly', 'null'].includes(t))) {
+      return uniqueTypes.includes('date') ? 'date' : 'dateonly';
+    }
+
+    // Pure date types with null should be treated as their respective type
     if (uniqueTypes.every(t => ['date', 'null'].includes(t))) return 'date';
     if (uniqueTypes.every(t => ['dateonly', 'null'].includes(t))) return 'dateonly';
     if (uniqueTypes.every(t => ['timeonly', 'null'].includes(t))) return 'timeonly';

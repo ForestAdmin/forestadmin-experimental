@@ -240,7 +240,6 @@ export default class ArrayCollection extends CosmosCollection {
     filter: PaginatedFilter,
     projection: Projection,
   ): Promise<RecordData[]> {
-    void projection; // Unused parameter required by interface
     // Extract filters
     const conditionTree = filter?.conditionTree;
     let parentFilter: PaginatedFilter | undefined;
@@ -295,11 +294,24 @@ export default class ArrayCollection extends CosmosCollection {
 
       arrayValues.forEach((item, index) => {
         // Filter out virtualized child fields (if any are configured)
+        // UNLESS they are explicitly requested in the projection
         const filteredItem = { ...(item as Record<string, unknown>) };
 
         if (this.virtualizedChildFields && this.virtualizedChildFields.size > 0) {
+          // Get list of requested fields from projection
+          // Projection is array-like, convert to array for checking
+          const projectionFields = projection ? Array.from(projection as unknown as string[]) : [];
+          const hasProjection = projectionFields.length > 0;
+
           for (const field of this.virtualizedChildFields) {
-            delete filteredItem[field];
+            // Only filter out if:
+            // 1. There IS a projection (not requesting all fields), AND
+            // 2. The virtualized field is NOT in the projection
+            const shouldFilter = hasProjection && !projectionFields.includes(field);
+
+            if (shouldFilter) {
+              delete filteredItem[field];
+            }
           }
         }
 
