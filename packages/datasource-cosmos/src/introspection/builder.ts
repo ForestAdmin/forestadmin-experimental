@@ -105,7 +105,7 @@ export class CosmosDatasourceBuilder implements CosmosDatasourceOptionsBuilder {
   }
 
   /**
-   * Internal usages only, the client only sees CosmosDatasourceOptionsBuilder interface
+   * Internal usages only - the client only sees CosmosDatasourceOptionsBuilder interface
    */
   public async createCollectionsFromConfiguration(): Promise<ModelCosmos[]> {
     return Promise.all(this.collectionsPromises);
