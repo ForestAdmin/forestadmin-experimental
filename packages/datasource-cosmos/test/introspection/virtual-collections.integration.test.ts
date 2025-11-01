@@ -714,7 +714,6 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
         expect((idField as any).isPrimaryKey).toBe(true);
 
         // Note: Full update() test requires properly mocked parent collection
-        // and is better tested with real database
       });
 
       it('should use optimized path when filtering by composite ID (Equal)', async () => {
