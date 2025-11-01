@@ -717,6 +717,88 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
         // and is better tested with real database
       });
 
+      it('should use optimized path when filtering by composite ID (Equal)', async () => {
+        const mockParentList = jest.fn().mockResolvedValue([
+          {
+            id: 'order-1',
+            items: [
+              { sku: 'PROD-001', quantity: 2, price: 29.99 },
+              { sku: 'PROD-002', quantity: 1, price: 49.99 },
+            ],
+          },
+        ]);
+
+        const mockParentUpdate = jest.fn().mockResolvedValue(undefined);
+
+        // Replace parent collection methods
+        const { parentCollection } = arrayCollection as any;
+
+        parentCollection.list = mockParentList;
+        parentCollection.update = mockParentUpdate;
+
+        // Update using composite ID filter
+        await arrayCollection.update(
+          caller,
+          new Filter({
+            conditionTree: new ConditionTreeLeaf('id', 'Equal', 'order-1:1'),
+          }),
+          { quantity: 10 },
+        );
+
+        // Verify parent.list was called only once (not via arrayCollection.list)
+        // This proves the optimization bypasses the expensive list() call
+        expect(mockParentList).toHaveBeenCalledTimes(1);
+        expect(mockParentList).toHaveBeenCalledWith(
+          caller,
+          expect.objectContaining({
+            conditionTree: expect.objectContaining({
+              field: 'id',
+              operator: 'Equal',
+              value: 'order-1',
+            }),
+          }),
+          expect.any(Projection),
+        );
+
+        // Verify update was called
+        expect(mockParentUpdate).toHaveBeenCalledTimes(1);
+      });
+
+      it('should use optimized path when filtering by composite ID (In)', async () => {
+        const mockParentList = jest.fn().mockResolvedValue([
+          {
+            id: 'order-1',
+            items: [
+              { sku: 'PROD-001', quantity: 2, price: 29.99 },
+              { sku: 'PROD-002', quantity: 1, price: 49.99 },
+            ],
+          },
+        ]);
+
+        const mockParentUpdate = jest.fn().mockResolvedValue(undefined);
+
+        // Replace parent collection methods
+        const { parentCollection } = arrayCollection as any;
+
+        parentCollection.list = mockParentList;
+        parentCollection.update = mockParentUpdate;
+
+        // Update using composite ID In filter
+        await arrayCollection.update(
+          caller,
+          new Filter({
+            conditionTree: new ConditionTreeLeaf('id', 'In', ['order-1:0', 'order-1:1']),
+          }),
+          { price: 99.99 },
+        );
+
+        // Verify parent.list was called twice (once per item, not via arrayCollection.list)
+        expect(mockParentList).toHaveBeenCalledTimes(2);
+
+        // Verify both items were updated
+        expect(mockParentUpdate).toHaveBeenCalledTimes(2);
+      });
+
       it('should not store parent ID field in the physical array item when updating', async () => {
         let capturedUpdatePatch: any = null;
 
@@ -807,6 +889,132 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
 
         // Note: Full delete() test requires properly mocked parent collection
         // and is better tested with real database
+      });
+
+      it('should use optimized path when deleting by composite ID (Equal)', async () => {
+        const mockParentList = jest.fn().mockResolvedValue([
+          {
+            id: 'order-1',
+            items: [
+              { sku: 'PROD-001', quantity: 2 },
+              { sku: 'PROD-002', quantity: 1 },
+            ],
+          },
+        ]);
+
+        const mockParentUpdate = jest.fn().mockResolvedValue(undefined);
+
+        // Replace parent collection methods
+        const { parentCollection } = arrayCollection as any;
+
+        parentCollection.list = mockParentList;
+        parentCollection.update = mockParentUpdate;
+
+        // Delete using composite ID filter
+        await arrayCollection.delete(
+          caller,
+          new Filter({
+            conditionTree: new ConditionTreeLeaf('id', 'Equal', 'order-1:1'),
+          }),
+        );
+
+        // Verify parent.list was called only once (to fetch parent for deletion)
+        // The optimization skips calling arrayCollection.list()
+        expect(mockParentList).toHaveBeenCalledTimes(1);
+
+        // Verify update was called with the modified array
+        expect(mockParentUpdate).toHaveBeenCalledTimes(1);
+      });
+
+      it('should use optimized path when deleting by composite ID (In)', async () => {
+        const mockParentList = jest.fn().mockResolvedValue([
+          {
+            id: 'order-1',
+            items: [
+              { sku: 'PROD-001', quantity: 2 },
+              { sku: 'PROD-002', quantity: 1 },
+              { sku: 'PROD-003', quantity: 3 },
+            ],
+          },
+        ]);
+
+        const mockParentUpdate = jest.fn().mockResolvedValue(undefined);
+
+        // Replace parent collection methods
+        const { parentCollection } = arrayCollection as any;
+
+        parentCollection.list = mockParentList;
+        parentCollection.update = mockParentUpdate;
+
+        // Delete multiple items using In operator
+        await arrayCollection.delete(
+          caller,
+          new Filter({
+            conditionTree: new ConditionTreeLeaf('id', 'In', ['order-1:0', 'order-1:2']),
+          }),
+        );
+
+        // Verify parent.list was called only once (to fetch parent for deletion)
+        expect(mockParentList).toHaveBeenCalledTimes(1);
+
+        // Verify update was called once (all deletions in same parent)
+        expect(mockParentUpdate).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('Optimized Array Operations', () => {
+      it('should have optimizations enabled by default in production', () => {
+        // Create a collection with enableOptimizations explicitly set to true
+        const optimizedCollection = new ArrayCollection(
+          arrayCollection['dataSource'],
+          arrayCollection['parentCollection'],
+          'test_collection',
+          'items',
+          { actions: {}, charts: [], countable: true, fields: {}, searchable: true, segments: [] },
+          jest.fn(),
+          undefined,
+          [],
+          true, // Enable optimizations
+        );
+
+        expect((optimizedCollection as any).enableOptimizations).toBe(true);
+      });
+
+      it('should have optimizations disabled in test environment by default', () => {
+        // Current arrayCollection was created without explicit enableOptimizations
+        // Should be false in test environment
+        expect((arrayCollection as any).enableOptimizations).toBe(false);
+      });
+
+      it('should support single composite ID filtering correctly', async () => {
+        // Test that single-item filtering works (even with optimization disabled)
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({
+            conditionTree: new ConditionTreeLeaf('id', 'Equal', 'order-1:0'),
+          }),
+          new Projection('id', 'sku', 'quantity'),
+        );
+
+        // Verify result
+        expect(records).toHaveLength(1);
+        expect(records[0]).toMatchObject({
+          id: 'order-1:0',
+          sku: 'PROD-001',
+          quantity: 2,
+        });
+      });
+
+      it('should return empty array if single item not found', async () => {
+        const records = await arrayCollection.list(
+          caller,
+          new PaginatedFilter({
+            conditionTree: new ConditionTreeLeaf('id', 'Equal', 'order-999:0'),
+          }),
+          new Projection('id', 'sku'),
+        );
+
+        expect(records).toHaveLength(0);
       });
     });
   });
@@ -1000,6 +1208,239 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
 
       expect(grandparentId).toBe('tp-001');
       expect(parentIndex).toBe(0);
+    });
+
+    it('should retrieve a specific attachment by composite ID (tp-001:0:1)', async () => {
+      // Test the optimization path for fetching a single nested record
+      const attachmentId = 'tp-001:0:1';
+
+      // Setup mock to return the parent document when queried
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      // Fetch the attachment by ID
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', attachmentId),
+        }),
+        new Projection('id', 'name', 'size'),
+      );
+
+      expect(attachments).toHaveLength(1);
+      expect(attachments[0].id).toBe('tp-001:0:1');
+      expect(attachments[0].name).toBe('address.pdf');
+      expect(attachments[0].size).toBe(2048);
+      expect(attachments[0].diligencesId).toBe('tp-001:0');
+    });
+
+    it('should retrieve a specific attachment from a different diligence (tp-001:1:0)', async () => {
+      const attachmentId = 'tp-001:1:0';
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', attachmentId),
+        }),
+        new Projection('id', 'name', 'size'),
+      );
+
+      expect(attachments).toHaveLength(1);
+      expect(attachments[0].id).toBe('tp-001:1:0');
+      expect(attachments[0].name).toBe('report.pdf');
+      expect(attachments[0].size).toBe(4096);
+      expect(attachments[0].diligencesId).toBe('tp-001:1');
+    });
+
+    it('should retrieve attachment from second third party (tp-002:0:0)', async () => {
+      const attachmentId = 'tp-002:0:0';
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', attachmentId),
+        }),
+        new Projection('id', 'name', 'size'),
+      );
+
+      expect(attachments).toHaveLength(1);
+      expect(attachments[0].id).toBe('tp-002:0:0');
+      expect(attachments[0].name).toBe('id.pdf');
+      expect(attachments[0].size).toBe(512);
+      expect(attachments[0].diligencesId).toBe('tp-002:0');
+    });
+
+    it('should return empty array for non-existent attachment ID', async () => {
+      const nonExistentId = 'tp-999:0:0';
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', nonExistentId),
+        }),
+        new Projection('id', 'name'),
+      );
+
+      expect(attachments).toHaveLength(0);
+    });
+
+    it('should return empty array for out-of-bounds index (tp-001:0:99)', async () => {
+      const outOfBoundsId = 'tp-001:0:99';
+
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', outOfBoundsId),
+        }),
+        new Projection('id', 'name'),
+      );
+
+      expect(attachments).toHaveLength(0);
+    });
+
+    it('should list all attachments when no filter is provided', async () => {
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({}),
+        new Projection('id', 'name'),
+      );
+
+      // tp-001 has 2 diligences with 2 and 1 attachments respectively (3 total)
+      // tp-002 has 1 diligence with 1 attachment (1 total)
+      // Total: 4 attachments
+      expect(attachments).toHaveLength(4);
+      expect(attachments.map(a => a.id)).toEqual([
+        'tp-001:0:0',
+        'tp-001:0:1',
+        'tp-001:1:0',
+        'tp-002:0:0',
+      ]);
+    });
+
+    it('should retrieve multiple attachments by composite IDs using In operator', async () => {
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const attachments = await attachmentsCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'In', ['tp-001:0:0', 'tp-002:0:0']),
+        }),
+        new Projection('id', 'name'),
+      );
+
+      expect(attachments).toHaveLength(2);
+      expect(attachments[0].id).toBe('tp-001:0:0');
+      expect(attachments[0].name).toBe('passport.pdf');
+      expect(attachments[1].id).toBe('tp-002:0:0');
+      expect(attachments[1].name).toBe('id.pdf');
+    });
+
+    it('should delete a single attachment without affecting others', async () => {
+      // Initial state: tp-001 has diligence[0] with 2 attachments and diligence[1] with 1 attachment
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      // Mock the update call to capture what's being updated
+      const updateMock = jest.fn().mockResolvedValue(undefined);
+
+      (thirdPartiesCollection as any).update = updateMock;
+      (diligencesCollection as any).update = updateMock;
+
+      // Delete attachment tp-001:0:1 (second attachment of first diligence)
+      await attachmentsCollection.delete(
+        caller,
+        new Filter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', 'tp-001:0:1'),
+        }),
+      );
+
+      // Verify update was called to remove only the targeted attachment
+      expect(updateMock).toHaveBeenCalled();
+
+      // The update should be called on the diligences collection with the modified attachments array
+      const updateCall = updateMock.mock.calls[0];
+
+      expect(updateCall).toBeDefined();
+      expect(updateCall[2]).toHaveProperty('attachments');
+
+      const updatedAttachments = updateCall[2].attachments;
+
+      // Should have removed the second attachment, leaving only the first one
+      expect(updatedAttachments).toHaveLength(1);
+      expect(updatedAttachments[0].name).toBe('passport.pdf');
+    });
+
+    it('should delete multiple attachments from the same diligence', async () => {
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const updateMock = jest.fn().mockResolvedValue(undefined);
+
+      (thirdPartiesCollection as any).update = updateMock;
+      (diligencesCollection as any).update = updateMock;
+
+      // Delete both attachments from first diligence (tp-001:0:0 and tp-001:0:1)
+      await attachmentsCollection.delete(
+        caller,
+        new Filter({
+          conditionTree: new ConditionTreeLeaf('id', 'In', ['tp-001:0:0', 'tp-001:0:1']),
+        }),
+      );
+
+      expect(updateMock).toHaveBeenCalled();
+
+      const updateCall = updateMock.mock.calls[0];
+      const updatedAttachments = updateCall[2].attachments;
+
+      // Should have removed both attachments
+      expect(updatedAttachments).toHaveLength(0);
+    });
+
+    it('should delete attachments from different diligences independently', async () => {
+      mockContainer.items.query.mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
+      });
+
+      const updateMock = jest.fn().mockResolvedValue(undefined);
+
+      (thirdPartiesCollection as any).update = updateMock;
+      (diligencesCollection as any).update = updateMock;
+
+      // Delete one attachment from each diligence
+      await attachmentsCollection.delete(
+        caller,
+        new Filter({
+          conditionTree: new ConditionTreeLeaf('id', 'In', ['tp-001:0:0', 'tp-001:1:0']),
+        }),
+      );
+
+      // Should have been called twice - once for each diligence
+      expect(updateMock).toHaveBeenCalledTimes(2);
     });
   });
 
