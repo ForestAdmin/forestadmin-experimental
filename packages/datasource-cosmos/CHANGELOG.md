@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.4...datasource-cosmos@1.4.0) (2025-11-01)
+
+
+### Features
+
+* trigger release ([#185](https://github.com/ForestAdmin/forestadmin-experimental/issues/185)) ([1b378db](https://github.com/ForestAdmin/forestadmin-experimental/commit/1b378dbfe9ce860b22db3c2e4552914ddfe38e16))
+
 ## [1.3.4](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.3...datasource-cosmos@1.3.4) (2025-10-31)
 
 
