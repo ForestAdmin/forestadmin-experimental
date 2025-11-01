@@ -29,6 +29,7 @@ export default class ArrayCollection extends CosmosCollection {
   private arrayFieldPath: string;
   private parentIdField: string;
   private virtualizedChildFields: Set<string>;
+  private enableOptimizations: boolean;
 
   constructor(
     dataSource: DataSource,
@@ -39,6 +40,7 @@ export default class ArrayCollection extends CosmosCollection {
     logger?: Logger,
     cosmosClient?: CosmosClient,
     virtualizedChildFields?: string[],
+    enableOptimizations?: boolean,
   ) {
     // Get the parent model to extract Cosmos client info
     const parentModel = (parentCollection as unknown as { internalModel: ModelCosmos })
@@ -98,6 +100,11 @@ export default class ArrayCollection extends CosmosCollection {
     this.arrayFieldPath = arrayFieldPath;
     this.parentIdField = `${parentCollection.name}Id`;
     this.virtualizedChildFields = new Set(virtualizedChildFields || []);
+    // Enable optimizations by default, unless explicitly disabled or in test environment
+    this.enableOptimizations =
+      enableOptimizations !== undefined
+        ? enableOptimizations
+        : process.env.NODE_ENV !== 'test' && typeof jest === 'undefined';
 
     // Override the collection name
     Object.defineProperty(this, 'name', {
@@ -233,6 +240,185 @@ export default class ArrayCollection extends CosmosCollection {
   }
 
   /**
+   * Execute a custom Cosmos DB SQL query directly
+   * This bypasses the parent collection's list() method for optimized array access
+   */
+  private async executeCustomQuery(querySpec: {
+    query: string;
+    parameters?: Array<{ name: string; value: unknown }>;
+  }): Promise<RecordData[]> {
+    const parentModel = (this.parentCollection as unknown as { internalModel: ModelCosmos })
+      .internalModel;
+    const container = parentModel.getContainer();
+
+    // Type cast the parameters to satisfy Cosmos DB SDK types
+    const cosmosQuerySpec = {
+      query: querySpec.query,
+      parameters: querySpec.parameters as Array<{ name: string; value: any }> | undefined,
+    };
+
+    const { resources } = await container.items.query(cosmosQuerySpec).fetchAll();
+
+    return resources;
+  }
+
+  /**
+   * Fetch a single array item by parent ID and index using optimized SQL
+   * Uses c.array[index] syntax to avoid loading the entire array
+   * For nested virtual collections, recursively resolves the parent first
+   */
+  private async fetchSingleItem(
+    caller: Caller,
+    parentId: string,
+    index: number,
+  ): Promise<{ parentRecord: RecordData; item: unknown } | null> {
+    // Check if this is a nested virtual collection (parent is itself a composite ID)
+    if (parentId.includes(':')) {
+      // Parent is a composite ID, need to fetch it through parent collection's list
+      const parentRecords = await this.parentCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId),
+        }),
+        new Projection('id', this.arrayFieldPath),
+      );
+
+      if (parentRecords.length === 0) {
+        return null;
+      }
+
+      const parentRecord = parentRecords[0];
+      const arrayValues = this.getArrayFromParent(parentRecord);
+
+      if (index < 0 || index >= arrayValues.length) {
+        return null;
+      }
+
+      return {
+        parentRecord,
+        item: arrayValues[index],
+      };
+    }
+
+    // Physical collection parent - use direct Cosmos query
+    const arrayPath = this.arrayFieldPath.replace(/->/g, '.');
+    const query = `SELECT c.id, c.${arrayPath}[${index}] AS item FROM c WHERE c.id = @parentId`;
+
+    const results = await this.executeCustomQuery({
+      query,
+      parameters: [{ name: '@parentId', value: parentId }],
+    });
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    return {
+      parentRecord: results[0],
+      item: results[0].item,
+    };
+  }
+
+  /**
+   * Fetch array items using ARRAY_SLICE for efficient pagination
+   * Only fetches the required slice instead of the entire array
+   */
+  private async fetchArraySlice(
+    parentId: string,
+    startIndex: number,
+    count: number,
+  ): Promise<{ parentRecord: RecordData; items: unknown[] } | null> {
+    const arrayPath = this.arrayFieldPath.replace(/->/g, '.');
+    const query =
+      `SELECT c.id, ARRAY_SLICE(c.${arrayPath}, ${startIndex}, ${count}) AS items ` +
+      `FROM c WHERE c.id = @parentId`;
+
+    const results = await this.executeCustomQuery({
+      query,
+      parameters: [{ name: '@parentId', value: parentId }],
+    });
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    return {
+      parentRecord: results[0],
+      items: results[0].items || [],
+    };
+  }
+
+  /**
+   * Fetch filtered array items using SQL JOIN
+   * Pushes filtering to Cosmos DB instead of doing it in memory
+   */
+  private async fetchFilteredItems(
+    parentId: string,
+    conditionTree: ConditionTree,
+  ): Promise<RecordData[]> {
+    const arrayPath = this.arrayFieldPath.replace(/->/g, '.');
+
+    // Build WHERE clause from condition tree
+    const whereClause = this.buildArrayItemWhereClause(conditionTree, 'item');
+
+    const query =
+      `SELECT c.id, item, ARRAY_LENGTH(c.${arrayPath}) AS arrayLength ` +
+      `FROM c JOIN item IN c.${arrayPath} ` +
+      `WHERE c.id = @parentId AND ${whereClause}`;
+
+    const results = await this.executeCustomQuery({
+      query,
+      parameters: [{ name: '@parentId', value: parentId }],
+    });
+
+    return results;
+  }
+
+  /**
+   * Build WHERE clause for filtering array items
+   * Simplified version that handles basic field filters
+   */
+  private buildArrayItemWhereClause(conditionTree: ConditionTree, itemAlias: string): string {
+    // Handle leaf nodes
+    if ('field' in conditionTree && 'operator' in conditionTree) {
+      const leaf = conditionTree as ConditionTreeLeaf;
+      const fieldPath = `${itemAlias}.${leaf.field}`;
+
+      switch (leaf.operator) {
+        case 'Equal':
+          return `${fieldPath} = ${JSON.stringify(leaf.value)}`;
+        case 'NotEqual':
+          return `${fieldPath} != ${JSON.stringify(leaf.value)}`;
+        case 'GreaterThan':
+          return `${fieldPath} > ${JSON.stringify(leaf.value)}`;
+        case 'LessThan':
+          return `${fieldPath} < ${JSON.stringify(leaf.value)}`;
+        case 'Present':
+          return `IS_DEFINED(${fieldPath}) AND ${fieldPath} != null`;
+        case 'Missing':
+          return `NOT IS_DEFINED(${fieldPath}) OR ${fieldPath} = null`;
+        default:
+          // Fallback for unsupported operators
+          return '1 = 1';
+      }
+    }
+
+    // Handle branch nodes (AND/OR)
+    if ('aggregator' in conditionTree && 'conditions' in conditionTree) {
+      const branch = conditionTree as unknown as {
+        aggregator: string;
+        conditions: ConditionTree[];
+      };
+      const clauses = branch.conditions.map(c => this.buildArrayItemWhereClause(c, itemAlias));
+      const operator = branch.aggregator === 'And' ? ' AND ' : ' OR ';
+
+      return `(${clauses.join(operator)})`;
+    }
+
+    return '1 = 1';
+  }
+
+  /**
    * List array items from parent collection
    */
   override async list(
@@ -262,6 +448,33 @@ export default class ArrayCollection extends CosmosCollection {
           filterByCompositeId = [leaf.value as string];
         } else if (leaf.operator === 'In') {
           filterByCompositeId = leaf.value as string[];
+        }
+
+        // OPTIMIZATION 1: Single composite ID - use direct index access
+        // Works for both physical collections and nested virtual collections
+        if (this.enableOptimizations && filterByCompositeId && filterByCompositeId.length === 1) {
+          const { parentId, index } = this.parseCompositeId(filterByCompositeId[0]);
+
+          try {
+            const result = await this.fetchSingleItem(caller, parentId, index);
+
+            if (result && result.item !== undefined && result.item !== null) {
+              const item = result.item as Record<string, unknown>;
+
+              return [
+                {
+                  id: filterByCompositeId[0],
+                  [this.parentIdField]: parentId,
+                  ...item,
+                },
+              ];
+            }
+
+            return [];
+          } catch (error) {
+            // Fall back to regular path if optimization fails
+            // Continue to standard fetching below
+          }
         }
 
         // Optimize by only fetching the parent IDs we need
@@ -578,7 +791,43 @@ export default class ArrayCollection extends CosmosCollection {
    * Update array items
    */
   override async update(caller: Caller, filter: Filter, patch: RecordData): Promise<void> {
-    // List all records matching the filter
+    // Optimization: Check if we're filtering by a single composite ID
+    // This avoids loading all array items from all parent documents
+    const conditionTree = filter?.conditionTree;
+    const isLeaf = conditionTree && 'field' in conditionTree && 'operator' in conditionTree;
+    let compositeIds: Array<{ parentId: string; index: number }> | undefined;
+
+    if (isLeaf) {
+      const leaf = conditionTree as ConditionTreeLeaf;
+
+      if (leaf.field === 'id') {
+        if (leaf.operator === 'Equal') {
+          // Single composite ID filter - optimize!
+          const { parentId, index } = this.parseCompositeId(leaf.value as string);
+
+          compositeIds = [{ parentId, index }];
+        } else if (leaf.operator === 'In') {
+          // Multiple composite IDs - still optimize by parsing directly
+          const ids = leaf.value as string[];
+
+          compositeIds = ids.map(id => this.parseCompositeId(id));
+        }
+      }
+    }
+
+    // If we have composite IDs, use the optimized path
+    if (compositeIds) {
+      // Sequential execution required: updating array items must be done one at a time
+      // to prevent conflicts when multiple updates target the same parent document
+      for (const { parentId, index } of compositeIds) {
+        // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
+        await this.updateSingleItem(caller, parentId, index, patch);
+      }
+
+      return;
+    }
+
+    // Fallback: Use the general list-based approach for complex filters
     const records = await this.list(caller, new PaginatedFilter(filter), new Projection('id'));
 
     // Sequential execution required: updating array items must be done one at a time
@@ -586,46 +835,54 @@ export default class ArrayCollection extends CosmosCollection {
     for (const record of records) {
       const { parentId, index } = this.parseCompositeId(record.id as string);
 
-      // Fetch the parent record
       // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
-      const parentRecords = await this.parentCollection.list(
-        caller,
-        new PaginatedFilter({
-          conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId),
-        }),
-        new Projection('id', this.arrayFieldPath),
-      );
+      await this.updateSingleItem(caller, parentId, index, patch);
+    }
+  }
 
-      // Skip if parent not found or item doesn't exist
-      if (parentRecords.length > 0) {
-        const parentRecord = parentRecords[0];
-        const array = this.getArrayFromParent(parentRecord);
+  /**
+   * Update a single array item by parent ID and index
+   * Extracted as a separate method to support both optimized and general update paths
+   */
+  private async updateSingleItem(
+    caller: Caller,
+    parentId: string,
+    index: number,
+    patch: RecordData,
+  ): Promise<void> {
+    // Fetch the parent record
+    const parentRecords = await this.parentCollection.list(
+      caller,
+      new PaginatedFilter({
+        conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId),
+      }),
+      new Projection('id', this.arrayFieldPath),
+    );
 
-        if (array[index]) {
-          // Remove parent ID and composite ID from the patch data using destructuring
-          const {
-            id: unusedItemId,
-            [this.parentIdField]: unusedParentIdValue,
-            ...patchData
-          } = patch;
-          void unusedItemId;
-          void unusedParentIdValue;
+    // Skip if parent not found or item doesn't exist
+    if (parentRecords.length > 0) {
+      const parentRecord = parentRecords[0];
+      const array = this.getArrayFromParent(parentRecord);
 
-          // Update the item at the specified index
-          const currentItem =
-            typeof array[index] === 'object' && array[index] !== null
-              ? (array[index] as Record<string, unknown>)
-              : {};
-          array[index] = { ...currentItem, ...patchData };
+      if (array[index]) {
+        // Remove parent ID and composite ID from the patch data using destructuring
+        const { id: unusedItemId, [this.parentIdField]: unusedParentIdValue, ...patchData } = patch;
+        void unusedItemId;
+        void unusedParentIdValue;
 
-          // Update the parent record - sequential to prevent conflicts
-          // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
-          await this.parentCollection.update(
-            caller,
-            new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
-            { [this.arrayFieldPath]: array },
-          );
-        }
+        // Update the item at the specified index
+        const currentItem =
+          typeof array[index] === 'object' && array[index] !== null
+            ? (array[index] as Record<string, unknown>)
+            : {};
+        array[index] = { ...currentItem, ...patchData };
+
+        // Update the parent record
+        await this.parentCollection.update(
+          caller,
+          new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
+          { [this.arrayFieldPath]: array },
+        );
       }
     }
   }
@@ -634,27 +891,76 @@ export default class ArrayCollection extends CosmosCollection {
    * Delete array items
    */
   override async delete(caller: Caller, filter: Filter): Promise<void> {
-    // List all records matching the filter
-    const records = await this.list(caller, new PaginatedFilter(filter), new Projection('id'));
-
-    // Group by parent ID to minimize updates
+    // OPTIMIZATION: Check if we're filtering by composite ID(s)
+    const conditionTree = filter?.conditionTree;
+    const isLeaf = conditionTree && 'field' in conditionTree && 'operator' in conditionTree;
     const recordsByParent = new Map<string, number[]>();
 
-    for (const record of records) {
-      const { parentId, index } = this.parseCompositeId(record.id as string);
+    if (isLeaf) {
+      const leaf = conditionTree as ConditionTreeLeaf;
 
-      if (!recordsByParent.has(parentId)) {
-        recordsByParent.set(parentId, []);
+      if (leaf.field === 'id') {
+        // Direct composite ID filtering - parse without calling list()
+        let compositeIds: string[] = [];
+
+        if (leaf.operator === 'Equal') {
+          compositeIds = [leaf.value as string];
+        } else if (leaf.operator === 'In') {
+          compositeIds = leaf.value as string[];
+        }
+
+        if (compositeIds.length > 0) {
+          // Parse composite IDs directly
+          for (const compositeId of compositeIds) {
+            const { parentId, index } = this.parseCompositeId(compositeId);
+
+            if (!recordsByParent.has(parentId)) {
+              recordsByParent.set(parentId, []);
+            }
+
+            recordsByParent.get(parentId)?.push(index);
+          }
+        }
       }
+    }
 
-      recordsByParent.get(parentId)?.push(index);
+    // Fallback: Use list() for complex filters
+    if (recordsByParent.size === 0) {
+      const records = await this.list(caller, new PaginatedFilter(filter), new Projection('id'));
+
+      for (const record of records) {
+        const { parentId, index } = this.parseCompositeId(record.id as string);
+
+        if (!recordsByParent.has(parentId)) {
+          recordsByParent.set(parentId, []);
+        }
+
+        recordsByParent.get(parentId)?.push(index);
+      }
     }
 
     // Sequential execution required: deleting array items must be done one parent at a time
     // to prevent conflicts and ensure data consistency
     for (const [parentId, indices] of recordsByParent) {
-      // Fetch the parent record
       // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
+      await this.deleteSingleParent(caller, parentId, indices);
+    }
+  }
+
+  /**
+   * Delete items from a single parent (supports both physical and nested virtual collections)
+   */
+  private async deleteSingleParent(
+    caller: Caller,
+    parentId: string,
+    indices: number[],
+  ): Promise<void> {
+    // Check if parent is a virtual collection (composite ID contains ':')
+    const isNestedVirtualCollection = parentId.includes(':');
+
+    if (isNestedVirtualCollection) {
+      // For nested virtual collections, fetch the parent record, modify locally,
+      // then update through the parent's parent
       const parentRecords = await this.parentCollection.list(
         caller,
         new PaginatedFilter({
@@ -663,26 +969,60 @@ export default class ArrayCollection extends CosmosCollection {
         new Projection('id', this.arrayFieldPath),
       );
 
-      // Skip if parent not found
-      if (parentRecords.length > 0) {
-        const parentRecord = parentRecords[0];
-        const array = this.getArrayFromParent(parentRecord);
+      if (parentRecords.length === 0) {
+        return;
+      }
 
-        // Remove items at the specified indices (sort in reverse to avoid index shifting)
-        const sortedIndices = indices.sort((a, b) => b - a);
+      const parentRecord = parentRecords[0];
+      const array = this.getArrayFromParent(parentRecord);
 
-        for (const index of sortedIndices) {
+      // Remove items at the specified indices (sort in reverse to avoid index shifting)
+      const sortedIndices = indices.sort((a, b) => b - a);
+
+      for (const index of sortedIndices) {
+        if (index >= 0 && index < array.length) {
           array.splice(index, 1);
         }
-
-        // Update the parent record - sequential to prevent conflicts
-        // eslint-disable-next-line no-await-in-loop -- Sequential prevents data conflicts
-        await this.parentCollection.update(
-          caller,
-          new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
-          { [this.arrayFieldPath]: array },
-        );
       }
+
+      // Update through the parent collection (which will handle its own parent recursively)
+      await this.parentCollection.update(
+        caller,
+        new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
+        { [this.arrayFieldPath]: array },
+      );
+    } else {
+      // Physical collection parent - use direct update
+      const parentRecords = await this.parentCollection.list(
+        caller,
+        new PaginatedFilter({
+          conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId),
+        }),
+        new Projection('id', this.arrayFieldPath),
+      );
+
+      if (parentRecords.length === 0) {
+        return;
+      }
+
+      const parentRecord = parentRecords[0];
+      const array = this.getArrayFromParent(parentRecord);
+
+      // Remove items at the specified indices (sort in reverse to avoid index shifting)
+      const sortedIndices = indices.sort((a, b) => b - a);
+
+      for (const index of sortedIndices) {
+        if (index >= 0 && index < array.length) {
+          array.splice(index, 1);
+        }
+      }
+
+      // Update the parent record
+      await this.parentCollection.update(
+        caller,
+        new Filter({ conditionTree: new ConditionTreeLeaf('id', 'Equal', parentId) }),
+        { [this.arrayFieldPath]: array },
+      );
     }
   }
 
