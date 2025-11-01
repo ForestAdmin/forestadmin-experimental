@@ -965,6 +965,7 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
     describe('Optimized Array Operations', () => {
       it('should have optimizations enabled by default in production', () => {
         // Create a collection with enableOptimizations explicitly set to true
+        /* eslint-disable @typescript-eslint/dot-notation */
         const optimizedCollection = new ArrayCollection(
           arrayCollection['dataSource'],
           arrayCollection['parentCollection'],
@@ -976,6 +977,7 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
           [],
           true, // Enable optimizations
         );
+        /* eslint-enable @typescript-eslint/dot-notation */
 
         expect((optimizedCollection as any).enableOptimizations).toBe(true);
       });
@@ -1235,7 +1237,7 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
       expect(attachments[0].diligencesId).toBe('tp-001:0');
     });
 
-    it('should retrieve a specific attachment from a different diligence (tp-001:1:0)', async () => {
+    it('should retrieve attachment from different diligence (tp-001:1:0)', async () => {
       const attachmentId = 'tp-001:1:0';
 
       mockContainer.items.query.mockReturnValue({
@@ -1359,7 +1361,7 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
     });
 
     it('should delete a single attachment without affecting others', async () => {
-      // Initial state: tp-001 has diligence[0] with 2 attachments and diligence[1] with 1 attachment
+      // Initial: tp-001 has diligence[0] with 2 attachments and diligence[1] with 1 attachment
       mockContainer.items.query.mockReturnValue({
         fetchAll: jest.fn().mockResolvedValue({ resources: parentDocuments }),
       });
@@ -1381,7 +1383,7 @@ describe('Virtual Collections (ArrayCollection) - Integration Tests', () => {
       // Verify update was called to remove only the targeted attachment
       expect(updateMock).toHaveBeenCalled();
 
-      // The update should be called on the diligences collection with the modified attachments array
+      // Update called on diligences collection with the modified attachments array
       const updateCall = updateMock.mock.calls[0];
 
       expect(updateCall).toBeDefined();
