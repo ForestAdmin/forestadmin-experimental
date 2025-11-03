@@ -57,17 +57,10 @@ describe('Model - Pagination Efficiency', () => {
     mockClient.database.mockReturnValue(mockDatabase as any);
 
     // Create model directly (bypass introspection to avoid container.read() calls)
-    model = new ModelCosmos(
-      mockClient,
-      'test-collection',
-      'test-db',
-      'test-collection',
-      '/id',
-      {
-        id: { type: 'string' },
-        name: { type: 'string' },
-      },
-    );
+    model = new ModelCosmos(mockClient, 'test-collection', 'test-db', 'test-collection', '/id', {
+      id: { type: 'string' },
+      name: { type: 'string' },
+    });
   });
 
   it('should use pagination API when limit is specified', async () => {
