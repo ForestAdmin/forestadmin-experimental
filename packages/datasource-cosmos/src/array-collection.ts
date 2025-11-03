@@ -5,6 +5,7 @@ import {
   CollectionSchema,
   ColumnSchema,
   ConditionTree,
+  ConditionTreeBranch,
   ConditionTreeLeaf,
   DataSource,
   Filter,
@@ -923,9 +924,50 @@ export default class ArrayCollection extends CosmosCollection {
         }
       }
     }
+    // Handle Forest Admin's pattern: AND condition with id AND parentIdField
+    // Example: { And: [{ id: Equal: "parentId:0" }, { third_partiesId: Equal: "parentId" }] }
+    else if (conditionTree && 'aggregator' in conditionTree && conditionTree.aggregator === 'And') {
+      const branch = conditionTree as ConditionTreeBranch;
+
+      // Look for the 'id' field condition in the AND branches
+      const idCondition = branch.conditions.find(
+        (cond): cond is ConditionTreeLeaf =>
+          'field' in cond && cond.field === 'id' && 'operator' in cond,
+      );
+
+      if (idCondition) {
+        let compositeIds: string[] = [];
+
+        if (idCondition.operator === 'Equal') {
+          compositeIds = [idCondition.value as string];
+        } else if (idCondition.operator === 'In') {
+          compositeIds = idCondition.value as string[];
+        }
+
+        if (compositeIds.length > 0) {
+          // Parse composite IDs directly
+          for (const compositeId of compositeIds) {
+            const { parentId, index } = this.parseCompositeId(compositeId);
+
+            if (!recordsByParent.has(parentId)) {
+              recordsByParent.set(parentId, []);
+            }
+
+            recordsByParent.get(parentId)?.push(index);
+          }
+        }
+      }
+    }
 
     // Fallback: Use list() for complex filters
     if (recordsByParent.size === 0) {
+      if (!conditionTree) {
+        throw new Error(
+          `Cannot delete from virtual collection '${this.name}' without a filter. ` +
+            `This would affect all parent records.`,
+        );
+      }
+
       const records = await this.list(caller, new PaginatedFilter(filter), new Projection('id'));
 
       for (const record of records) {
