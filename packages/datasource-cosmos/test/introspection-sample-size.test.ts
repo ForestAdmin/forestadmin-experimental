@@ -11,6 +11,19 @@ import Introspector from '../src/introspection/introspector';
 // Mock the Introspector
 jest.mock('../src/introspection/introspector');
 
+// Helper to call factory with both possible signatures (backward compatibility)
+async function callFactory(
+  factory: ReturnType<typeof createCosmosDataSource>,
+  logger: jest.Mock,
+  restartAgent?: jest.Mock,
+) {
+  // Cast to support both DataSourceFactory signatures (with/without restartAgent)
+  return (factory as (logger: unknown, restartAgent?: unknown) => Promise<unknown>)(
+    logger,
+    restartAgent,
+  );
+}
+
 describe('Introspection Sample Size Parameter', () => {
   let mockLogger: jest.Mock;
   let mockRestartAgent: jest.Mock;
@@ -19,7 +32,7 @@ describe('Introspection Sample Size Parameter', () => {
     jest.clearAllMocks();
 
     mockLogger = jest.fn();
-    mockRestartAgent = jest.fn();
+    mockRestartAgent = jest.fn().mockResolvedValue(undefined);
 
     // Mock Introspector.introspect to return empty array
     (Introspector.introspect as jest.Mock).mockResolvedValue([]);
@@ -33,7 +46,7 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       // Verify Introspector.introspect was called with default sample size of 100
       expect(Introspector.introspect).toHaveBeenCalledWith(
@@ -57,7 +70,7 @@ describe('Introspection Sample Size Parameter', () => {
           },
         );
 
-        await factory(mockLogger, mockRestartAgent);
+        await callFactory(factory, mockLogger, mockRestartAgent);
 
         // Verify default sample size is used
         expect(Introspector.introspect).toHaveBeenCalledWith(
@@ -81,7 +94,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       // Verify custom sample size is used
       expect(Introspector.introspect).toHaveBeenCalledWith(
@@ -102,7 +115,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
@@ -122,7 +135,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
@@ -142,7 +155,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
@@ -171,7 +184,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
@@ -196,7 +209,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
@@ -218,7 +231,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       // Introspector should not be called when there's no database name
       expect(Introspector.introspect).not.toHaveBeenCalled();
@@ -235,7 +248,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       // Introspector should not be called when builder is used
       expect(Introspector.introspect).not.toHaveBeenCalled();
@@ -253,7 +266,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
@@ -273,7 +286,7 @@ describe('Introspection Sample Size Parameter', () => {
         },
       );
 
-      await factory(mockLogger, mockRestartAgent);
+      await callFactory(factory, mockLogger, mockRestartAgent);
 
       expect(Introspector.introspect).toHaveBeenCalledWith(
         expect.any(Object),
