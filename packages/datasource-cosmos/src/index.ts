@@ -302,6 +302,7 @@ export function createCosmosDataSource(
                 logger,
                 client,
                 [], // Empty for now, will be set after all collections are created
+                true, // Enable optimizations for better performance with large datasets
               );
 
               // Add the collection to the datasource

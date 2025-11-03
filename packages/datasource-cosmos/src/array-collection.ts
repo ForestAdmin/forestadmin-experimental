@@ -31,6 +31,10 @@ export default class ArrayCollection extends CosmosCollection {
   private parentIdField: string;
   private virtualizedChildFields: Set<string>;
   private enableOptimizations: boolean;
+  private logger?: Logger;
+
+  // Maximum number of items to return without specific filtering (prevents memory issues)
+  private static readonly MAX_UNFILTERED_RESULTS = 1000;
 
   constructor(
     dataSource: DataSource,
@@ -106,6 +110,7 @@ export default class ArrayCollection extends CosmosCollection {
       enableOptimizations !== undefined
         ? enableOptimizations
         : process.env.NODE_ENV !== 'test' && typeof jest === 'undefined';
+    this.logger = logger;
 
     // Override the collection name
     Object.defineProperty(this, 'name', {
@@ -420,6 +425,33 @@ export default class ArrayCollection extends CosmosCollection {
   }
 
   /**
+   * Check if query could be expensive and log warnings
+   */
+  private checkQueryPerformance(
+    filter: PaginatedFilter,
+    hasParentFilter: boolean,
+    hasCompositeIdFilter: boolean,
+  ): void {
+    // Warn if listing all items without parent/ID filters
+    if (!hasParentFilter && !hasCompositeIdFilter && !filter?.page?.limit) {
+      this.logger?.(
+        'Warn',
+        `Virtual collection '${this.name}': Listing all items without specific filters ` +
+          `may be slow with large datasets. Consider filtering by parent ID or using pagination.`,
+      );
+    }
+
+    // Warn if requesting more than reasonable limit
+    if (filter?.page?.limit && filter.page.limit > 1000) {
+      this.logger?.(
+        'Warn',
+        `Virtual collection '${this.name}': Requesting ${filter.page.limit} items. ` +
+          `Large result sets may impact performance.`,
+      );
+    }
+  }
+
+  /**
    * List array items from parent collection
    */
   override async list(
@@ -496,6 +528,9 @@ export default class ArrayCollection extends CosmosCollection {
       }
     }
 
+    // Performance warning for potentially expensive queries
+    this.checkQueryPerformance(filter, !!parentFilter, !!filterByCompositeId);
+
     // Fetch parent records with the array field
     const parentRecords = await this.parentCollection.list(
       caller,
@@ -562,7 +597,24 @@ export default class ArrayCollection extends CosmosCollection {
     const start = skip || 0;
     const end = limit ? start + limit : undefined;
 
-    return filteredItems.slice(start, end);
+    const paginatedResults = filteredItems.slice(start, end);
+
+    // Safety check: prevent returning excessive results without pagination
+    if (paginatedResults.length > ArrayCollection.MAX_UNFILTERED_RESULTS) {
+      this.logger?.(
+        'Error',
+        `Virtual collection '${this.name}': Query would return ${paginatedResults.length} items, ` +
+          `exceeding maximum of ${ArrayCollection.MAX_UNFILTERED_RESULTS}. ` +
+          `Please add pagination or more specific filters.`,
+      );
+      throw new Error(
+        `Result set too large (${paginatedResults.length} items). ` +
+          `Maximum allowed is ${ArrayCollection.MAX_UNFILTERED_RESULTS}. ` +
+          `Please use pagination or add more specific filters.`,
+      );
+    }
+
+    return paginatedResults;
   }
 
   /**
