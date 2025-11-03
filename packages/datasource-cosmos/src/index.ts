@@ -99,6 +99,7 @@ export function createCosmosDataSource(
     builder?: ConfigurationOptions;
     clientOptions?: CosmosClientOptions;
     virtualArrayCollections?: VirtualArrayCollectionConfig[];
+    introspectionSampleSize?: number;
   },
 ): DataSourceFactory {
   return async (logger: Logger) => {
@@ -108,8 +109,13 @@ export function createCosmosDataSource(
       ...options?.clientOptions,
     });
 
-    const { liveQueryConnections, liveQueryDatabase, builder, virtualArrayCollections } =
-      options || {};
+    const {
+      liveQueryConnections,
+      liveQueryDatabase,
+      builder,
+      virtualArrayCollections,
+      introspectionSampleSize = 100,
+    } = options || {};
 
     let collectionModels;
 
@@ -119,7 +125,12 @@ export function createCosmosDataSource(
       ) as CosmosDatasourceBuilder;
       collectionModels = await datasourceBuilder.createCollectionsFromConfiguration();
     } else if (databaseName) {
-      collectionModels = await Introspector.introspect(client, databaseName, logger);
+      collectionModels = await Introspector.introspect(
+        client,
+        databaseName,
+        logger,
+        introspectionSampleSize,
+      );
     } else {
       collectionModels = [];
     }
@@ -189,7 +200,11 @@ export function createCosmosDataSource(
                 const sampleRecords = await (parentCollection as ArrayCollection).list(
                   {} as Caller,
                   new PaginatedFilter({
-                    page: { limit: 100, skip: 0, apply: (records: unknown[]) => records },
+                    page: {
+                      limit: introspectionSampleSize,
+                      skip: 0,
+                      apply: (records: unknown[]) => records,
+                    },
                   }),
                   new Projection(config.arrayFieldPath),
                 );
@@ -302,6 +317,7 @@ export function createCosmosDataSource(
                 logger,
                 client,
                 [], // Empty for now, will be set after all collections are created
+                true, // Enable optimizations for better performance with large datasets
               );
 
               // Add the collection to the datasource

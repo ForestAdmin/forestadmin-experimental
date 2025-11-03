@@ -148,25 +148,48 @@ export default class ModelCosmos {
     offset?: number,
     limit?: number,
   ): Promise<RecordData[]> {
-    const options = {
-      maxItemCount: limit,
-    };
+    // If no pagination parameters, fetch all (backward compatibility)
+    if (offset === undefined && limit === undefined) {
+      const { resources } = await this.container.items.query(querySpec).fetchAll();
 
-    const { resources } = await this.container.items.query(querySpec, options).fetchAll();
+      return resources.map(item => Serializer.serialize(item));
+    }
 
-    // Apply offset and limit (Cosmos DB doesn't have native OFFSET)
-    let results = resources;
+    // Use efficient pagination when limit is specified
+    // Note: Cosmos DB doesn't support native OFFSET, so we need to skip items client-side
+    // but we can still benefit from maxItemCount to limit network transfers
+    const query = this.container.items.query(querySpec, {
+      maxItemCount: limit ? (offset || 0) + limit : undefined,
+    });
+
+    const results: ItemDefinition[] = [];
+    let itemsFetched = 0;
+    const targetCount = (offset || 0) + (limit || 0);
+
+    // Iterate through pages until we have enough items
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const { resources: page } of query.getAsyncIterator()) {
+      results.push(...page);
+      itemsFetched += page.length;
+
+      // Stop fetching if we have enough items
+      if (limit && itemsFetched >= targetCount) {
+        break;
+      }
+    }
+
+    // Apply offset and limit
+    let finalResults = results;
 
     if (offset) {
-      results = results.slice(offset);
+      finalResults = finalResults.slice(offset);
     }
 
-    if (limit && offset) {
-      // If we already sliced with offset, limit the remaining results
-      results = results.slice(0, limit);
+    if (limit) {
+      finalResults = finalResults.slice(0, limit);
     }
 
-    return results.map(item => Serializer.serialize(item));
+    return finalResults.map(item => Serializer.serialize(item));
   }
 
   public async aggregateQuery(querySpec: SqlQuerySpec): Promise<RecordData[]> {

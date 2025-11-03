@@ -385,20 +385,26 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.query(querySpec);
 
       expect(results).toEqual(mockResults);
-      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
-        maxItemCount: undefined,
-      });
+      // Should use fetchAll when no pagination parameters
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec);
     });
 
     it('should apply limit', async () => {
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield { resources: [{ id: '1' }, { id: '2' }] };
+        },
+      };
+
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: [] }),
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
       }) as any;
 
       const querySpec = { query: 'SELECT * FROM c' };
-      await model.query(querySpec, undefined, 10);
+      const results = await model.query(querySpec, undefined, 10);
 
       expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, { maxItemCount: 10 });
+      expect(results).toHaveLength(2);
     });
 
     it('should apply offset by slicing results', async () => {
@@ -409,8 +415,14 @@ describe('Model Builder > ModelCosmos', () => {
         { id: '4', name: 'David' },
       ];
 
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield { resources: mockResults };
+        },
+      };
+
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
       }) as any;
 
       const results = await model.query({ query: 'SELECT * FROM c' }, 2);
@@ -423,8 +435,14 @@ describe('Model Builder > ModelCosmos', () => {
     it('should apply both offset and limit', async () => {
       const mockResults = [{ id: '1' }, { id: '2' }, { id: '3' }, { id: '4' }, { id: '5' }];
 
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield { resources: mockResults };
+        },
+      };
+
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
       }) as any;
 
       const results = await model.query({ query: 'SELECT * FROM c' }, 1, 2);
