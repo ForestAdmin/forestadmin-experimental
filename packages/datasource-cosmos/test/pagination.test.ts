@@ -24,7 +24,7 @@ describe('Model - Pagination Efficiency', () => {
     const mockAsyncIterator = {
       async *[Symbol.asyncIterator]() {
         // Simulate 3 pages of 10 items each (30 total items)
-        for (let page = 0; page < 3; page++) {
+        for (let page = 0; page < 3; page += 1) {
           const resources = Array.from({ length: 10 }, (_, i) => ({
             id: `item-${page * 10 + i}`,
             name: `Item ${page * 10 + i}`,
