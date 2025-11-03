@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.4.0...datasource-cosmos@1.4.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* improve scalability ([#186](https://github.com/ForestAdmin/forestadmin-experimental/issues/186)) ([8f69026](https://github.com/ForestAdmin/forestadmin-experimental/commit/8f690267a5ef4dbb4fba6ddb1a4ecc54484ca3c0))
+
 # [1.4.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.3.4...datasource-cosmos@1.4.0) (2025-11-01)
 
 
