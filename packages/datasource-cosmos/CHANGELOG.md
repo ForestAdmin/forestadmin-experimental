@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.4.1...datasource-cosmos@1.5.0) (2025-11-04)
+
+
+### Features
+
+* add introspection config ([#187](https://github.com/ForestAdmin/forestadmin-experimental/issues/187)) ([fc470d3](https://github.com/ForestAdmin/forestadmin-experimental/commit/fc470d39520e32f811f66cadf9c38d9e27e8a1b3))
+
 ## [1.4.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.4.0...datasource-cosmos@1.4.1) (2025-11-03)
 
 
