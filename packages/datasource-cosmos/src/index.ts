@@ -17,6 +17,50 @@ import Introspector, { VirtualArrayCollectionConfig } from './introspection/intr
 import { CosmosSchema } from './model-builder/model';
 import TypeConverter, { CosmosDataType } from './utils/type-converter';
 
+export interface IntrospectionConfig {
+  /**
+   * Number of sample documents to analyze for schema inference
+   *
+   * Default: 100
+   *
+   * Note: Cosmos DB queries are automatically paginated if they exceed 4 MB response size.
+   * Large sample sizes (>1000) will work but may:
+   * - Consume more Request Units (RUs)
+   * - Take longer to complete
+   * - Use more memory
+   *
+   * Recommended values:
+   * - Small containers (<10K docs): 100-500
+   * - Medium containers (10K-100K docs): 500-1000
+   * - Large containers (>100K docs): 1000-5000
+   */
+  sampleSize?: number;
+
+  /**
+   * Field to order documents by during introspection
+   *
+   * Example: '_ts' to order by timestamp (latest first)
+   * Default: undefined (no ordering)
+   *
+   * Common fields:
+   * - '_ts': Cosmos DB system timestamp (seconds since epoch)
+   * - 'createdAt': Your custom timestamp field
+   * - 'id': Document ID (for consistent ordering)
+   *
+   * Note: Ordering may increase query RU consumption and requires an index
+   * on the specified field for optimal performance.
+   */
+  orderByField?: string;
+
+  /**
+   * Order direction for introspection sampling
+   *
+   * 'DESC' for descending (latest first), 'ASC' for ascending (oldest first)
+   * Default: 'DESC'
+   */
+  orderDirection?: 'ASC' | 'DESC';
+}
+
 export { default as CosmosCollection } from './collection';
 export { default as CosmosDataSource } from './datasource';
 export { default as ArrayCollection } from './array-collection';
@@ -99,6 +143,8 @@ export function createCosmosDataSource(
     builder?: ConfigurationOptions;
     clientOptions?: CosmosClientOptions;
     virtualArrayCollections?: VirtualArrayCollectionConfig[];
+    introspectionConfig?: IntrospectionConfig;
+    /** @deprecated Use introspectionConfig.sampleSize instead */
     introspectionSampleSize?: number;
   },
 ): DataSourceFactory {
@@ -114,8 +160,16 @@ export function createCosmosDataSource(
       liveQueryDatabase,
       builder,
       virtualArrayCollections,
-      introspectionSampleSize = 100,
+      introspectionConfig,
+      introspectionSampleSize,
     } = options || {};
+
+    // Merge introspectionConfig with legacy introspectionSampleSize
+    const finalIntrospectionConfig: IntrospectionConfig = {
+      sampleSize: introspectionConfig?.sampleSize ?? introspectionSampleSize ?? 100,
+      orderByField: introspectionConfig?.orderByField,
+      orderDirection: introspectionConfig?.orderDirection ?? 'DESC',
+    };
 
     let collectionModels;
 
@@ -129,7 +183,9 @@ export function createCosmosDataSource(
         client,
         databaseName,
         logger,
-        introspectionSampleSize,
+        finalIntrospectionConfig.sampleSize,
+        finalIntrospectionConfig.orderByField,
+        finalIntrospectionConfig.orderDirection,
       );
     } else {
       collectionModels = [];
@@ -201,7 +257,7 @@ export function createCosmosDataSource(
                   {} as Caller,
                   new PaginatedFilter({
                     page: {
-                      limit: introspectionSampleSize,
+                      limit: finalIntrospectionConfig.sampleSize!,
                       skip: 0,
                       apply: (records: unknown[]) => records,
                     },
@@ -412,6 +468,7 @@ export function createCosmosDataSourceForEmulator(
     liveQueryDatabase?: string;
     builder?: ConfigurationOptions;
     clientOptions?: CosmosClientOptions;
+    introspectionConfig?: IntrospectionConfig;
   },
 ): DataSourceFactory {
   // Default emulator connection details

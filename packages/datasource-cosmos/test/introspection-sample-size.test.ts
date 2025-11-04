@@ -54,6 +54,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         100, // default sample size
+        undefined, // orderByField
+        'DESC', // orderDirection
       );
     });
 
@@ -78,6 +80,8 @@ describe('Introspection Sample Size Parameter', () => {
           'test-database',
           mockLogger,
           100,
+        undefined, // orderByField
+        'DESC', // orderDirection,
         );
       },
     );
@@ -102,6 +106,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         200,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
 
@@ -122,6 +128,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         50,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
 
@@ -142,6 +150,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         500,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
 
@@ -162,6 +172,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         1,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
   });
@@ -191,6 +203,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         150,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
 
@@ -216,6 +230,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         250,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
   });
@@ -273,6 +289,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         1,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
 
@@ -293,6 +311,8 @@ describe('Introspection Sample Size Parameter', () => {
         'test-database',
         mockLogger,
         10000,
+        undefined, // orderByField
+        'DESC', // orderDirection,
       );
     });
   });

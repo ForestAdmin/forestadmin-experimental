@@ -31,10 +31,19 @@ export default class Introspector {
     databaseName: string,
     logger?: Logger,
     sampleSize = 100,
+    orderByField?: string,
+    orderDirection: 'ASC' | 'DESC' = 'DESC',
   ): Promise<ModelCosmos[]> {
     logger?.('Info', 'Introspector - Introspect Cosmos DB');
 
-    return Introspector.introspectAll(cosmosClient, databaseName, logger, sampleSize);
+    return Introspector.introspectAll(
+      cosmosClient,
+      databaseName,
+      logger,
+      sampleSize,
+      orderByField,
+      orderDirection,
+    );
   }
 
   /**
@@ -45,6 +54,8 @@ export default class Introspector {
     databaseName: string,
     logger?: Logger,
     sampleSize = 100,
+    orderByField?: string,
+    orderDirection: 'ASC' | 'DESC' = 'DESC',
   ): Promise<ModelCosmos[]> {
     const results: ModelCosmos[] = [];
     const database = cosmosClient.database(databaseName);
@@ -72,6 +83,12 @@ export default class Introspector {
             containerInfo.id,
             undefined, // Let introspector determine partition key
             sampleSize,
+            undefined, // overrideTypeConverter
+            undefined, // enableCount
+            {
+              orderByField,
+              orderDirection,
+            },
           );
 
           logger?.(
