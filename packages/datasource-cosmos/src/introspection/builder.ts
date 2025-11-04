@@ -50,6 +50,20 @@ export type CosmosCollectionFromContainerOptions = {
    * Number of sample documents to analyze for schema inference (default: 100)
    */
   sampleSize?: number;
+
+  /**
+   * Field to order documents by during introspection
+   * Example: '_ts' to order by timestamp (latest first)
+   * Default: undefined (no ordering)
+   */
+  orderByField?: string;
+
+  /**
+   * Order direction for introspection sampling
+   * 'DESC' for descending (latest first), 'ASC' for ascending (oldest first)
+   * Default: 'DESC'
+   */
+  orderDirection?: 'ASC' | 'DESC';
 } & CosmosCollectionBase;
 
 export type ConfigurationOptions = (
@@ -83,6 +97,8 @@ export class CosmosDatasourceBuilder implements CosmosDatasourceOptionsBuilder {
     overrideTypeConverter,
     enableCount,
     sampleSize = 100,
+    orderByField,
+    orderDirection = 'DESC',
   }: CosmosCollectionFromContainerOptions): this {
     this.collectionsPromises.push(
       (async () => {
@@ -95,6 +111,10 @@ export class CosmosDatasourceBuilder implements CosmosDatasourceOptionsBuilder {
           sampleSize,
           overrideTypeConverter,
           enableCount,
+          {
+            orderByField,
+            orderDirection,
+          },
         );
 
         return model;

@@ -29,6 +29,20 @@ export interface IntrospectionOptions {
    * Default: [] (no virtual collections)
    */
   virtualArrayCollections?: string[];
+
+  /**
+   * Field to order documents by during introspection
+   * Example: '_ts' to order by timestamp (latest first)
+   * Default: undefined (no ordering)
+   */
+  orderByField?: string;
+
+  /**
+   * Order direction for introspection sampling
+   * 'DESC' for descending (latest first), 'ASC' for ascending (oldest first)
+   * Default: 'DESC'
+   */
+  orderDirection?: 'ASC' | 'DESC';
 }
 
 export interface ArrayCollectionMetadata {
@@ -267,7 +281,13 @@ export default async function introspectContainer(
   enableCount?: boolean,
   options: IntrospectionOptions = {},
 ): Promise<ModelCosmos> {
-  const { flattenNestedObjects = true, maxDepth = 5, introspectArrayItems = false } = options;
+  const {
+    flattenNestedObjects = true,
+    maxDepth = 5,
+    introspectArrayItems = false,
+    orderByField,
+    orderDirection = 'DESC',
+  } = options;
 
   const database = cosmosClient.database(databaseName);
   const container = database.container(containerName);
@@ -281,10 +301,21 @@ export default async function introspectContainer(
   }
 
   // Sample documents to infer schema
+  // Note: Cosmos DB automatically paginates queries if response exceeds 4 MB
+  // fetchAll() handles continuation tokens transparently
+  let query = `SELECT TOP ${sampleSize} * FROM c`;
+
+  // Add ORDER BY clause if orderByField is specified
+  // Note: ORDER BY requires an index on the field for optimal performance
+  if (orderByField) {
+    query += ` ORDER BY c.${orderByField} ${orderDirection}`;
+  }
+
   const querySpec = {
-    query: `SELECT TOP ${sampleSize} * FROM c`,
+    query,
   };
 
+  // fetchAll() automatically handles pagination across multiple requests if needed
   const { resources: sampleDocuments } = await container.items.query(querySpec).fetchAll();
 
   // Infer schema from sample documents with nested object support

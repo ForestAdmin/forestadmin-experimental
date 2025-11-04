@@ -2,11 +2,25 @@ import { CosmosClient } from '@azure/cosmos';
 
 import Introspector from '../../src/introspection/introspector';
 
+interface MockQuery {
+  fetchAll: jest.Mock;
+}
+
+interface MockContainer {
+  items: {
+    query: jest.Mock;
+  };
+}
+
+interface MockDatabase {
+  container: jest.Mock;
+}
+
 describe('Introspector > Array Field Introspection', () => {
   let mockCosmosClient: jest.Mocked<CosmosClient>;
-  let mockContainer: any;
-  let mockDatabase: any;
-  let mockQuery: any;
+  let mockContainer: MockContainer;
+  let mockDatabase: MockDatabase;
+  let mockQuery: MockQuery;
 
   beforeEach(() => {
     mockQuery = {
@@ -25,7 +39,7 @@ describe('Introspector > Array Field Introspection', () => {
 
     mockCosmosClient = {
       database: jest.fn().mockReturnValue(mockDatabase),
-    } as any;
+    } as unknown as jest.Mocked<CosmosClient>;
   });
 
   describe('introspectArrayField', () => {
