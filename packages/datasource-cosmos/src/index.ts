@@ -144,8 +144,6 @@ export function createCosmosDataSource(
     clientOptions?: CosmosClientOptions;
     virtualArrayCollections?: VirtualArrayCollectionConfig[];
     introspectionConfig?: IntrospectionConfig;
-    /** @deprecated Use introspectionConfig.sampleSize instead */
-    introspectionSampleSize?: number;
   },
 ): DataSourceFactory {
   return async (logger: Logger) => {
@@ -161,12 +159,11 @@ export function createCosmosDataSource(
       builder,
       virtualArrayCollections,
       introspectionConfig,
-      introspectionSampleSize,
     } = options || {};
 
-    // Merge introspectionConfig with legacy introspectionSampleSize
+    // Apply introspection config defaults
     const finalIntrospectionConfig: IntrospectionConfig = {
-      sampleSize: introspectionConfig?.sampleSize ?? introspectionSampleSize ?? 100,
+      sampleSize: introspectionConfig?.sampleSize ?? 100,
       orderByField: introspectionConfig?.orderByField,
       orderDirection: introspectionConfig?.orderDirection ?? 'DESC',
     };
