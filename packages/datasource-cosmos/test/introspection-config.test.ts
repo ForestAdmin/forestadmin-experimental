@@ -573,7 +573,13 @@ describe('IntrospectionConfig Parameter', () => {
 
   describe('Type Safety', () => {
     it('should accept IntrospectionConfig with all properties', () => {
-      const config: { introspectionConfig: { sampleSize: number; orderByField: string; orderDirection: 'ASC' | 'DESC' } } = {
+      const config: {
+        introspectionConfig: {
+          sampleSize: number;
+          orderByField: string;
+          orderDirection: 'ASC' | 'DESC';
+        };
+      } = {
         introspectionConfig: {
           sampleSize: 1000,
           orderByField: '_ts',
@@ -592,7 +598,9 @@ describe('IntrospectionConfig Parameter', () => {
     });
 
     it('should accept partial IntrospectionConfig', () => {
-      const config: { introspectionConfig: { sampleSize?: number; orderByField?: string } } = {
+      const config: {
+        introspectionConfig: { sampleSize?: number; orderByField?: string };
+      } = {
         introspectionConfig: {
           sampleSize: 500,
         },
