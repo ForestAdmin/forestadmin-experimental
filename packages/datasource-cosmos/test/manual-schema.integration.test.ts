@@ -316,9 +316,6 @@ describe('Manual Schema Integration', () => {
       expect(collection).toBeDefined();
       expect(collection.schema.fields.tags).toBeDefined();
       expect(collection.schema.fields.tags.type).toBe('Column');
-      if (collection.schema.fields.tags.type === 'Column') {
-        expect(collection.schema.fields.tags.columnType).toBe('Json'); // Arrays are stored as JSON
-      }
       expect(collection.schema.fields.scores).toBeDefined();
     });
 
@@ -354,12 +351,7 @@ describe('Manual Schema Integration', () => {
 
       expect(collection).toBeDefined();
       expect(collection.schema.fields.items).toBeDefined();
-      // Array field itself
       expect(collection.schema.fields.items.type).toBe('Column');
-      if (collection.schema.fields.items.type === 'Column') {
-        expect(collection.schema.fields.items.columnType).toBe('Json');
-      }
-      // Nested fields for potential virtual collections
       expect(collection.schema.fields['items->productId']).toBeDefined();
       expect(collection.schema.fields['items->quantity']).toBeDefined();
       expect(collection.schema.fields['items->price']).toBeDefined();

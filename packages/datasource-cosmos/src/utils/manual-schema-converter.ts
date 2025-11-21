@@ -1,9 +1,10 @@
+import type { CosmosDataType } from './type-converter';
+
 import { CosmosClient } from '@azure/cosmos';
 import { Logger } from '@forestadmin/datasource-toolkit';
 
 import ModelCosmos, { CosmosSchema } from '../model-builder/model';
 import { FieldDefinition, ManualSchemaConfig } from '../types/manual-schema';
-import { CosmosDataType } from './type-converter';
 
 /**
  * Validates a manual schema configuration
@@ -134,7 +135,8 @@ function validateFields(fields: FieldDefinition[], collectionName: string, path 
     if (field.type === 'object') {
       if (!field.fields || field.fields.length === 0) {
         throw new Error(
-          `Object field '${fullPath}' in collection '${collectionName}' must have nested field definitions`,
+          `Object field '${fullPath}' in collection '${collectionName}' ` +
+            `must have nested field definitions`,
         );
       }
 
@@ -237,6 +239,7 @@ export async function convertManualSchemaToModels(
           .database(collection.databaseName)
           .container(collection.containerName);
 
+        // eslint-disable-next-line no-await-in-loop
         const containerDef = await container.read();
         const paths = containerDef.resource?.partitionKey?.paths;
         partitionKeyPath = paths ? paths[0] : undefined;

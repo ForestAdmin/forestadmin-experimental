@@ -247,7 +247,8 @@ describe('Utils > ManualSchemaConverter', () => {
         };
 
         expect(() => validateManualSchema(schema)).toThrow(
-          "Array field 'items' in collection 'users' with subType 'object' must have nested field definitions",
+          "Array field 'items' in collection 'users' with subType " +
+            "'object' must have nested field definitions",
         );
       });
 
@@ -404,7 +405,8 @@ describe('Utils > ManualSchemaConverter', () => {
         };
 
         expect(() => validateManualSchema(schema)).toThrow(
-          "Field 'name' in collection 'users' has nested fields but is not an object or array of objects",
+          "Field 'name' in collection 'users' has nested fields " +
+            'but is not an object or array of objects',
         );
       });
     });
