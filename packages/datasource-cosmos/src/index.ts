@@ -15,6 +15,8 @@ import CosmosDataSource from './datasource';
 import { ConfigurationOptions, CosmosDatasourceBuilder } from './introspection/builder';
 import Introspector, { VirtualArrayCollectionConfig } from './introspection/introspector';
 import { CosmosSchema } from './model-builder/model';
+import { ManualSchemaConfig } from './types/manual-schema';
+import { convertManualSchemaToModels } from './utils/manual-schema-converter';
 import TypeConverter, { CosmosDataType } from './utils/type-converter';
 
 export interface IntrospectionConfig {
@@ -68,6 +70,11 @@ export { default as TypeConverter } from './utils/type-converter';
 export { default as ModelCosmos } from './model-builder/model';
 export type { CosmosSchema } from './model-builder/model';
 export type { VirtualArrayCollectionConfig } from './introspection/introspector';
+export type {
+  CollectionDefinition,
+  FieldDefinition,
+  ManualSchemaConfig,
+} from './types/manual-schema';
 
 /**
  * Create a Cosmos DB datasource with an existing CosmosClient instance
@@ -144,6 +151,18 @@ export function createCosmosDataSource(
     clientOptions?: CosmosClientOptions;
     virtualArrayCollections?: VirtualArrayCollectionConfig[];
     introspectionConfig?: IntrospectionConfig;
+    /**
+     * Disable automatic introspection and provide manual schema definitions
+     * When true, you must provide a 'schema' configuration with collection definitions
+     * Default: false
+     */
+    disableIntrospection?: boolean;
+    /**
+     * Manual schema configuration
+     * Required when disableIntrospection is true
+     * Allows you to define collections and their fields explicitly
+     */
+    schema?: ManualSchemaConfig;
   },
 ): DataSourceFactory {
   return async (logger: Logger) => {
@@ -159,6 +178,8 @@ export function createCosmosDataSource(
       builder,
       virtualArrayCollections,
       introspectionConfig,
+      disableIntrospection,
+      schema,
     } = options || {};
 
     // Apply introspection config defaults
@@ -170,10 +191,22 @@ export function createCosmosDataSource(
 
     let collectionModels;
 
-    if (builder) {
+    // Handle manual schema configuration
+    if (disableIntrospection) {
+      if (!schema) {
+        throw new Error(
+          'When disableIntrospection is true, you must provide a schema configuration ' +
+            'with collection definitions',
+        );
+      }
+
+      logger?.('Info', 'Using manual schema configuration (introspection disabled)');
+      collectionModels = await convertManualSchemaToModels(client, schema, logger);
+    } else if (builder) {
       const datasourceBuilder = builder(
         new CosmosDatasourceBuilder(client),
       ) as CosmosDatasourceBuilder;
+
       collectionModels = await datasourceBuilder.createCollectionsFromConfiguration();
     } else if (databaseName) {
       collectionModels = await Introspector.introspect(
@@ -188,7 +221,7 @@ export function createCosmosDataSource(
       collectionModels = [];
     }
 
-    if (collectionModels.length === 0 && !builder) {
+    if (collectionModels.length === 0 && !builder && !disableIntrospection) {
       const message =
         'No collections were introspected. Please provide a databaseName or use the builder.';
       logger?.('Warn', message);
@@ -254,7 +287,7 @@ export function createCosmosDataSource(
                   {} as Caller,
                   new PaginatedFilter({
                     page: {
-                      limit: finalIntrospectionConfig.sampleSize!,
+                      limit: finalIntrospectionConfig.sampleSize ?? 100,
                       skip: 0,
                       apply: (records: unknown[]) => records,
                     },
@@ -466,6 +499,8 @@ export function createCosmosDataSourceForEmulator(
     builder?: ConfigurationOptions;
     clientOptions?: CosmosClientOptions;
     introspectionConfig?: IntrospectionConfig;
+    disableIntrospection?: boolean;
+    schema?: ManualSchemaConfig;
   },
 ): DataSourceFactory {
   // Default emulator connection details
