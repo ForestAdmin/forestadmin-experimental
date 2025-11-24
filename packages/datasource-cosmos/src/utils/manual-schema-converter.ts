@@ -9,9 +9,13 @@ import { FieldDefinition, ManualSchemaConfig } from '../types/manual-schema';
 /**
  * Validates a manual schema configuration
  * @param schema The manual schema to validate
+ * @param defaultDatabaseName Optional default database name for collections without one
  * @throws Error if the schema is invalid
  */
-export function validateManualSchema(schema: ManualSchemaConfig): void {
+export function validateManualSchema(
+  schema: ManualSchemaConfig,
+  defaultDatabaseName?: string,
+): void {
   if (!schema || !schema.collections) {
     throw new Error('Manual schema must have a collections array');
   }
@@ -32,8 +36,11 @@ export function validateManualSchema(schema: ManualSchemaConfig): void {
       throw new Error('Collection must have a name');
     }
 
-    if (!collection.databaseName) {
-      throw new Error(`Collection '${collection.name}' must have a databaseName`);
+    if (!collection.databaseName && !defaultDatabaseName) {
+      throw new Error(
+        `Collection '${collection.name}' must have a databaseName, or provide a default ` +
+          `database name when calling convertManualSchemaToModels`,
+      );
     }
 
     if (!collection.containerName) {
@@ -219,19 +226,24 @@ function convertFieldsToCosmosSchema(fields: FieldDefinition[], prefix = ''): Co
  * @param client The Cosmos DB client
  * @param schema The manual schema configuration
  * @param logger Optional logger
+ * @param defaultDatabaseName Optional default database name for collections without one
  * @returns Array of ModelCosmos instances
  */
 export async function convertManualSchemaToModels(
   client: CosmosClient,
   schema: ManualSchemaConfig,
   logger?: Logger,
+  defaultDatabaseName?: string,
 ): Promise<ModelCosmos[]> {
-  validateManualSchema(schema);
+  validateManualSchema(schema, defaultDatabaseName);
 
   const models: ModelCosmos[] = [];
 
   for (const collection of schema.collections) {
     logger?.('Info', `Creating collection '${collection.name}' from manual schema definition`);
+
+    // Use collection's database name if provided, otherwise use the default
+    const databaseName = collection.databaseName || defaultDatabaseName!;
 
     // Convert field definitions to Cosmos schema format
     const cosmosSchema = convertFieldsToCosmosSchema(collection.fields);
@@ -241,9 +253,7 @@ export async function convertManualSchemaToModels(
 
     if (!partitionKeyPath) {
       try {
-        const container = client
-          .database(collection.databaseName)
-          .container(collection.containerName);
+        const container = client.database(databaseName).container(collection.containerName);
 
         // eslint-disable-next-line no-await-in-loop
         const containerDef = await container.read();
@@ -273,7 +283,7 @@ export async function convertManualSchemaToModels(
     const model = new ModelCosmos(
       client,
       collection.name,
-      collection.databaseName,
+      databaseName,
       collection.containerName,
       partitionKeyPath,
       cosmosSchema,
