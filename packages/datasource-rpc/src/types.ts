@@ -4,6 +4,7 @@ export type RpcSchema = {
   collections: (CollectionSchema & { name: string })[];
   charts: string[];
   rpcRelations: Record<string, Record<string, RelationSchema>>;
+  nativeQueryConnections: { name: string }[];
 };
 
 export type RpcDataSourceOptions = {

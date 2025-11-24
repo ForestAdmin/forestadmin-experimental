@@ -4,6 +4,8 @@ import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/typ
 import { Collection, DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
+import { keysToSnake, transformFilteroperator } from '../utils';
+
 export default class RpcSchemaRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
@@ -27,16 +29,34 @@ export default class RpcSchemaRoute extends BaseRoute {
   }
 
   buildCollection(collection: Collection) {
-    const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
-      fileds[name] = {
-        ...schema,
-        filterOperators: Array.from(schema.type === 'Column' ? schema.filterOperators : []),
-      };
+    const buildedFields = Object.entries(collection.schema.fields).reduce(
+      (fields, [name, schema]) => {
+        fields[name] = keysToSnake(schema);
 
-      return fileds;
-    }, {});
+        if (schema.type === 'Column') {
+          fields[name].filter_operators = transformFilteroperator(schema.filterOperators);
+        }
 
-    return { name: collection.name, ...collection.schema, fields };
+        return fields;
+      },
+      {},
+    );
+
+    const buildedActions = Object.entries(collection.schema.actions).reduce(
+      (actions, [name, schema]) => {
+        actions[name] = keysToSnake(schema);
+
+        return actions;
+      },
+      {},
+    );
+
+    return {
+      name: collection.name,
+      ...collection.schema,
+      fields: buildedFields,
+      actions: buildedActions,
+    };
   }
 
   async handleRpc(context: any) {
@@ -49,7 +69,7 @@ export default class RpcSchemaRoute extends BaseRoute {
 
         Object.entries(collection.schema.fields).forEach(([name, field]) => {
           if (field.type !== 'Column' && !this.rpcCollections.includes(field.foreignCollection)) {
-            relations[name] = field;
+            relations[name] = keysToSnake(field);
           }
         });
 
@@ -62,7 +82,10 @@ export default class RpcSchemaRoute extends BaseRoute {
     context.response.body = {
       collections: collections.filter(Boolean),
       charts: this.dataSource.schema.charts,
-      rpcRelations,
+      rpc_relations: rpcRelations,
+      native_query_connections: Object.keys(this.dataSource.nativeQueryConnections).map(c => ({
+        name: c,
+      })),
     };
   }
 }
