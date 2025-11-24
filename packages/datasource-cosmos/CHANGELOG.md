@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.0...datasource-cosmos@1.6.1) (2025-11-24)
+
+
+### Bug Fixes
+
+* make database name optional ([#189](https://github.com/ForestAdmin/forestadmin-experimental/issues/189)) ([dc93255](https://github.com/ForestAdmin/forestadmin-experimental/commit/dc932552f2afb635939fb1ea9fe23cd726faf6d9))
+
 # [1.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.5.0...datasource-cosmos@1.6.0) (2025-11-24)
 
 
