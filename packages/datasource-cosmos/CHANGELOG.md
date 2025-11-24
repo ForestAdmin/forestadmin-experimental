@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.5.0...datasource-cosmos@1.6.0) (2025-11-24)
+
+
+### Features
+
+* support manual schema definition in cosmos ([#188](https://github.com/ForestAdmin/forestadmin-experimental/issues/188)) ([d819342](https://github.com/ForestAdmin/forestadmin-experimental/commit/d819342d1bda79c47a5b2c948c7f52a428413c10))
+
 # [1.5.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.4.1...datasource-cosmos@1.5.0) (2025-11-04)
 
 
