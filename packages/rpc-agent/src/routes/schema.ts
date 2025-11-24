@@ -31,11 +31,11 @@ export default class RpcSchemaRoute extends BaseRoute {
   buildCollection(collection: Collection) {
     const buildedFields = Object.entries(collection.schema.fields).reduce(
       (fields, [name, schema]) => {
-        fields[name] = keysToSnake({
-          ...schema,
-          filterOperators:
-            schema.type === 'Column' ? transformFilteroperator(schema.filterOperators) : [],
-        });
+        fields[name] = keysToSnake(schema);
+
+        if (schema.type === 'Column') {
+          fields[name].filter_operators = transformFilteroperator(schema.filterOperators);
+        }
 
         return fields;
       },
