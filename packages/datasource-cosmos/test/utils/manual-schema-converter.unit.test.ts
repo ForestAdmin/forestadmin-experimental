@@ -50,7 +50,7 @@ describe('Utils > ManualSchemaConverter', () => {
         expect(() => validateManualSchema(schema)).toThrow('Collection must have a name');
       });
 
-      it('should throw if collection has no databaseName', () => {
+      it('should throw if collection has no databaseName and no default provided', () => {
         const schema: ManualSchemaConfig = {
           collections: [
             {
@@ -63,8 +63,22 @@ describe('Utils > ManualSchemaConverter', () => {
         };
 
         expect(() => validateManualSchema(schema)).toThrow(
-          "Collection 'users' must have a databaseName",
+          "Collection 'users' must have a databaseName, or provide a default",
         );
+      });
+
+      it('should accept collection without databaseName when default is provided', () => {
+        const schema: ManualSchemaConfig = {
+          collections: [
+            {
+              name: 'users',
+              containerName: 'testContainer',
+              fields: [{ name: 'id', type: 'string' }],
+            },
+          ],
+        };
+
+        expect(() => validateManualSchema(schema, 'defaultDb')).not.toThrow();
       });
 
       it('should throw if collection has no containerName', () => {
@@ -978,6 +992,53 @@ describe('Utils > ManualSchemaConverter', () => {
           'Info',
           expect.stringContaining("Successfully created collection 'users'"),
         );
+      });
+    });
+
+    describe('default database name', () => {
+      it('should use default database name when collection has no databaseName', async () => {
+        const schema: ManualSchemaConfig = {
+          collections: [
+            {
+              name: 'users',
+              containerName: 'users',
+              fields: [{ name: 'id', type: 'string' }],
+            },
+          ],
+        };
+
+        const models = await convertManualSchemaToModels(
+          mockClient,
+          schema,
+          mockLogger,
+          'defaultDatabase',
+        );
+
+        expect(models).toHaveLength(1);
+        expect(models[0].getDatabaseName()).toBe('defaultDatabase');
+      });
+
+      it('should prefer collection database name over default', async () => {
+        const schema: ManualSchemaConfig = {
+          collections: [
+            {
+              name: 'users',
+              databaseName: 'collectionSpecificDb',
+              containerName: 'users',
+              fields: [{ name: 'id', type: 'string' }],
+            },
+          ],
+        };
+
+        const models = await convertManualSchemaToModels(
+          mockClient,
+          schema,
+          mockLogger,
+          'defaultDatabase',
+        );
+
+        expect(models).toHaveLength(1);
+        expect(models[0].getDatabaseName()).toBe('collectionSpecificDb');
       });
     });
   });

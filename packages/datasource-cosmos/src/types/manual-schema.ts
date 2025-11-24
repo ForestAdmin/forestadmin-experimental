@@ -53,8 +53,9 @@ export interface CollectionDefinition {
 
   /**
    * The database name in Cosmos DB
+   * Optional: if not provided, will use the database name from datasource creation
    */
-  databaseName: string;
+  databaseName?: string;
 
   /**
    * The container name in Cosmos DB

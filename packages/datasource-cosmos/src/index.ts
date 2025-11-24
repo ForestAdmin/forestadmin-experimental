@@ -201,7 +201,7 @@ export function createCosmosDataSource(
       }
 
       logger?.('Info', 'Using manual schema configuration (introspection disabled)');
-      collectionModels = await convertManualSchemaToModels(client, schema, logger);
+      collectionModels = await convertManualSchemaToModels(client, schema, logger, databaseName);
     } else if (builder) {
       const datasourceBuilder = builder(
         new CosmosDatasourceBuilder(client),
