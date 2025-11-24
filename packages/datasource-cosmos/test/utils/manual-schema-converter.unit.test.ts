@@ -637,6 +637,43 @@ describe('Utils > ManualSchemaConverter', () => {
     });
 
     describe('nested object conversion', () => {
+      it('should create both parent object field and flattened child fields', async () => {
+        const schema: ManualSchemaConfig = {
+          collections: [
+            {
+              name: 'users',
+              databaseName: 'testDb',
+              containerName: 'users',
+              fields: [
+                { name: 'id', type: 'string' },
+                {
+                  name: 'address',
+                  type: 'object',
+                  fields: [
+                    { name: 'street', type: 'string' },
+                    { name: 'city', type: 'string' },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+        const models = await convertManualSchemaToModels(mockClient, schema, mockLogger);
+
+        const modelSchema = models[0].getAttributes();
+
+        // Parent object field should exist with type 'object'
+        expect(modelSchema.address).toBeDefined();
+        expect(modelSchema.address.type).toBe('object');
+
+        // Flattened child fields should also exist
+        expect(modelSchema['address->street']).toBeDefined();
+        expect(modelSchema['address->street'].type).toBe('string');
+        expect(modelSchema['address->city']).toBeDefined();
+        expect(modelSchema['address->city'].type).toBe('string');
+      });
+
       it('should flatten nested objects using arrow notation', async () => {
         const schema: ManualSchemaConfig = {
           collections: [
@@ -700,6 +737,14 @@ describe('Utils > ManualSchemaConverter', () => {
         const models = await convertManualSchemaToModels(mockClient, schema, mockLogger);
 
         const modelSchema = models[0].getAttributes();
+
+        // Parent fields at all levels should exist
+        expect(modelSchema.address).toBeDefined();
+        expect(modelSchema.address.type).toBe('object');
+        expect(modelSchema['address->coordinates']).toBeDefined();
+        expect(modelSchema['address->coordinates'].type).toBe('object');
+
+        // Flattened leaf fields should exist
         expect(modelSchema['address->street']).toBeDefined();
         expect(modelSchema['address->coordinates->lat']).toBeDefined();
         expect(modelSchema['address->coordinates->lat'].type).toBe('number');

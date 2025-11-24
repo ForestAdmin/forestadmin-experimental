@@ -179,7 +179,13 @@ function convertFieldsToCosmosSchema(fields: FieldDefinition[], prefix = ''): Co
     const fieldName = prefix ? `${prefix}->${field.name}` : field.name;
 
     if (field.type === 'object' && field.fields) {
-      // Recursively flatten nested objects
+      // For object fields, create BOTH the parent object field AND the flattened nested fields
+      // This matches introspection behavior
+      schema[fieldName] = {
+        type: 'object',
+        nullable: field.nullable ?? false,
+        indexed: field.indexed ?? true,
+      };
       const nestedSchema = convertFieldsToCosmosSchema(field.fields, fieldName);
       Object.assign(schema, nestedSchema);
     } else if (field.type === 'array' && field.subType === 'object' && field.fields) {
