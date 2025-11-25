@@ -18,6 +18,13 @@ import ModelConverter from './utils/model-to-collection-schema-converter';
 import QueryConverter from './utils/query-converter';
 
 export default class CosmosCollection extends BaseCollection {
+  /**
+   * Maximum nesting depth for sortable fields
+   * Cosmos DB has limitations on sorting deeply nested fields
+   * Fields with nesting >= this depth will be excluded from sorting
+   */
+  private static readonly MAX_SORTABLE_NESTING_DEPTH = 2;
+
   protected internalModel: ModelCosmos;
 
   private queryConverter: QueryConverter;
@@ -71,7 +78,15 @@ export default class CosmosCollection extends BaseCollection {
 
       return recordsResponse;
     } catch (error) {
-      throw new Error(`Failed to create records: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const wrappedError = new Error(`Failed to create records: ${errorMessage}`);
+
+      // Preserve original error as cause for debugging
+      if (error instanceof Error) {
+        (wrappedError as Error & { cause?: Error }).cause = error;
+      }
+
+      throw wrappedError;
     }
   }
 
@@ -91,10 +106,10 @@ export default class CosmosCollection extends BaseCollection {
           return [];
         }
 
-        // Skip deeply nested fields (2+ levels like receiver->authorizationBalance->value)
+        // Skip deeply nested fields (e.g., receiver->authorizationBalance->value)
         const nestingLevel = (clause.field.match(/->/g) || []).length;
 
-        if (nestingLevel >= 2) {
+        if (nestingLevel >= CosmosCollection.MAX_SORTABLE_NESTING_DEPTH) {
           return [];
         }
 
@@ -137,7 +152,14 @@ export default class CosmosCollection extends BaseCollection {
         );
       }
 
-      throw new Error(`Failed to list records: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const wrappedError = new Error(`Failed to list records: ${errorMessage}`);
+
+      if (error instanceof Error) {
+        (wrappedError as Error & { cause?: Error }).cause = error;
+      }
+
+      throw wrappedError;
     }
   }
 
@@ -153,7 +175,14 @@ export default class CosmosCollection extends BaseCollection {
 
       await this.internalModel.update(ids, patch);
     } catch (error) {
-      throw new Error(`Failed to update records: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const wrappedError = new Error(`Failed to update records: ${errorMessage}`);
+
+      if (error instanceof Error) {
+        (wrappedError as Error & { cause?: Error }).cause = error;
+      }
+
+      throw wrappedError;
     }
   }
 
@@ -169,7 +198,14 @@ export default class CosmosCollection extends BaseCollection {
 
       await this.internalModel.delete(ids);
     } catch (error) {
-      throw new Error(`Failed to delete records: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const wrappedError = new Error(`Failed to delete records: ${errorMessage}`);
+
+      if (error instanceof Error) {
+        (wrappedError as Error & { cause?: Error }).cause = error;
+      }
+
+      throw wrappedError;
     }
   }
 
@@ -193,7 +229,14 @@ export default class CosmosCollection extends BaseCollection {
       // Process results into Forest Admin format
       return AggregationConverter.processAggregationResults(rawResults, aggregation);
     } catch (error) {
-      throw new Error(`Failed to aggregate records: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const wrappedError = new Error(`Failed to aggregate records: ${errorMessage}`);
+
+      if (error instanceof Error) {
+        (wrappedError as Error & { cause?: Error }).cause = error;
+      }
+
+      throw wrappedError;
     }
   }
 }

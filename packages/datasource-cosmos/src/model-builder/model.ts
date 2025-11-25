@@ -1,5 +1,6 @@
 import { Container, CosmosClient, ItemDefinition, SqlQuerySpec } from '@azure/cosmos';
 import { RecordData } from '@forestadmin/datasource-toolkit';
+import { randomUUID } from 'crypto';
 
 import { OverrideTypeConverter } from '../introspection/builder';
 import Serializer from '../utils/serializer';
@@ -255,14 +256,29 @@ export default class ModelCosmos {
       }
     }
 
-    return value as string | number;
+    // Validate that we found a valid partition key value
+    if (value === undefined || value === null) {
+      throw new Error(
+        `Partition key '${this.partitionKeyPath}' is undefined or null in item. ` +
+          `Item ID: ${item.id || 'unknown'}`,
+      );
+    }
+
+    if (typeof value !== 'string' && typeof value !== 'number') {
+      throw new Error(
+        `Partition key '${this.partitionKeyPath}' must be string or number, ` +
+          `but got ${typeof value}. Item ID: ${item.id || 'unknown'}`,
+      );
+    }
+
+    return value;
   }
 
   /**
    * Generate a unique ID for new items
    */
   private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return randomUUID();
   }
 
   /**
