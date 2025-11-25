@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.1...datasource-cosmos@1.6.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* readability ([#190](https://github.com/ForestAdmin/forestadmin-experimental/issues/190)) ([95d4761](https://github.com/ForestAdmin/forestadmin-experimental/commit/95d4761843ffee2f8ad6e5b28b7d14f42ad08872))
+
 ## [1.6.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.0...datasource-cosmos@1.6.1) (2025-11-24)
 
 
