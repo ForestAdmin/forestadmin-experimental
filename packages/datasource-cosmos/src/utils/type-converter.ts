@@ -1,5 +1,7 @@
 import { ColumnType, Operator, PrimitiveTypes } from '@forestadmin/datasource-toolkit';
 
+import { isGeoPoint } from './geo-utils';
+
 /**
  * Cosmos DB doesn't enforce strict types, but we can infer types from sample data
  * and map them to Forest Admin types
@@ -93,7 +95,7 @@ export default class TypeConverter {
 
     if (typeof value === 'object') {
       // Check for GeoJSON Point
-      if (this.isGeoPoint(value)) return 'point';
+      if (isGeoPoint(value)) return 'point';
       // Check for Date object
       if (value instanceof Date) return 'date';
 
@@ -156,19 +158,6 @@ export default class TypeConverter {
     const timeOnlyRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(\.\d+)?$/;
 
     return timeOnlyRegex.test(value);
-  }
-
-  /**
-   * Check if an object is a GeoJSON Point
-   */
-  private static isGeoPoint(value: unknown): boolean {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    const obj = value as Record<string, unknown>;
-
-    return obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length === 2;
   }
 
   /**

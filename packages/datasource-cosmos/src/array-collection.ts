@@ -1,4 +1,4 @@
-import { CosmosClient } from '@azure/cosmos';
+import { CosmosClient, SqlParameter } from '@azure/cosmos';
 import {
   Aggregation,
   Caller,
@@ -17,6 +17,8 @@ import {
 
 import CosmosCollection from './collection';
 import ModelCosmos from './model-builder/model';
+import ArrayItemFilter from './utils/array-item-filter';
+import CompositeIdHandler from './utils/composite-id-handler';
 
 /**
  * ArrayCollection - A virtual collection that exposes array fields from a parent collection
@@ -173,23 +175,14 @@ export default class ArrayCollection extends CosmosCollection {
    * e.g., "uuid:1:2" becomes parentId="uuid:1", index=2
    */
   private parseCompositeId(compositeId: string): { parentId: string; index: number } {
-    const lastColonIndex = compositeId.lastIndexOf(':');
-
-    if (lastColonIndex === -1) {
-      throw new Error(`Invalid composite ID format: ${compositeId}`);
-    }
-
-    const parentId = compositeId.substring(0, lastColonIndex);
-    const indexStr = compositeId.substring(lastColonIndex + 1);
-
-    return { parentId, index: parseInt(indexStr, 10) };
+    return CompositeIdHandler.parseCompositeId(compositeId);
   }
 
   /**
    * Create composite ID from parent ID and index
    */
   private createCompositeId(parentId: string, index: number): string {
-    return `${parentId}:${index}`;
+    return CompositeIdHandler.createCompositeId(parentId, index);
   }
 
   /**
@@ -364,8 +357,15 @@ export default class ArrayCollection extends CosmosCollection {
   ): Promise<RecordData[]> {
     const arrayPath = this.arrayFieldPath.replace(/->/g, '.');
 
-    // Build WHERE clause from condition tree
-    const whereClause = this.buildArrayItemWhereClause(conditionTree, 'item');
+    // Build WHERE clause from condition tree with parameterization
+    const parameterCounter = { count: 0 };
+    const parameters: SqlParameter[] = [{ name: '@parentId', value: parentId }];
+    const whereClause = this.buildArrayItemWhereClause(
+      conditionTree,
+      'item',
+      parameters,
+      parameterCounter,
+    );
 
     const query =
       `SELECT c.id, item, ARRAY_LENGTH(c.${arrayPath}) AS arrayLength ` +
@@ -374,31 +374,60 @@ export default class ArrayCollection extends CosmosCollection {
 
     const results = await this.executeCustomQuery({
       query,
-      parameters: [{ name: '@parentId', value: parentId }],
+      parameters,
     });
 
     return results;
   }
 
   /**
-   * Build WHERE clause for filtering array items
-   * Simplified version that handles basic field filters
+   * Build WHERE clause for filtering array items with proper parameterization
+   * Prevents SQL injection by using parameters instead of string interpolation
    */
-  private buildArrayItemWhereClause(conditionTree: ConditionTree, itemAlias: string): string {
+  private buildArrayItemWhereClause(
+    conditionTree: ConditionTree,
+    itemAlias: string,
+    parameters: SqlParameter[],
+    parameterCounter: { count: number },
+  ): string {
     // Handle leaf nodes
     if ('field' in conditionTree && 'operator' in conditionTree) {
       const leaf = conditionTree as ConditionTreeLeaf;
       const fieldPath = `${itemAlias}.${leaf.field}`;
 
       switch (leaf.operator) {
-        case 'Equal':
-          return `${fieldPath} = ${JSON.stringify(leaf.value)}`;
-        case 'NotEqual':
-          return `${fieldPath} != ${JSON.stringify(leaf.value)}`;
-        case 'GreaterThan':
-          return `${fieldPath} > ${JSON.stringify(leaf.value)}`;
-        case 'LessThan':
-          return `${fieldPath} < ${JSON.stringify(leaf.value)}`;
+        case 'Equal': {
+          const paramName = `@arrayParam${parameterCounter.count}`;
+          parameterCounter.count += 1;
+          parameters.push({ name: paramName, value: leaf.value as any });
+
+          return `${fieldPath} = ${paramName}`;
+        }
+
+        case 'NotEqual': {
+          const paramName = `@arrayParam${parameterCounter.count}`;
+          parameterCounter.count += 1;
+          parameters.push({ name: paramName, value: leaf.value as any });
+
+          return `${fieldPath} != ${paramName}`;
+        }
+
+        case 'GreaterThan': {
+          const paramName = `@arrayParam${parameterCounter.count}`;
+          parameterCounter.count += 1;
+          parameters.push({ name: paramName, value: leaf.value as any });
+
+          return `${fieldPath} > ${paramName}`;
+        }
+
+        case 'LessThan': {
+          const paramName = `@arrayParam${parameterCounter.count}`;
+          parameterCounter.count += 1;
+          parameters.push({ name: paramName, value: leaf.value as any });
+
+          return `${fieldPath} < ${paramName}`;
+        }
+
         case 'Present':
           return `IS_DEFINED(${fieldPath}) AND ${fieldPath} != null`;
         case 'Missing':
@@ -415,7 +444,9 @@ export default class ArrayCollection extends CosmosCollection {
         aggregator: string;
         conditions: ConditionTree[];
       };
-      const clauses = branch.conditions.map(c => this.buildArrayItemWhereClause(c, itemAlias));
+      const clauses = branch.conditions.map(c =>
+        this.buildArrayItemWhereClause(c, itemAlias, parameters, parameterCounter),
+      );
       const operator = branch.aggregator === 'And' ? ' AND ' : ' OR ';
 
       return `(${clauses.join(operator)})`;
@@ -621,120 +652,8 @@ export default class ArrayCollection extends CosmosCollection {
    * Apply condition tree filtering to items
    */
   private applyConditionTree(items: RecordData[], conditionTree: ConditionTree): RecordData[] {
-    if (!conditionTree) return items;
-
-    // Use duck typing to check if it's a leaf
-    const isLeaf = 'field' in conditionTree && 'operator' in conditionTree;
-
-    // Handle ConditionTreeLeaf (single condition)
-    if (isLeaf) {
-      const leaf = conditionTree as ConditionTreeLeaf;
-      const { field, operator, value } = leaf;
-
-      // Skip ID and parentId filters as they're handled separately
-      if (field === 'id' || field === this.parentIdField) {
-        return items;
-      }
-
-      return items.filter(item => this.matchesCondition(item, field, operator, value));
-    }
-
-    // Handle ConditionTreeBranch (AND/OR logic)
-    if ('aggregator' in conditionTree && conditionTree.aggregator) {
-      const branch = conditionTree as unknown as {
-        aggregator: string;
-        conditions: ConditionTree[];
-      };
-      const { aggregator, conditions } = branch;
-
-      if (aggregator === 'And') {
-        return items.filter(item =>
-          conditions.every(cond => this.applyConditionTree([item], cond).length > 0),
-        );
-      }
-
-      if (aggregator === 'Or') {
-        return items.filter(item =>
-          conditions.some(cond => this.applyConditionTree([item], cond).length > 0),
-        );
-      }
-    }
-
-    return items;
-  }
-
-  /**
-   * Check if a record matches a condition
-   */
-  private matchesCondition(
-    record: RecordData,
-    field: string,
-    operator: string,
-    value: unknown,
-  ): boolean {
-    const fieldValue = record[field];
-
-    switch (operator) {
-      case 'Equal':
-        return fieldValue === value;
-      case 'NotEqual':
-        return fieldValue !== value;
-      case 'In':
-        return Array.isArray(value) && value.includes(fieldValue);
-      case 'NotIn':
-        return Array.isArray(value) && !value.includes(fieldValue);
-      case 'Present':
-        return fieldValue !== null && fieldValue !== undefined;
-      case 'Missing':
-        return fieldValue === null || fieldValue === undefined;
-      case 'LessThan':
-        return fieldValue < value;
-      case 'LessThanOrEqual':
-        return fieldValue <= value;
-      case 'GreaterThan':
-        return fieldValue > value;
-      case 'GreaterThanOrEqual':
-        return fieldValue >= value;
-      case 'Contains':
-        return (
-          typeof fieldValue === 'string' && typeof value === 'string' && fieldValue.includes(value)
-        );
-      case 'NotContains':
-        return (
-          typeof fieldValue === 'string' && typeof value === 'string' && !fieldValue.includes(value)
-        );
-      case 'StartsWith':
-        return (
-          typeof fieldValue === 'string' &&
-          typeof value === 'string' &&
-          fieldValue.startsWith(value)
-        );
-      case 'EndsWith':
-        return (
-          typeof fieldValue === 'string' && typeof value === 'string' && fieldValue.endsWith(value)
-        );
-      case 'IContains':
-        return (
-          typeof fieldValue === 'string' &&
-          typeof value === 'string' &&
-          fieldValue.toLowerCase().includes(value.toLowerCase())
-        );
-      case 'Like':
-      case 'ILike':
-        // Simple wildcard matching (% for any characters, _ for single character)
-        if (typeof fieldValue === 'string' && typeof value === 'string') {
-          const pattern = value.replace(/%/g, '.*').replace(/_/g, '.');
-          const regex = new RegExp(`^${pattern}$`, operator === 'ILike' ? 'i' : '');
-
-          return regex.test(fieldValue);
-        }
-
-        return false;
-      default:
-        console.warn(`[ArrayCollection] Unsupported operator: ${operator}`);
-
-        return true; // Don't filter out if we don't know the operator
-    }
+    // Use ArrayItemFilter utility, excluding 'id' and parentId fields
+    return ArrayItemFilter.applyConditionTree(items, conditionTree, ['id', this.parentIdField]);
   }
 
   /**
@@ -744,41 +663,7 @@ export default class ArrayCollection extends CosmosCollection {
     items: RecordData[],
     sort: Array<{ field: string; ascending: boolean }>,
   ): RecordData[] {
-    return [...items].sort((a, b) => {
-      for (const { field, ascending } of sort) {
-        const aValue = a[field];
-        const bValue = b[field];
-
-        // Handle null/undefined - skip to next sort criteria if both are null
-        if (aValue == null && bValue == null) {
-          // Both null, continue to next sort field
-        } else if (aValue == null) {
-          return ascending ? 1 : -1;
-        } else if (bValue == null) {
-          return ascending ? -1 : 1;
-        } else {
-          // Compare values
-          let comparison = 0;
-
-          if (typeof aValue === 'string' && typeof bValue === 'string') {
-            comparison = aValue.localeCompare(bValue);
-          } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-            comparison = aValue - bValue;
-          } else if (aValue instanceof Date && bValue instanceof Date) {
-            comparison = aValue.getTime() - bValue.getTime();
-          } else {
-            // Fallback: convert to string and compare
-            comparison = String(aValue).localeCompare(String(bValue));
-          }
-
-          if (comparison !== 0) {
-            return ascending ? comparison : -comparison;
-          }
-        }
-      }
-
-      return 0;
-    });
+    return ArrayItemFilter.applySorting(items, sort);
   }
 
   /**

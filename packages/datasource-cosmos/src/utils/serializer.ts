@@ -1,5 +1,7 @@
 import { RecordData } from '@forestadmin/datasource-toolkit';
 
+import { isGeoPoint } from './geo-utils';
+
 export default class Serializer {
   /**
    * Serialize a record: convert dates and flatten nested objects if needed
@@ -72,7 +74,7 @@ export default class Serializer {
         }
 
         // Check for GeoJSON Point (special case)
-        if (this.isGeoPoint(value)) {
+        if (isGeoPoint(value)) {
           flattened[fullKey] = value;
 
           return;
@@ -106,19 +108,6 @@ export default class Serializer {
 
       return item;
     });
-  }
-
-  /**
-   * Check if an object is a GeoJSON Point
-   */
-  private static isGeoPoint(value: unknown): boolean {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    const obj = value as Record<string, unknown>;
-
-    return obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length === 2;
   }
 
   /**
@@ -212,7 +201,7 @@ export default class Serializer {
       typeof value === 'object' &&
       !Array.isArray(value) &&
       !(value instanceof Date) &&
-      !this.isGeoPoint(value)
+      !isGeoPoint(value)
     );
   }
 }

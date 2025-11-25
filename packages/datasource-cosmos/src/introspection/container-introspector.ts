@@ -2,6 +2,7 @@ import { CosmosClient } from '@azure/cosmos';
 
 import { OverrideTypeConverter } from './builder';
 import ModelCosmos, { CosmosSchema } from '../model-builder/model';
+import { isGeoPoint } from '../utils/geo-utils';
 import TypeConverter, { CosmosDataType } from '../utils/type-converter';
 
 export interface IntrospectionOptions {
@@ -48,19 +49,6 @@ export interface IntrospectionOptions {
 export interface ArrayCollectionMetadata {
   arrayFieldPath: string;
   schema: CosmosSchema;
-}
-
-/**
- * Check if an object is a GeoJSON Point
- */
-function isGeoPointInternal(value: unknown): boolean {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const obj = value as Record<string, unknown>;
-
-  return obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length === 2;
 }
 
 /**
@@ -147,7 +135,7 @@ function analyzeDocumentInternal(
       return;
     }
 
-    if (isGeoPointInternal(obj)) {
+    if (isGeoPoint(obj)) {
       if (prefix) {
         recordField(prefix, 'point');
       }
@@ -165,7 +153,7 @@ function analyzeDocumentInternal(
         !Array.isArray(value) &&
         flattenNestedObjects &&
         !(value instanceof Date) &&
-        !isGeoPointInternal(value)
+        !isGeoPoint(value)
       ) {
         // Recursively analyze nested objects if flattening is enabled
         analyzeDocumentInternal(
