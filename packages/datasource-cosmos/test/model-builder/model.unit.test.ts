@@ -595,7 +595,7 @@ describe('Model Builder > ModelCosmos', () => {
       expect(ids.size).toBe(5);
     });
 
-    it('should generate ids with timestamp and random component', async () => {
+    it('should generate ids with UUID v4 format', async () => {
       (mockContainer.items.create as jest.Mock).mockResolvedValue({
         resource: { id: 'test' },
       } as any);
@@ -604,8 +604,10 @@ describe('Model Builder > ModelCosmos', () => {
 
       const generatedId = (mockContainer.items.create as jest.Mock).mock.calls[0][0].id;
 
-      // Should match pattern: timestamp-randomstring
-      expect(generatedId).toMatch(/^\d+-[a-z0-9]+$/);
+      // Should match UUID v4 pattern: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+      expect(generatedId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
     });
   });
 
