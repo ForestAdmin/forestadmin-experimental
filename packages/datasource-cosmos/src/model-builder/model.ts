@@ -203,8 +203,18 @@ export default class ModelCosmos {
     return finalResults.map(item => Serializer.serialize(item));
   }
 
-  public async aggregateQuery(querySpec: SqlQuerySpec): Promise<RecordData[]> {
-    const { resources } = await this.container.items.query(querySpec).fetchAll();
+  public async aggregateQuery(
+    querySpec: SqlQuerySpec,
+    partitionKey?: string | number,
+  ): Promise<RecordData[]> {
+    // Build query options with partition key if provided
+    const queryOptions: { partitionKey?: string | number } = {};
+
+    if (partitionKey !== undefined) {
+      queryOptions.partitionKey = partitionKey;
+    }
+
+    const { resources } = await this.container.items.query(querySpec, queryOptions).fetchAll();
 
     return resources.map(item => Serializer.serialize(item));
   }

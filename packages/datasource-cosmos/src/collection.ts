@@ -245,8 +245,14 @@ export default class CosmosCollection extends BaseCollection {
         limit,
       );
 
-      // Execute aggregation query
-      const rawResults = await this.internalModel.aggregateQuery(querySpec);
+      // Extract partition key from filter for single-partition query optimization
+      const partitionKey = extractPartitionKeyFromFilter(
+        filter.conditionTree,
+        this.internalModel.getPartitionKeyPath(),
+      );
+
+      // Execute aggregation query with partition key optimization
+      const rawResults = await this.internalModel.aggregateQuery(querySpec, partitionKey);
 
       // Process results into Forest Admin format
       return AggregationConverter.processAggregationResults(rawResults, aggregation);

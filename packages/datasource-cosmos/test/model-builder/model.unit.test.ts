@@ -485,7 +485,7 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.aggregateQuery(querySpec);
 
       expect(results).toEqual(mockResults);
-      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {});
     });
 
     it('should serialize aggregation results', async () => {
@@ -498,6 +498,41 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.aggregateQuery({ query: 'SELECT * FROM c' });
 
       expect(typeof results[0].date).toBe('string');
+    });
+
+    it('should pass partition key to aggregation query', async () => {
+      const mockResults = [{ groupKey: 'active', value: 10 }];
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c.status as groupKey, COUNT(1) as value FROM c GROUP BY c.status',
+      };
+
+      const results = await model.aggregateQuery(querySpec, 'tenant-123');
+
+      expect(results).toEqual(mockResults);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        partitionKey: 'tenant-123',
+      });
+    });
+
+    it('should pass numeric partition key to aggregation query', async () => {
+      const mockResults = [{ value: 500 }];
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+      }) as any;
+
+      const querySpec = { query: 'SELECT SUM(c.amount) as value FROM c' };
+
+      await model.aggregateQuery(querySpec, 42);
+
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        partitionKey: 42,
+      });
     });
   });
 
