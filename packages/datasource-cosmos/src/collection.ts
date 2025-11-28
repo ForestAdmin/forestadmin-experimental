@@ -173,15 +173,22 @@ export default class CosmosCollection extends BaseCollection {
 
   async update(caller: Caller, filter: Filter, patch: RecordData): Promise<void> {
     try {
-      // First, get the IDs of records to update
-      const records = await this.list(caller, filter, new Projection('id'));
-      const ids = records.map(record => record.id as string);
+      // Fetch id and partition key field for efficient point operations
+      const partitionKeyField = this.getPartitionKeyFieldName();
+      const projection = new Projection('id', partitionKeyField);
+      const records = await this.list(caller, filter, projection);
 
-      if (ids.length === 0) {
+      if (records.length === 0) {
         return; // Nothing to update
       }
 
-      await this.internalModel.update(ids, patch);
+      // Extract id and partition key pairs for point operations
+      const itemsWithPartitionKeys = records.map(record => ({
+        id: record.id as string,
+        partitionKey: record[partitionKeyField] as string | number,
+      }));
+
+      await this.internalModel.update(itemsWithPartitionKeys, patch);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const wrappedError = new Error(`Failed to update records: ${errorMessage}`);
@@ -196,15 +203,22 @@ export default class CosmosCollection extends BaseCollection {
 
   async delete(caller: Caller, filter: Filter): Promise<void> {
     try {
-      // First, get the IDs of records to delete
-      const records = await this.list(caller, filter, new Projection('id'));
-      const ids = records.map(record => record.id as string);
+      // Fetch id and partition key field for efficient point operations
+      const partitionKeyField = this.getPartitionKeyFieldName();
+      const projection = new Projection('id', partitionKeyField);
+      const records = await this.list(caller, filter, projection);
 
-      if (ids.length === 0) {
+      if (records.length === 0) {
         return; // Nothing to delete
       }
 
-      await this.internalModel.delete(ids);
+      // Extract id and partition key pairs for point operations
+      const itemsWithPartitionKeys = records.map(record => ({
+        id: record.id as string,
+        partitionKey: record[partitionKeyField] as string | number,
+      }));
+
+      await this.internalModel.delete(itemsWithPartitionKeys);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const wrappedError = new Error(`Failed to delete records: ${errorMessage}`);
@@ -246,5 +260,16 @@ export default class CosmosCollection extends BaseCollection {
 
       throw wrappedError;
     }
+  }
+
+  /**
+   * Get the partition key field name in Forest Admin notation (with -> for nested paths)
+   * Converts Cosmos DB path like "/tenantId" or "/address/city" to "tenantId" or "address->city"
+   */
+  private getPartitionKeyFieldName(): string {
+    return this.internalModel
+      .getPartitionKeyPath()
+      .replace(/^\//, '') // Remove leading slash
+      .replace(/\//g, '->'); // Convert nested paths to arrow notation
   }
 }

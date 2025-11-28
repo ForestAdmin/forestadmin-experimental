@@ -13,6 +13,11 @@ export interface CosmosSchema {
   };
 }
 
+export interface ItemWithPartitionKey {
+  id: string;
+  partitionKey: string | number;
+}
+
 export default class ModelCosmos {
   public name: string;
 
@@ -109,38 +114,34 @@ export default class ModelCosmos {
     return createdRecords;
   }
 
-  public async update(ids: string[], patch: RecordData): Promise<void> {
-    // Cosmos DB requires both id and partition key for updates
-    // We need to fetch the items first to get their partition keys
-    const itemsToUpdate = await this.getItemsByIds(ids);
-
+  public async update(items: ItemWithPartitionKey[], patch: RecordData): Promise<void> {
     // Unflatten the patch to restore nested structure for Cosmos DB
     const unflattenedPatch = Serializer.unflatten(patch);
 
-    // Sequential execution required: Cosmos DB updates must be performed one at a time
-    // to ensure consistency and prevent conflicts with optimistic concurrency control
-    for (const item of itemsToUpdate) {
-      const partitionKeyValue = this.getPartitionKeyValue(item);
-
-      // Deep merge the unflattened patch with the existing item
-      const updatedItem = Serializer.deepMerge(item, unflattenedPatch);
-
+    // Use point reads to fetch items (1 RU each) instead of cross-partition query
+    // Then perform point updates (also optimized with partition key)
+    for (const { id, partitionKey } of items) {
+      // Point read: directly fetch item using id + partition key (1 RU)
       // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-      await this.container.item(item.id, partitionKeyValue).replace(updatedItem);
+      const { resource: existingItem } = await this.container.item(id, partitionKey).read();
+
+      if (existingItem) {
+        // Deep merge the unflattened patch with the existing item
+        const updatedItem = Serializer.deepMerge(existingItem, unflattenedPatch);
+
+        // Point update: directly update using id + partition key
+        // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
+        await this.container.item(id, partitionKey).replace(updatedItem);
+      }
     }
   }
 
-  public async delete(ids: string[]): Promise<void> {
-    // Similar to update, we need partition keys for deletion
-    const itemsToDelete = await this.getItemsByIds(ids);
-
-    // Sequential execution required: Cosmos DB deletes must be performed one at a time
-    // to ensure consistency and prevent conflicts
-    for (const item of itemsToDelete) {
-      const partitionKeyValue = this.getPartitionKeyValue(item);
-
+  public async delete(items: ItemWithPartitionKey[]): Promise<void> {
+    // Use point deletes with id + partition key (optimized, no cross-partition scan needed)
+    for (const { id, partitionKey } of items) {
+      // Point delete: directly delete using id + partition key
       // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-      await this.container.item(item.id, partitionKeyValue).delete();
+      await this.container.item(id, partitionKey).delete();
     }
   }
 
@@ -226,62 +227,6 @@ export default class ModelCosmos {
   }
 
   // INTERNAL HELPER METHODS
-
-  /**
-   * Get items by their IDs (requires scanning as we don't have partition keys)
-   */
-  private async getItemsByIds(ids: string[]): Promise<ItemDefinition[]> {
-    const querySpec: SqlQuerySpec = {
-      query: 'SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
-      parameters: [
-        {
-          name: '@ids',
-          value: ids,
-        },
-      ],
-    };
-
-    const { resources } = await this.container.items.query(querySpec).fetchAll();
-
-    return resources;
-  }
-
-  /**
-   * Extract the partition key value from an item
-   */
-  private getPartitionKeyValue(item: ItemDefinition): string | number {
-    // Remove leading slash from partition key path
-    const keyPath = this.partitionKeyPath.replace(/^\//, '');
-
-    // Handle nested paths (e.g., "/address/city")
-    const keys = keyPath.split('/');
-    let value: unknown = item;
-
-    for (const key of keys) {
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        value = (value as Record<string, unknown>)[key];
-      } else {
-        break;
-      }
-    }
-
-    // Validate that we found a valid partition key value
-    if (value === undefined || value === null) {
-      throw new Error(
-        `Partition key '${this.partitionKeyPath}' is undefined or null in item. ` +
-          `Item ID: ${item.id || 'unknown'}`,
-      );
-    }
-
-    if (typeof value !== 'string' && typeof value !== 'number') {
-      throw new Error(
-        `Partition key '${this.partitionKeyPath}' must be string or number, ` +
-          `but got ${typeof value}. Item ID: ${item.id || 'unknown'}`,
-      );
-    }
-
-    return value;
-  }
 
   /**
    * Generate a unique ID for new items
