@@ -15,6 +15,7 @@ import {
 import ModelCosmos from './model-builder/model';
 import AggregationConverter from './utils/aggregation-converter';
 import ModelConverter from './utils/model-to-collection-schema-converter';
+import { extractPartitionKeyFromFilter } from './utils/partition-key-extractor';
 import QueryConverter from './utils/query-converter';
 
 export default class CosmosCollection extends BaseCollection {
@@ -129,12 +130,19 @@ export default class CosmosCollection extends BaseCollection {
       projection,
     );
 
+    // Extract partition key from filter for single-partition query optimization
+    const partitionKey = extractPartitionKeyFromFilter(
+      filter.conditionTree,
+      this.internalModel.getPartitionKeyPath(),
+    );
+
     try {
-      // Execute the query with pagination
+      // Execute the query with pagination and partition key optimization
       const recordsResponse = await this.internalModel.query(
         querySpec,
         filter.page?.skip,
         filter.page?.limit,
+        partitionKey,
       );
 
       return recordsResponse;

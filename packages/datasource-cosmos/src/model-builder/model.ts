@@ -148,10 +148,19 @@ export default class ModelCosmos {
     querySpec: SqlQuerySpec,
     offset?: number,
     limit?: number,
+    partitionKey?: string | number,
   ): Promise<RecordData[]> {
+    // Build query options
+    const queryOptions: { maxItemCount?: number; partitionKey?: string | number } = {};
+
+    // Add partition key if provided (enables single-partition query optimization)
+    if (partitionKey !== undefined) {
+      queryOptions.partitionKey = partitionKey;
+    }
+
     // If no pagination parameters, fetch all (backward compatibility)
     if (offset === undefined && limit === undefined) {
-      const { resources } = await this.container.items.query(querySpec).fetchAll();
+      const { resources } = await this.container.items.query(querySpec, queryOptions).fetchAll();
 
       return resources.map(item => Serializer.serialize(item));
     }
@@ -159,9 +168,9 @@ export default class ModelCosmos {
     // Use efficient pagination when limit is specified
     // Note: Cosmos DB doesn't support native OFFSET, so we need to skip items client-side
     // but we can still benefit from maxItemCount to limit network transfers
-    const query = this.container.items.query(querySpec, {
-      maxItemCount: limit ? (offset || 0) + limit : undefined,
-    });
+    queryOptions.maxItemCount = limit ? (offset || 0) + limit : undefined;
+
+    const query = this.container.items.query(querySpec, queryOptions);
 
     const results: ItemDefinition[] = [];
     let itemsFetched = 0;

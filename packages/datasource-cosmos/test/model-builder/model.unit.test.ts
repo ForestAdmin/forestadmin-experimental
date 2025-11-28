@@ -385,8 +385,8 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.query(querySpec);
 
       expect(results).toEqual(mockResults);
-      // Should use fetchAll when no pagination parameters
-      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec);
+      // Should use fetchAll when no pagination parameters (with empty options)
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {});
     });
 
     it('should apply limit', async () => {
@@ -462,6 +462,41 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.query({ query: 'SELECT * FROM c' });
 
       expect(typeof results[0].createdAt).toBe('string');
+    });
+
+    it('should pass partition key to query options when provided', async () => {
+      const mockResults = [{ id: '1', tenantId: 'tenant-123' }];
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+      }) as any;
+
+      const querySpec = { query: 'SELECT * FROM c WHERE c.tenantId = @param0' };
+      await model.query(querySpec, undefined, undefined, 'tenant-123');
+
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        partitionKey: 'tenant-123',
+      });
+    });
+
+    it('should pass partition key with pagination options', async () => {
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield { resources: [{ id: '1' }, { id: '2' }] };
+        },
+      };
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
+      }) as any;
+
+      const querySpec = { query: 'SELECT * FROM c' };
+      await model.query(querySpec, 0, 10, 'tenant-456');
+
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        maxItemCount: 10,
+        partitionKey: 'tenant-456',
+      });
     });
   });
 
