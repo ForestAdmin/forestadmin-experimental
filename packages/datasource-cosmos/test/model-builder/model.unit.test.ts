@@ -698,6 +698,12 @@ describe('Model Builder > ModelCosmos', () => {
     });
   });
 
+  describe('getCosmosClient', () => {
+    it('should return cosmos client', () => {
+      expect(model.getCosmosClient()).toBe(mockCosmosClient);
+    });
+  });
+
   describe('generateId', () => {
     it('should generate unique ids', async () => {
       const ids = new Set();
