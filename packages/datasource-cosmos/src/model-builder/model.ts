@@ -209,21 +209,55 @@ export default class ModelCosmos {
     return resources.map(item => Serializer.serialize(item));
   }
 
-  public async count(querySpec?: SqlQuerySpec): Promise<number> {
+  public async count(querySpec?: SqlQuerySpec, partitionKey?: string | number): Promise<number> {
+    // Build query options with partition key if provided
+    const queryOptions: { partitionKey?: string | number } = {};
+
+    if (partitionKey !== undefined) {
+      queryOptions.partitionKey = partitionKey;
+    }
+
     if (!querySpec) {
       // Simple count without filters
       const countQuery: SqlQuerySpec = {
         query: 'SELECT VALUE COUNT(1) FROM c',
       };
-      const { resources } = await this.container.items.query<number>(countQuery).fetchAll();
+      const { resources } = await this.container.items
+        .query<number>(countQuery, queryOptions)
+        .fetchAll();
 
       return resources[0] || 0;
     }
 
-    // Count with filters - we need to modify the query to use COUNT
-    const { resources } = await this.container.items.query(querySpec).fetchAll();
+    // Convert the query to a COUNT query to avoid fetching all records
+    const countQuery = this.convertToCountQuery(querySpec);
+    const { resources } = await this.container.items
+      .query<number>(countQuery, queryOptions)
+      .fetchAll();
 
-    return resources.length;
+    return resources[0] || 0;
+  }
+
+  /**
+   * Convert a SELECT query to a COUNT query
+   * Extracts the WHERE clause and creates a COUNT query with the same filters
+   */
+  private convertToCountQuery(querySpec: SqlQuerySpec): SqlQuerySpec {
+    const { query, parameters } = querySpec;
+
+    // Extract WHERE clause from original query
+    // Query format: "SELECT ... FROM c WHERE ... ORDER BY ..."
+    const whereMatch = query.match(/WHERE\s+(.+?)(?:\s+ORDER\s+BY|$)/i);
+    const whereClause = whereMatch ? whereMatch[1].trim() : '';
+
+    const countQueryString = whereClause
+      ? `SELECT VALUE COUNT(1) FROM c WHERE ${whereClause}`
+      : 'SELECT VALUE COUNT(1) FROM c';
+
+    return {
+      query: countQueryString,
+      parameters,
+    };
   }
 
   // INTERNAL HELPER METHODS

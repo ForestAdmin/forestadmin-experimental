@@ -510,36 +510,124 @@ describe('Model Builder > ModelCosmos', () => {
       const count = await model.count();
 
       expect(count).toBe(150);
-      expect(mockContainer.items.query).toHaveBeenCalledWith({
-        query: 'SELECT VALUE COUNT(1) FROM c',
-      });
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        { query: 'SELECT VALUE COUNT(1) FROM c' },
+        {},
+      );
     });
 
-    it('should count with filter', async () => {
-      const mockResults = [{ id: '1' }, { id: '2' }, { id: '3' }];
-
+    it('should convert filter query to COUNT query', async () => {
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+        fetchAll: jest.fn().mockResolvedValue({ resources: [42] }),
       }) as any;
 
       const querySpec = {
-        query: 'SELECT * FROM c WHERE c.status = @status',
+        query: 'SELECT c FROM c WHERE c.status = @status',
         parameters: [{ name: '@status', value: 'active' }],
       };
 
       const count = await model.count(querySpec);
 
-      expect(count).toBe(3);
+      expect(count).toBe(42);
+      // Should convert to COUNT query instead of fetching all records
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.status = @status',
+          parameters: [{ name: '@status', value: 'active' }],
+        },
+        {},
+      );
+    });
+
+    it('should handle query with ORDER BY clause', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [25] }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c FROM c WHERE c.age > @age ORDER BY c.name ASC',
+        parameters: [{ name: '@age', value: 18 }],
+      };
+
+      const count = await model.count(querySpec);
+
+      expect(count).toBe(25);
+      // Should strip ORDER BY and convert to COUNT
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.age > @age',
+          parameters: [{ name: '@age', value: 18 }],
+        },
+        {},
+      );
+    });
+
+    it('should pass partition key to count query', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [10] }),
+      }) as any;
+
+      const count = await model.count(undefined, 'tenant-123');
+
+      expect(count).toBe(10);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        { query: 'SELECT VALUE COUNT(1) FROM c' },
+        { partitionKey: 'tenant-123' },
+      );
+    });
+
+    it('should pass partition key with filter query', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [5] }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c FROM c WHERE c.status = @status',
+        parameters: [{ name: '@status', value: 'active' }],
+      };
+
+      const count = await model.count(querySpec, 'tenant-456');
+
+      expect(count).toBe(5);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.status = @status',
+          parameters: [{ name: '@status', value: 'active' }],
+        },
+        { partitionKey: 'tenant-456' },
+      );
     });
 
     it('should return 0 for empty results', async () => {
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: [] }),
+        fetchAll: jest.fn().mockResolvedValue({ resources: [0] }),
       }) as any;
 
       const count = await model.count();
 
       expect(count).toBe(0);
+    });
+
+    it('should handle query without WHERE clause', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [100] }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c FROM c ORDER BY c.name ASC',
+        parameters: [],
+      };
+
+      const count = await model.count(querySpec);
+
+      expect(count).toBe(100);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c',
+          parameters: [],
+        },
+        {},
+      );
     });
   });
 
