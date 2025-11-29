@@ -200,79 +200,67 @@ describe('Model Builder > ModelCosmos', () => {
   });
 
   describe('update', () => {
-    it('should update records by ids', async () => {
-      const mockItems = [
+    it('should update records using point reads and writes', async () => {
+      const existingItems = [
         { id: '1', userId: 'user1', name: 'Alice', age: 30 },
         { id: '2', userId: 'user2', name: 'Bob', age: 25 },
       ];
 
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockItems }),
-      }) as any;
-
+      const mockRead = jest.fn();
       const mockReplace = jest.fn().mockResolvedValue({});
-      mockContainer.item.mockImplementation(
-        () =>
-          ({
-            replace: mockReplace,
-          } as any),
-      );
+
+      // Setup mock to return different items based on id
+      (mockContainer.item as jest.Mock).mockImplementation((id: string) => ({
+        read: mockRead.mockResolvedValueOnce({
+          resource: existingItems.find(item => item.id === id),
+        }),
+        replace: mockReplace,
+      }));
 
       const patch = { age: 31 };
-      await model.update(['1', '2'], patch);
+      await model.update(
+        [
+          { id: '1', partitionKey: 'user1' },
+          { id: '2', partitionKey: 'user2' },
+        ],
+        patch,
+      );
 
-      expect(mockContainer.items.query).toHaveBeenCalled();
+      // Should use point reads (id + partition key)
+      expect(mockContainer.item).toHaveBeenCalledWith('1', 'user1');
+      expect(mockContainer.item).toHaveBeenCalledWith('2', 'user2');
       expect(mockReplace).toHaveBeenCalledTimes(2);
       expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({ id: '1', age: 31 }));
     });
 
-    it('should extract partition key from items', async () => {
-      const mockItems = [{ id: '1', userId: 'user1', name: 'Alice' }];
+    it('should use partition key for point operations', async () => {
+      const existingItem = { id: '1', userId: 'user1', name: 'Alice' };
 
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockItems }),
-      }) as any;
-
+      const mockRead = jest.fn().mockResolvedValue({ resource: existingItem });
       const mockReplace = jest.fn().mockResolvedValue({});
-      mockContainer.item.mockImplementation(
-        () =>
-          ({
-            replace: mockReplace,
-          } as any),
-      );
+      (mockContainer.item as jest.Mock).mockImplementation(() => ({
+        read: mockRead,
+        replace: mockReplace,
+      }));
 
-      await model.update(['1'], { name: 'Alice Updated' });
+      await model.update([{ id: '1', partitionKey: 'user1' }], { name: 'Alice Updated' });
 
+      // Verify point read was used with correct partition key
       expect(mockContainer.item).toHaveBeenCalledWith('1', 'user1');
     });
 
-    it('should handle nested partition key paths', async () => {
-      const nestedModel = new ModelCosmos(
-        mockCosmosClient,
-        'orders',
-        'testDatabase',
-        'ordersContainer',
-        '/customer/id',
-        testSchema,
-      );
-
-      const mockItems = [{ id: '1', customer: { id: 'cust1' }, total: 100 }];
-
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockItems }),
-      }) as any;
-
+    it('should skip items that are not found', async () => {
+      const mockRead = jest.fn().mockResolvedValue({ resource: undefined });
       const mockReplace = jest.fn().mockResolvedValue({});
-      mockContainer.item.mockImplementation(
-        () =>
-          ({
-            replace: mockReplace,
-          } as any),
-      );
+      (mockContainer.item as jest.Mock).mockImplementation(() => ({
+        read: mockRead,
+        replace: mockReplace,
+      }));
 
-      await nestedModel.update(['1'], { total: 150 });
+      await model.update([{ id: 'nonexistent', partitionKey: 'pk' }], { name: 'Test' });
 
-      expect(mockContainer.item).toHaveBeenCalledWith('1', 'cust1');
+      expect(mockRead).toHaveBeenCalled();
+      expect(mockReplace).not.toHaveBeenCalled();
     });
 
     it('should merge patch with existing item', async () => {
@@ -284,20 +272,15 @@ describe('Model Builder > ModelCosmos', () => {
         email: 'alice@example.com',
       };
 
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: [existingItem] }),
-      }) as any;
-
+      const mockRead = jest.fn().mockResolvedValue({ resource: existingItem });
       const mockReplace = jest.fn().mockResolvedValue({});
-      mockContainer.item.mockImplementation(
-        () =>
-          ({
-            replace: mockReplace,
-          } as any),
-      );
+      (mockContainer.item as jest.Mock).mockImplementation(() => ({
+        read: mockRead,
+        replace: mockReplace,
+      }));
 
       const patch = { age: 31, email: 'alice.new@example.com' };
-      await model.update(['1'], patch);
+      await model.update([{ id: '1', partitionKey: 'user1' }], patch);
 
       expect(mockReplace).toHaveBeenCalledWith({
         id: '1',
@@ -310,59 +293,43 @@ describe('Model Builder > ModelCosmos', () => {
   });
 
   describe('delete', () => {
-    it('should delete records by ids', async () => {
-      const mockItems = [
-        { id: '1', userId: 'user1', name: 'Alice' },
-        { id: '2', userId: 'user2', name: 'Bob' },
-      ];
-
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockItems }),
-      }) as any;
-
+    it('should delete records using point deletes', async () => {
       const mockDelete = jest.fn().mockResolvedValue({});
-      mockContainer.item.mockImplementation(
-        () =>
-          ({
-            delete: mockDelete,
-          } as any),
-      );
+      (mockContainer.item as jest.Mock).mockImplementation(() => ({
+        delete: mockDelete,
+      }));
 
-      await model.delete(['1', '2']);
+      await model.delete([
+        { id: '1', partitionKey: 'user1' },
+        { id: '2', partitionKey: 'user2' },
+      ]);
 
       expect(mockDelete).toHaveBeenCalledTimes(2);
       expect(mockContainer.item).toHaveBeenCalledWith('1', 'user1');
       expect(mockContainer.item).toHaveBeenCalledWith('2', 'user2');
     });
 
-    it('should extract partition keys correctly', async () => {
-      const mockItems = [{ id: '1', userId: 'user1', name: 'Alice' }];
-
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockItems }),
-      }) as any;
-
+    it('should use partition key for point delete operations', async () => {
       const mockDelete = jest.fn().mockResolvedValue({});
-      mockContainer.item.mockImplementation(
-        () =>
-          ({
-            delete: mockDelete,
-          } as any),
-      );
+      (mockContainer.item as jest.Mock).mockImplementation(() => ({
+        delete: mockDelete,
+      }));
 
-      await model.delete(['1']);
+      await model.delete([{ id: '1', partitionKey: 'user1' }]);
 
       expect(mockContainer.item).toHaveBeenCalledWith('1', 'user1');
+      expect(mockDelete).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle empty id array', async () => {
-      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: [] }),
-      }) as any;
+    it('should handle empty array', async () => {
+      const mockDelete = jest.fn().mockResolvedValue({});
+      (mockContainer.item as jest.Mock).mockImplementation(() => ({
+        delete: mockDelete,
+      }));
 
       await model.delete([]);
 
-      expect(mockContainer.items.query).toHaveBeenCalled();
+      expect(mockDelete).not.toHaveBeenCalled();
     });
   });
 
@@ -385,8 +352,8 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.query(querySpec);
 
       expect(results).toEqual(mockResults);
-      // Should use fetchAll when no pagination parameters
-      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec);
+      // Should use fetchAll when no pagination parameters (with empty options)
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {});
     });
 
     it('should apply limit', async () => {
@@ -463,6 +430,41 @@ describe('Model Builder > ModelCosmos', () => {
 
       expect(typeof results[0].createdAt).toBe('string');
     });
+
+    it('should pass partition key to query options when provided', async () => {
+      const mockResults = [{ id: '1', tenantId: 'tenant-123' }];
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+      }) as any;
+
+      const querySpec = { query: 'SELECT * FROM c WHERE c.tenantId = @param0' };
+      await model.query(querySpec, undefined, undefined, 'tenant-123');
+
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        partitionKey: 'tenant-123',
+      });
+    });
+
+    it('should pass partition key with pagination options', async () => {
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield { resources: [{ id: '1' }, { id: '2' }] };
+        },
+      };
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
+      }) as any;
+
+      const querySpec = { query: 'SELECT * FROM c' };
+      await model.query(querySpec, 0, 10, 'tenant-456');
+
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        maxItemCount: 10,
+        partitionKey: 'tenant-456',
+      });
+    });
   });
 
   describe('aggregateQuery', () => {
@@ -483,7 +485,7 @@ describe('Model Builder > ModelCosmos', () => {
       const results = await model.aggregateQuery(querySpec);
 
       expect(results).toEqual(mockResults);
-      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {});
     });
 
     it('should serialize aggregation results', async () => {
@@ -497,6 +499,41 @@ describe('Model Builder > ModelCosmos', () => {
 
       expect(typeof results[0].date).toBe('string');
     });
+
+    it('should pass partition key to aggregation query', async () => {
+      const mockResults = [{ groupKey: 'active', value: 10 }];
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c.status as groupKey, COUNT(1) as value FROM c GROUP BY c.status',
+      };
+
+      const results = await model.aggregateQuery(querySpec, 'tenant-123');
+
+      expect(results).toEqual(mockResults);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        partitionKey: 'tenant-123',
+      });
+    });
+
+    it('should pass numeric partition key to aggregation query', async () => {
+      const mockResults = [{ value: 500 }];
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+      }) as any;
+
+      const querySpec = { query: 'SELECT SUM(c.amount) as value FROM c' };
+
+      await model.aggregateQuery(querySpec, 42);
+
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
+        partitionKey: 42,
+      });
+    });
   });
 
   describe('count', () => {
@@ -508,36 +545,124 @@ describe('Model Builder > ModelCosmos', () => {
       const count = await model.count();
 
       expect(count).toBe(150);
-      expect(mockContainer.items.query).toHaveBeenCalledWith({
-        query: 'SELECT VALUE COUNT(1) FROM c',
-      });
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        { query: 'SELECT VALUE COUNT(1) FROM c' },
+        {},
+      );
     });
 
-    it('should count with filter', async () => {
-      const mockResults = [{ id: '1' }, { id: '2' }, { id: '3' }];
-
+    it('should convert filter query to COUNT query', async () => {
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: mockResults }),
+        fetchAll: jest.fn().mockResolvedValue({ resources: [42] }),
       }) as any;
 
       const querySpec = {
-        query: 'SELECT * FROM c WHERE c.status = @status',
+        query: 'SELECT c FROM c WHERE c.status = @status',
         parameters: [{ name: '@status', value: 'active' }],
       };
 
       const count = await model.count(querySpec);
 
-      expect(count).toBe(3);
+      expect(count).toBe(42);
+      // Should convert to COUNT query instead of fetching all records
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.status = @status',
+          parameters: [{ name: '@status', value: 'active' }],
+        },
+        {},
+      );
+    });
+
+    it('should handle query with ORDER BY clause', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [25] }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c FROM c WHERE c.age > @age ORDER BY c.name ASC',
+        parameters: [{ name: '@age', value: 18 }],
+      };
+
+      const count = await model.count(querySpec);
+
+      expect(count).toBe(25);
+      // Should strip ORDER BY and convert to COUNT
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.age > @age',
+          parameters: [{ name: '@age', value: 18 }],
+        },
+        {},
+      );
+    });
+
+    it('should pass partition key to count query', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [10] }),
+      }) as any;
+
+      const count = await model.count(undefined, 'tenant-123');
+
+      expect(count).toBe(10);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        { query: 'SELECT VALUE COUNT(1) FROM c' },
+        { partitionKey: 'tenant-123' },
+      );
+    });
+
+    it('should pass partition key with filter query', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [5] }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c FROM c WHERE c.status = @status',
+        parameters: [{ name: '@status', value: 'active' }],
+      };
+
+      const count = await model.count(querySpec, 'tenant-456');
+
+      expect(count).toBe(5);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.status = @status',
+          parameters: [{ name: '@status', value: 'active' }],
+        },
+        { partitionKey: 'tenant-456' },
+      );
     });
 
     it('should return 0 for empty results', async () => {
       (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
-        fetchAll: jest.fn().mockResolvedValue({ resources: [] }),
+        fetchAll: jest.fn().mockResolvedValue({ resources: [0] }),
       }) as any;
 
       const count = await model.count();
 
       expect(count).toBe(0);
+    });
+
+    it('should handle query without WHERE clause', async () => {
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        fetchAll: jest.fn().mockResolvedValue({ resources: [100] }),
+      }) as any;
+
+      const querySpec = {
+        query: 'SELECT c FROM c ORDER BY c.name ASC',
+        parameters: [],
+      };
+
+      const count = await model.count(querySpec);
+
+      expect(count).toBe(100);
+      expect(mockContainer.items.query).toHaveBeenCalledWith(
+        {
+          query: 'SELECT VALUE COUNT(1) FROM c',
+          parameters: [],
+        },
+        {},
+      );
     });
   });
 
@@ -570,6 +695,12 @@ describe('Model Builder > ModelCosmos', () => {
   describe('getContainerName', () => {
     it('should return container name', () => {
       expect(model.getContainerName()).toBe('usersContainer');
+    });
+  });
+
+  describe('getCosmosClient', () => {
+    it('should return cosmos client', () => {
+      expect(model.getCosmosClient()).toBe(mockCosmosClient);
     });
   });
 
@@ -608,73 +739,6 @@ describe('Model Builder > ModelCosmos', () => {
       expect(generatedId).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
-    });
-  });
-
-  describe('partition key extraction', () => {
-    it('should extract simple partition key', async () => {
-      const simpleModel = new ModelCosmos(
-        mockCosmosClient,
-        'test',
-        'db',
-        'container',
-        '/id',
-        testSchema,
-      );
-
-      const item = { id: '123', name: 'Test' };
-      const partitionKey = (simpleModel as any).getPartitionKeyValue(item);
-
-      expect(partitionKey).toBe('123');
-    });
-
-    it('should extract nested partition key', async () => {
-      const nestedModel = new ModelCosmos(
-        mockCosmosClient,
-        'test',
-        'db',
-        'container',
-        '/user/id',
-        testSchema,
-      );
-
-      const item = { id: '123', user: { id: 'user456', name: 'Alice' } };
-      const partitionKey = (nestedModel as any).getPartitionKeyValue(item);
-
-      expect(partitionKey).toBe('user456');
-    });
-
-    it('should handle multi-level nested partition key', async () => {
-      const deepModel = new ModelCosmos(
-        mockCosmosClient,
-        'test',
-        'db',
-        'container',
-        '/customer/address/city',
-        testSchema,
-      );
-
-      const item = {
-        id: '123',
-        customer: {
-          name: 'Alice',
-          address: {
-            city: 'New York',
-            state: 'NY',
-          },
-        },
-      };
-
-      const partitionKey = (deepModel as any).getPartitionKeyValue(item);
-
-      expect(partitionKey).toBe('New York');
-    });
-
-    it('should handle partition key with leading slash', async () => {
-      const item = { userId: 'user123', name: 'Alice' };
-      const partitionKey = (model as any).getPartitionKeyValue(item);
-
-      expect(partitionKey).toBe('user123');
     });
   });
 });
