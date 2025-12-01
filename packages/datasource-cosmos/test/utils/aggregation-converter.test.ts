@@ -1,6 +1,7 @@
 import { Aggregation, ConditionTreeLeaf } from '@forestadmin/datasource-toolkit';
 
 import AggregationConverter from '../../src/utils/aggregation-converter';
+import { QueryValidationError, QueryValidationErrorCode } from '../../src/utils/query-validator';
 
 describe('AggregationConverter', () => {
   describe('buildAggregationQuery', () => {
@@ -73,7 +74,7 @@ describe('AggregationConverter', () => {
     it('should build aggregation with nested field', () => {
       const aggregation = new Aggregation({
         operation: 'Sum',
-        field: 'address.zipCode',
+        field: 'address->zipCode',
       });
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
@@ -87,7 +88,7 @@ describe('AggregationConverter', () => {
       const aggregation = new Aggregation({
         operation: 'Count',
         field: null,
-        groups: [{ field: 'address.city' }],
+        groups: [{ field: 'address->city' }],
       });
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
@@ -103,8 +104,8 @@ describe('AggregationConverter', () => {
     it('should build aggregation on nested field with grouping by another nested field', () => {
       const aggregation = new Aggregation({
         operation: 'Avg',
-        field: 'payment.amount',
-        groups: [{ field: 'shipping.method' }],
+        field: 'payment->amount',
+        groups: [{ field: 'shipping->method' }],
       });
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
@@ -167,7 +168,7 @@ describe('AggregationConverter', () => {
       const aggregation = new Aggregation({
         operation: 'Count',
         field: null,
-        groups: [{ field: 'address.city' }],
+        groups: [{ field: 'address->city' }],
       });
 
       const rawResults = [
@@ -178,8 +179,8 @@ describe('AggregationConverter', () => {
       const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
 
       expect(result).toEqual([
-        { value: 15, group: { 'address.city': 'New York' } },
-        { value: 10, group: { 'address.city': 'Los Angeles' } },
+        { value: 15, group: { 'address->city': 'New York' } },
+        { value: 10, group: { 'address->city': 'Los Angeles' } },
       ]);
     });
 
@@ -195,6 +196,216 @@ describe('AggregationConverter', () => {
       const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
 
       expect(result).toEqual([{ value: 42, group: {} }]);
+    });
+  });
+
+  describe('field validation (SQL injection prevention)', () => {
+    describe('aggregation target field validation', () => {
+      it('should reject field names with SQL injection characters', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'amount; DROP TABLE users--',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should reject field names with SQL keywords', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: 'SELECT * FROM c',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should reject field names with quotes', () => {
+        const aggregation = new Aggregation({
+          operation: 'Avg',
+          field: "price' OR '1'='1",
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should reject field names with SQL comment syntax', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'amount--comment',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should reject field names with block comments', () => {
+        const aggregation = new Aggregation({
+          operation: 'Max',
+          field: 'amount/*comment*/',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should accept valid field names', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'validField_123',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
+      });
+
+      it('should accept valid nested field names with arrow notation', () => {
+        const aggregation = new Aggregation({
+          operation: 'Avg',
+          field: 'address->zipCode',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
+      });
+
+      it('should accept valid deeply nested field names', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'payment->details->amount',
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
+      });
+    });
+
+    describe('group by field validation', () => {
+      it('should reject group by field with SQL injection', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'status; DROP TABLE--' }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should reject group by field with SQL keywords', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'UNION SELECT * FROM' }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should reject group by field with quotes', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'amount',
+          groups: [{ field: "category' OR '1'='1" }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          QueryValidationError,
+        );
+      });
+
+      it('should accept valid group by field names', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'status' }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
+      });
+
+      it('should accept valid nested group by field names', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'address->city' }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
+      });
+    });
+
+    describe('buildSimpleAggregationQuery validation', () => {
+      it('should reject invalid field in simple aggregation', () => {
+        expect(() =>
+          AggregationConverter.buildSimpleAggregationQuery('Sum', 'amount; DROP--', null),
+        ).toThrow(QueryValidationError);
+      });
+
+      it('should reject invalid groupByField in simple aggregation', () => {
+        expect(() =>
+          AggregationConverter.buildSimpleAggregationQuery('Count', null, "status' OR '1'='1"),
+        ).toThrow(QueryValidationError);
+      });
+
+      it('should accept valid fields in simple aggregation', () => {
+        expect(() =>
+          AggregationConverter.buildSimpleAggregationQuery('Sum', 'validField', 'validGroupBy'),
+        ).not.toThrow();
+      });
+
+      it('should accept null fields in simple aggregation (COUNT *)', () => {
+        expect(() =>
+          AggregationConverter.buildSimpleAggregationQuery('Count', null, null),
+        ).not.toThrow();
+      });
+    });
+
+    describe('error details', () => {
+      it('should provide POTENTIAL_INJECTION error code for dangerous patterns', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'amount; DROP--',
+        });
+
+        let thrownError: QueryValidationError | null = null;
+
+        try {
+          AggregationConverter.buildAggregationQuery(aggregation);
+        } catch (error) {
+          thrownError = error as QueryValidationError;
+        }
+
+        expect(thrownError).not.toBeNull();
+        expect(thrownError).toBeInstanceOf(QueryValidationError);
+        expect(thrownError?.code).toBe(QueryValidationErrorCode.POTENTIAL_INJECTION);
+      });
+
+      it('should provide INVALID_FIELD_NAME error code for invalid characters', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: '123invalidStart',
+        });
+
+        let thrownError: QueryValidationError | null = null;
+
+        try {
+          AggregationConverter.buildAggregationQuery(aggregation);
+        } catch (error) {
+          thrownError = error as QueryValidationError;
+        }
+
+        expect(thrownError).not.toBeNull();
+        expect(thrownError).toBeInstanceOf(QueryValidationError);
+        expect(thrownError?.code).toBe(QueryValidationErrorCode.INVALID_FIELD_NAME);
+      });
     });
   });
 });
