@@ -8,9 +8,19 @@ import {
 } from '@forestadmin/datasource-toolkit';
 
 import QueryConverter from './query-converter';
+import QueryValidator from './query-validator';
 import Serializer from './serializer';
 
 export default class AggregationConverter {
+  /**
+   * Shared validator instance for field name validation
+   * Using permissive options since aggregation fields come from Forest Admin SDK
+   */
+  private static validator = new QueryValidator(undefined, {
+    allowUnknownFields: true,
+    maxFieldDepth: 10,
+  });
+
   private static AGGREGATION_OPERATION: Record<AggregationOperation, string> = {
     Sum: 'SUM',
     Avg: 'AVG',
@@ -21,8 +31,12 @@ export default class AggregationConverter {
 
   /**
    * Convert Forest Admin field notation (arrow ->) to Cosmos DB notation (dot .)
+   * Also validates the field name to prevent SQL injection
    */
-  private static toCosmosField(field: string): string {
+  private static toCosmosField(field: string, context = 'Aggregation field'): string {
+    // Validate field name to prevent SQL injection
+    this.validator.validateFieldName(field, context);
+
     return field.replace(/->/g, '.');
   }
 
@@ -60,7 +74,7 @@ export default class AggregationConverter {
     }
 
     const operation = this.AGGREGATION_OPERATION[aggregation.operation];
-    const cosmosField = this.toCosmosField(aggregation.field);
+    const cosmosField = this.toCosmosField(aggregation.field, 'Aggregation target field');
     const fieldPath = `c.${cosmosField}`;
 
     return `${operation}(${fieldPath})`;
@@ -87,7 +101,7 @@ export default class AggregationConverter {
 
     if (groups.length === 1 && !groups[0].operation) {
       // Simple single field grouping
-      const cosmosGroupField = this.toCosmosField(groups[0].field);
+      const cosmosGroupField = this.toCosmosField(groups[0].field, 'Group by field');
       const groupField = `c.${cosmosGroupField}`;
 
       // For Count operation without field, we need a different approach
@@ -139,7 +153,7 @@ export default class AggregationConverter {
     operation: DateOperation,
     alias: string,
   ): string {
-    const cosmosField = this.toCosmosField(field);
+    const cosmosField = this.toCosmosField(field, 'Date group field');
     const fieldPath = `c.${cosmosField}`;
 
     switch (operation) {
@@ -220,8 +234,10 @@ export default class AggregationConverter {
     let groupByClause = '';
     let orderByClause = '';
 
-    const cosmosField = field ? this.toCosmosField(field) : null;
-    const cosmosGroupByField = groupByField ? this.toCosmosField(groupByField) : null;
+    const cosmosField = field ? this.toCosmosField(field, 'Aggregation target field') : null;
+    const cosmosGroupByField = groupByField
+      ? this.toCosmosField(groupByField, 'Group by field')
+      : null;
 
     if (!cosmosField) {
       // COUNT(*) case

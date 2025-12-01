@@ -42,9 +42,19 @@ export default class CosmosCollection extends BaseCollection {
 
     this.internalModel = model;
 
-    this.queryConverter = new QueryConverter();
-
     const modelSchema = ModelConverter.convert(this.internalModel, logger);
+
+    // Extract schema field names for query validation
+    const schemaFields = Object.keys(modelSchema.fields);
+
+    // Initialize query converter with schema validation
+    this.queryConverter = new QueryConverter({
+      schemaFields,
+      validationOptions: {
+        // Allow unknown fields since schema might not include all nested paths
+        allowUnknownFields: true,
+      },
+    });
 
     if (this.internalModel.enableCount !== false) this.enableCount();
     this.addFields(modelSchema.fields);

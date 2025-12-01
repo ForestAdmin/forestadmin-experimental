@@ -370,7 +370,8 @@ describe('Model Builder > ModelCosmos', () => {
       const querySpec = { query: 'SELECT * FROM c' };
       const results = await model.query(querySpec, undefined, 10);
 
-      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, { maxItemCount: 10 });
+      // Note: Page size is optimized to be between 100 and 1000 for efficiency
+      expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, { maxItemCount: 100 });
       expect(results).toHaveLength(2);
     });
 
@@ -460,8 +461,9 @@ describe('Model Builder > ModelCosmos', () => {
       const querySpec = { query: 'SELECT * FROM c' };
       await model.query(querySpec, 0, 10, 'tenant-456');
 
+      // Note: Page size is optimized to be between 100 and 1000 for efficiency
       expect(mockContainer.items.query).toHaveBeenCalledWith(querySpec, {
-        maxItemCount: 10,
+        maxItemCount: 100,
         partitionKey: 'tenant-456',
       });
     });

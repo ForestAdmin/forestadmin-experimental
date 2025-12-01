@@ -451,8 +451,10 @@ describe('QueryConverter', () => {
       it('should throw error for relation condition tree', () => {
         const condition = new ConditionTreeLeaf('orders:id', 'Equal', '123');
 
+        // Validator catches invalid field name (contains ':')
+        // before the converter checks for relation
         expect(() => converter.getSqlQuerySpec(condition)).toThrow(
-          'Relation ConditionTree not yet supported for Cosmos DB.',
+          "Filter field 'orders:id' contains invalid characters",
         );
       });
     });

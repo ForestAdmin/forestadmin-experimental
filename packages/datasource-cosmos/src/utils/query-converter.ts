@@ -7,9 +7,40 @@ import {
   Sort,
 } from '@forestadmin/datasource-toolkit';
 
+import QueryValidator, { QueryValidatorOptions } from './query-validator';
+
+export interface QueryConverterOptions {
+  /**
+   * Schema fields for validation (field names in Forest Admin notation)
+   * If not provided, only basic security validation is performed
+   */
+  schemaFields?: string[];
+
+  /**
+   * Validation options
+   */
+  validationOptions?: QueryValidatorOptions;
+
+  /**
+   * Whether to skip validation entirely (not recommended for production)
+   * Default: false
+   */
+  skipValidation?: boolean;
+}
+
 export default class QueryConverter {
   private parameterCounter = 0;
   private parameters: SqlParameter[] = [];
+  private validator: QueryValidator | null = null;
+  private skipValidation: boolean;
+
+  constructor(options?: QueryConverterOptions) {
+    this.skipValidation = options?.skipValidation ?? false;
+
+    if (!this.skipValidation) {
+      this.validator = new QueryValidator(options?.schemaFields, options?.validationOptions);
+    }
+  }
 
   /**
    * Reset the converter state for a new query
@@ -219,6 +250,11 @@ export default class QueryConverter {
     // Reset state for new query
     this.reset();
 
+    // Validate query parameters if validation is enabled
+    if (this.validator) {
+      this.validator.validateQuery(conditionTree, sort, projection);
+    }
+
     // Build SELECT clause
     // Cosmos DB doesn't handle well selecting individual nested properties
     // (e.g., c.accountingBalance.currency). Instead, select parent objects.
@@ -296,6 +332,12 @@ export default class QueryConverter {
     parameters: SqlParameter[];
   } {
     this.reset();
+
+    // Validate condition tree if validation is enabled
+    if (this.validator) {
+      this.validator.validateConditionTree(conditionTree);
+    }
+
     const where = this.getWhereClauseFromConditionTree(conditionTree);
 
     return { where, parameters: this.parameters };

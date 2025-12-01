@@ -5,7 +5,7 @@
  */
 import { CosmosClient } from '@azure/cosmos';
 
-import ModelCosmos from '../src/model-builder/model';
+import ModelCosmos, { configurePaginationCache } from '../src/model-builder/model';
 
 describe('Model - Pagination Efficiency', () => {
   let mockClient: jest.Mocked<CosmosClient>;
@@ -14,6 +14,9 @@ describe('Model - Pagination Efficiency', () => {
   let model: ModelCosmos;
 
   beforeEach(() => {
+    // Reset pagination cache before each test
+    configurePaginationCache({ maxOffset: 100000, ttlMs: 300000 });
+
     // Mock CosmosClient
     mockClient = {
       database: jest.fn(),
@@ -21,7 +24,8 @@ describe('Model - Pagination Efficiency', () => {
     } as any;
 
     // Create spy for getAsyncIterator to track how many items are fetched
-    const mockAsyncIterator = {
+    // Each page yields resources with a continuation token (except the last page)
+    const createMockAsyncIterator = () => ({
       async *[Symbol.asyncIterator]() {
         // Simulate 3 pages of 10 items each (30 total items)
         for (let page = 0; page < 3; page += 1) {
@@ -29,10 +33,12 @@ describe('Model - Pagination Efficiency', () => {
             id: `item-${page * 10 + i}`,
             name: `Item ${page * 10 + i}`,
           }));
-          yield { resources };
+          // Last page has no continuation token
+          const continuationToken = page < 2 ? `token-page-${page + 1}` : undefined;
+          yield { resources, continuationToken };
         }
       },
-    };
+    });
 
     // Mock container
     mockContainer = {
@@ -44,7 +50,7 @@ describe('Model - Pagination Efficiency', () => {
               name: `Item ${i}`,
             })),
           }),
-          getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
+          getAsyncIterator: jest.fn().mockImplementation(createMockAsyncIterator),
         }),
       },
     };
@@ -102,16 +108,18 @@ describe('Model - Pagination Efficiency', () => {
     expect(results).toHaveLength(30);
   });
 
-  it('should limit maxItemCount to avoid over-fetching', async () => {
+  it('should use optimized page size for efficient fetching', async () => {
     // Reset mock to track call arguments
     mockContainer.items.query.mockClear();
 
-    // Query with offset=5, limit=10 (should fetch max 15 items)
+    // Query with offset=5, limit=10
     await model.query({ query: 'SELECT * FROM c' }, 5, 10);
 
     // Check that query was called with maxItemCount
+    // Note: Page size is optimized to be between 100 and 1000 for efficiency
+    // (larger batches = fewer round trips)
     const queryCall = mockContainer.items.query.mock.calls[0];
-    expect(queryCall[1]).toEqual({ maxItemCount: 15 }); // offset + limit
+    expect(queryCall[1]).toEqual({ maxItemCount: 100 });
   });
 
   it('should handle edge case: offset larger than available results', async () => {
