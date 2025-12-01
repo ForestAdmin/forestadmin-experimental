@@ -1,3 +1,10 @@
+## [1.6.4](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.3...datasource-cosmos@1.6.4) (2025-12-01)
+
+
+### Bug Fixes
+
+* implement pagination cache ([#192](https://github.com/ForestAdmin/forestadmin-experimental/issues/192)) ([4d80176](https://github.com/ForestAdmin/forestadmin-experimental/commit/4d80176d9c08646bd2c15a6e96449f3cd1d61304))
+
 ## [1.6.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.2...datasource-cosmos@1.6.3) (2025-11-29)
 
 
