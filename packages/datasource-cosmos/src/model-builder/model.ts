@@ -4,7 +4,15 @@ import { randomUUID } from 'crypto';
 
 import { OverrideTypeConverter } from '../introspection/builder';
 import PaginationCache, { PaginationCacheOptions } from '../utils/pagination-cache';
+import {
+  RetryOptions,
+  configureRetryOptions,
+  getSharedRetryOptions,
+  withRetry,
+} from '../utils/retry-handler';
 import Serializer from '../utils/serializer';
+
+export { RetryOptions, configureRetryOptions, getSharedRetryOptions };
 
 export interface CosmosSchema {
   [key: string]: {
@@ -84,6 +92,11 @@ export default class ModelCosmos {
    */
   private paginationCache: PaginationCache;
 
+  /**
+   * Retry options for handling rate limiting (429 errors)
+   */
+  private retryOptions: RetryOptions;
+
   public overrideTypeConverter?: OverrideTypeConverter;
 
   public enableCount?: boolean;
@@ -109,6 +122,7 @@ export default class ModelCosmos {
     this.cosmosClient = cosmosClient;
     this.container = this.cosmosClient.database(databaseName).container(containerName);
     this.paginationCache = getSharedPaginationCache();
+    this.retryOptions = getSharedRetryOptions();
   }
 
   public getCosmosClient(): CosmosClient {
@@ -140,7 +154,10 @@ export default class ModelCosmos {
       };
 
       // eslint-disable-next-line no-await-in-loop -- Sequential execution maintains order
-      const { resource } = await this.container.items.create(itemToCreate);
+      const { resource } = await withRetry(
+        () => this.container.items.create(itemToCreate),
+        this.retryOptions,
+      );
       // Flatten and serialize the response
       createdRecords.push(Serializer.serialize(resource));
     }
@@ -157,7 +174,10 @@ export default class ModelCosmos {
     for (const { id, partitionKey } of items) {
       // Point read: directly fetch item using id + partition key (1 RU)
       // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-      const { resource: existingItem } = await this.container.item(id, partitionKey).read();
+      const { resource: existingItem } = await withRetry(
+        () => this.container.item(id, partitionKey).read(),
+        this.retryOptions,
+      );
 
       if (existingItem) {
         // Deep merge the unflattened patch with the existing item
@@ -165,7 +185,10 @@ export default class ModelCosmos {
 
         // Point update: directly update using id + partition key
         // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-        await this.container.item(id, partitionKey).replace(updatedItem);
+        await withRetry(
+          () => this.container.item(id, partitionKey).replace(updatedItem),
+          this.retryOptions,
+        );
       }
     }
   }
@@ -175,7 +198,7 @@ export default class ModelCosmos {
     for (const { id, partitionKey } of items) {
       // Point delete: directly delete using id + partition key
       // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-      await this.container.item(id, partitionKey).delete();
+      await withRetry(() => this.container.item(id, partitionKey).delete(), this.retryOptions);
     }
   }
 
@@ -199,7 +222,10 @@ export default class ModelCosmos {
 
     // If no pagination parameters, fetch all (backward compatibility)
     if (offset === undefined && limit === undefined) {
-      const { resources } = await this.container.items.query(querySpec, queryOptions).fetchAll();
+      const { resources } = await withRetry(
+        () => this.container.items.query(querySpec, queryOptions).fetchAll(),
+        this.retryOptions,
+      );
 
       return resources.map(item => Serializer.serialize(item));
     }
@@ -309,7 +335,10 @@ export default class ModelCosmos {
       queryOptions.partitionKey = partitionKey;
     }
 
-    const { resources } = await this.container.items.query(querySpec, queryOptions).fetchAll();
+    const { resources } = await withRetry(
+      () => this.container.items.query(querySpec, queryOptions).fetchAll(),
+      this.retryOptions,
+    );
 
     return resources.map(item => Serializer.serialize(item));
   }
@@ -327,18 +356,20 @@ export default class ModelCosmos {
       const countQuery: SqlQuerySpec = {
         query: 'SELECT VALUE COUNT(1) FROM c',
       };
-      const { resources } = await this.container.items
-        .query<number>(countQuery, queryOptions)
-        .fetchAll();
+      const { resources } = await withRetry(
+        () => this.container.items.query<number>(countQuery, queryOptions).fetchAll(),
+        this.retryOptions,
+      );
 
       return resources[0] || 0;
     }
 
     // Convert the query to a COUNT query to avoid fetching all records
     const countQuery = this.convertToCountQuery(querySpec);
-    const { resources } = await this.container.items
-      .query<number>(countQuery, queryOptions)
-      .fetchAll();
+    const { resources } = await withRetry(
+      () => this.container.items.query<number>(countQuery, queryOptions).fetchAll(),
+      this.retryOptions,
+    );
 
     return resources[0] || 0;
   }

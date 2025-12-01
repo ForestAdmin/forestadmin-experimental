@@ -58,7 +58,14 @@ export { default as ArrayCollection } from './array-collection';
 export { default as TypeConverter } from './utils/type-converter';
 export { default as ModelCosmos } from './model-builder/model';
 export { configurePaginationCache, getSharedPaginationCache } from './model-builder/model';
+export { configureRetryOptions, getSharedRetryOptions } from './model-builder/model';
 export { default as PaginationCache } from './utils/pagination-cache';
+export {
+  withRetry,
+  createRetryWrapper,
+  isRateLimitError,
+  isTransientError,
+} from './utils/retry-handler';
 export {
   default as QueryValidator,
   QueryValidationError,
@@ -68,6 +75,7 @@ export type { CosmosSchema } from './model-builder/model';
 export type { VirtualArrayCollectionConfig } from './introspection/introspector';
 export type { PaginationCacheOptions } from './utils/pagination-cache';
 export type { QueryValidatorOptions } from './utils/query-validator';
+export type { RetryOptions } from './utils/retry-handler';
 export type {
   CollectionDefinition,
   FieldDefinition,
