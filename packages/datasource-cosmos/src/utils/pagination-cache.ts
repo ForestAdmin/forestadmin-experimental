@@ -34,6 +34,21 @@ export interface PaginationCacheOptions {
    * Default: 100000
    */
   maxOffset?: number;
+
+  /**
+   * Interval (in number of records) at which to cache continuation tokens
+   *
+   * Lower values = more cache hits, faster page jumps, but more memory usage
+   * Higher values = fewer cache entries, less memory, but slower random page access
+   *
+   * Recommended values:
+   * - Small collections (<10K): 500
+   * - Medium collections (10K-100K): 1000 (default)
+   * - Large collections (>100K): 2000-5000
+   *
+   * Default: 1000
+   */
+  cacheInterval?: number;
 }
 
 /**
@@ -58,6 +73,7 @@ export default class PaginationCache {
       maxEntriesPerQuery: options.maxEntriesPerQuery ?? 100,
       ttlMs: options.ttlMs ?? 300000, // 5 minutes default
       maxOffset: options.maxOffset ?? 100000,
+      cacheInterval: options.cacheInterval ?? 1000,
     };
   }
 
@@ -66,6 +82,13 @@ export default class PaginationCache {
    */
   getMaxOffset(): number {
     return this.options.maxOffset;
+  }
+
+  /**
+   * Get the cache interval (how often to store continuation tokens)
+   */
+  getCacheInterval(): number {
+    return this.options.cacheInterval;
   }
 
   /**

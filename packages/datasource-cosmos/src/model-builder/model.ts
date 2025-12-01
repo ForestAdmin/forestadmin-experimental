@@ -284,8 +284,9 @@ export default class ModelCosmos {
       const { resources: page, continuationToken } = response;
 
       // Store continuation token for future use at regular intervals
-      // Cache every ~1000 items or at significant boundaries
-      if (continuationToken && currentOffset > 0 && currentOffset % 1000 < pageSize) {
+      const cacheInterval = this.paginationCache.getCacheInterval();
+
+      if (continuationToken && currentOffset > 0 && currentOffset % cacheInterval < pageSize) {
         this.paginationCache.storeToken(queryHash, currentOffset, continuationToken);
       }
 

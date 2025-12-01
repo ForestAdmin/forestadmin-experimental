@@ -27,6 +27,28 @@ describe('PaginationCache', () => {
       const customCache = new PaginationCache({ maxEntriesPerQuery: 50 });
       expect(customCache).toBeDefined();
     });
+
+    it('should use default cacheInterval of 1000', () => {
+      const defaultCache = new PaginationCache();
+      expect(defaultCache.getCacheInterval()).toBe(1000);
+    });
+
+    it('should accept custom cacheInterval', () => {
+      const customCache = new PaginationCache({ cacheInterval: 500 });
+      expect(customCache.getCacheInterval()).toBe(500);
+    });
+
+    it('should accept all options together', () => {
+      const customCache = new PaginationCache({
+        maxOffset: 50000,
+        ttlMs: 60000,
+        maxEntriesPerQuery: 50,
+        cacheInterval: 2000,
+      });
+
+      expect(customCache.getMaxOffset()).toBe(50000);
+      expect(customCache.getCacheInterval()).toBe(2000);
+    });
   });
 
   describe('generateQueryHash', () => {
@@ -320,6 +342,36 @@ describe('PaginationCache', () => {
 
       const customCache = new PaginationCache({ maxOffset: 25000 });
       expect(customCache.getMaxOffset()).toBe(25000);
+    });
+  });
+
+  describe('getCacheInterval', () => {
+    it('should return default cache interval of 1000', () => {
+      expect(cache.getCacheInterval()).toBe(1000);
+    });
+
+    it('should return configured cache interval', () => {
+      const smallIntervalCache = new PaginationCache({ cacheInterval: 500 });
+      expect(smallIntervalCache.getCacheInterval()).toBe(500);
+
+      const largeIntervalCache = new PaginationCache({ cacheInterval: 5000 });
+      expect(largeIntervalCache.getCacheInterval()).toBe(5000);
+    });
+
+    it('should handle edge case cache intervals', () => {
+      const tinyCache = new PaginationCache({ cacheInterval: 1 });
+      expect(tinyCache.getCacheInterval()).toBe(1);
+
+      const hugeCache = new PaginationCache({ cacheInterval: 100000 });
+      expect(hugeCache.getCacheInterval()).toBe(100000);
+    });
+
+    it('should be independent from other options', () => {
+      const cache1 = new PaginationCache({ cacheInterval: 500, maxOffset: 10000 });
+      const cache2 = new PaginationCache({ cacheInterval: 500, maxOffset: 50000 });
+
+      expect(cache1.getCacheInterval()).toBe(cache2.getCacheInterval());
+      expect(cache1.getMaxOffset()).not.toBe(cache2.getMaxOffset());
     });
   });
 

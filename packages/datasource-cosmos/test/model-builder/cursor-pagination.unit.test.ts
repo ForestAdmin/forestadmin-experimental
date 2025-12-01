@@ -590,6 +590,157 @@ describe('Model Builder > Cursor-Based Pagination', () => {
       const cache = getSharedPaginationCache();
       expect(cache).toBeDefined();
     });
+
+    it('should allow configuring cache interval globally', () => {
+      configurePaginationCache({ cacheInterval: 500 });
+
+      const cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(500);
+    });
+
+    it('should use default cache interval of 1000', () => {
+      configurePaginationCache({});
+
+      const cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(1000);
+    });
+  });
+
+  describe('cacheInterval configuration', () => {
+    it('should cache tokens at custom interval boundaries', async () => {
+      // Configure smaller cache interval
+      configurePaginationCache({ cacheInterval: 500, maxOffset: 100000 });
+
+      const newModel = new ModelCosmos(
+        mockCosmosClient,
+        'users',
+        'testDatabase',
+        'usersContainer',
+        '/userId',
+        testSchema,
+      );
+
+      const cache = getSharedPaginationCache();
+      cache.clearAll();
+
+      const querySpec = { query: 'SELECT * FROM c' };
+      const queryHash = cache.generateQueryHash(querySpec.query, []);
+
+      // Simulate fetching 1500 items with page size 500
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield {
+            resources: Array.from({ length: 500 }, (_, i) => ({ id: `${i}` })),
+            continuationToken: 'token-at-500',
+          };
+          yield {
+            resources: Array.from({ length: 500 }, (_, i) => ({ id: `${500 + i}` })),
+            continuationToken: 'token-at-1000',
+          };
+          yield {
+            resources: Array.from({ length: 500 }, (_, i) => ({ id: `${1000 + i}` })),
+            continuationToken: undefined,
+          };
+        },
+      };
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
+      }) as any;
+
+      await newModel.query(querySpec, 0, 1500);
+
+      // With cacheInterval=500, tokens should be cached more frequently
+      const stats = cache.getStats();
+      expect(stats.totalEntries).toBeGreaterThan(0);
+
+      // Should have cached tokens - check for token at offset 1500
+      const finalEntry = cache.findBestToken(queryHash, 1500);
+      expect(finalEntry).not.toBeNull();
+    });
+
+    it('should allow configuring different cache intervals', async () => {
+      // Test that we can set different cache intervals
+      configurePaginationCache({ cacheInterval: 1000, maxOffset: 100000 });
+      let cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(1000);
+
+      configurePaginationCache({ cacheInterval: 500, maxOffset: 100000 });
+      cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(500);
+
+      configurePaginationCache({ cacheInterval: 2000, maxOffset: 100000 });
+      cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(2000);
+    });
+
+    it('should use configurable cache interval when checking boundaries', async () => {
+      // Set cache interval to 250
+      configurePaginationCache({ cacheInterval: 250, maxOffset: 100000 });
+
+      const customIntervalModel = new ModelCosmos(
+        mockCosmosClient,
+        'users',
+        'testDatabase',
+        'usersContainer',
+        '/userId',
+        testSchema,
+      );
+
+      const cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(250);
+
+      cache.clearAll();
+
+      const querySpec = { query: 'SELECT * FROM c' };
+      const queryHash = cache.generateQueryHash(querySpec.query, []);
+
+      // Generate pages that align with 250-interval boundaries
+      const mockAsyncIterator = {
+        async *[Symbol.asyncIterator]() {
+          yield {
+            resources: Array.from({ length: 250 }, (_, i) => ({ id: `${i}` })),
+            continuationToken: 'token-250',
+          };
+          yield {
+            resources: Array.from({ length: 250 }, (_, i) => ({ id: `${250 + i}` })),
+            continuationToken: 'token-500',
+          };
+          yield {
+            resources: Array.from({ length: 100 }, (_, i) => ({ id: `${500 + i}` })),
+            continuationToken: undefined,
+          };
+        },
+      };
+
+      (mockContainer.items.query as jest.Mock) = jest.fn().mockReturnValue({
+        getAsyncIterator: jest.fn().mockReturnValue(mockAsyncIterator),
+      }) as any;
+
+      await customIntervalModel.query(querySpec, 0, 600);
+
+      // Cache should have entries - the final token is cached at the final offset
+      const stats = cache.getStats();
+      expect(stats.totalEntries).toBeGreaterThan(0);
+
+      // Should be able to find a cached entry for target offset 600
+      const finalEntry = cache.findBestToken(queryHash, 600);
+      expect(finalEntry).not.toBeNull();
+    });
+
+    it('should work correctly with very small cache intervals', () => {
+      configurePaginationCache({ cacheInterval: 100, maxOffset: 100000 });
+
+      const cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(100);
+    });
+
+    it('should work correctly with very large cache intervals', () => {
+      configurePaginationCache({ cacheInterval: 10000, maxOffset: 100000 });
+
+      const cache = getSharedPaginationCache();
+      expect(cache.getCacheInterval()).toBe(10000);
+    });
   });
 
   describe('getSharedPaginationCache', () => {
