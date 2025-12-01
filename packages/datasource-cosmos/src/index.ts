@@ -4,8 +4,10 @@ import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
 import CosmosDataSource from './datasource';
 import { ConfigurationOptions, CosmosDatasourceBuilder } from './introspection/builder';
 import Introspector, { VirtualArrayCollectionConfig } from './introspection/introspector';
+import { configurePaginationCache } from './model-builder/model';
 import { ManualSchemaConfig } from './types/manual-schema';
 import { convertManualSchemaToModels } from './utils/manual-schema-converter';
+import { PaginationCacheOptions } from './utils/pagination-cache';
 import VirtualCollectionManager from './virtual-collection-manager';
 
 export interface IntrospectionConfig {
@@ -57,8 +59,11 @@ export { default as CosmosDataSource } from './datasource';
 export { default as ArrayCollection } from './array-collection';
 export { default as TypeConverter } from './utils/type-converter';
 export { default as ModelCosmos } from './model-builder/model';
+export { configurePaginationCache, getSharedPaginationCache } from './model-builder/model';
+export { default as PaginationCache } from './utils/pagination-cache';
 export type { CosmosSchema } from './model-builder/model';
 export type { VirtualArrayCollectionConfig } from './introspection/introspector';
+export type { PaginationCacheOptions } from './utils/pagination-cache';
 export type {
   CollectionDefinition,
   FieldDefinition,

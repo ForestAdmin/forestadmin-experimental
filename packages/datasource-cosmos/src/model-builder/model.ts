@@ -3,6 +3,7 @@ import { RecordData } from '@forestadmin/datasource-toolkit';
 import { randomUUID } from 'crypto';
 
 import { OverrideTypeConverter } from '../introspection/builder';
+import PaginationCache, { PaginationCacheOptions } from '../utils/pagination-cache';
 import Serializer from '../utils/serializer';
 
 export interface CosmosSchema {
@@ -16,6 +17,33 @@ export interface CosmosSchema {
 export interface ItemWithPartitionKey {
   id: string;
   partitionKey: string | number;
+}
+
+/**
+ * Shared pagination cache instance for all models
+ * This is shared to allow cache reuse across collections and reduce memory usage
+ */
+let sharedPaginationCache: PaginationCache | null = null;
+
+/**
+ * Get or create the shared pagination cache instance
+ * @param options Optional configuration options (only used on first call)
+ */
+export function getSharedPaginationCache(options?: PaginationCacheOptions): PaginationCache {
+  if (!sharedPaginationCache) {
+    sharedPaginationCache = new PaginationCache(options);
+  }
+
+  return sharedPaginationCache;
+}
+
+/**
+ * Configure the shared pagination cache with custom options
+ * Must be called before any queries are made
+ * @param options Pagination cache configuration
+ */
+export function configurePaginationCache(options: PaginationCacheOptions): void {
+  sharedPaginationCache = new PaginationCache(options);
 }
 
 export default class ModelCosmos {
@@ -51,6 +79,11 @@ export default class ModelCosmos {
    */
   private container: Container;
 
+  /**
+   * Pagination cache for efficient cursor-based pagination
+   */
+  private paginationCache: PaginationCache;
+
   public overrideTypeConverter?: OverrideTypeConverter;
 
   public enableCount?: boolean;
@@ -75,6 +108,7 @@ export default class ModelCosmos {
 
     this.cosmosClient = cosmosClient;
     this.container = this.cosmosClient.database(databaseName).container(containerName);
+    this.paginationCache = getSharedPaginationCache();
   }
 
   public getCosmosClient(): CosmosClient {
@@ -152,7 +186,11 @@ export default class ModelCosmos {
     partitionKey?: string | number,
   ): Promise<RecordData[]> {
     // Build query options
-    const queryOptions: { maxItemCount?: number; partitionKey?: string | number } = {};
+    const queryOptions: {
+      maxItemCount?: number;
+      partitionKey?: string | number;
+      continuationToken?: string;
+    } = {};
 
     // Add partition key if provided (enables single-partition query optimization)
     if (partitionKey !== undefined) {
@@ -166,38 +204,95 @@ export default class ModelCosmos {
       return resources.map(item => Serializer.serialize(item));
     }
 
-    // Use efficient pagination when limit is specified
-    // Note: Cosmos DB doesn't support native OFFSET, so we need to skip items client-side
-    // but we can still benefit from maxItemCount to limit network transfers
-    queryOptions.maxItemCount = limit ? (offset || 0) + limit : undefined;
+    const effectiveOffset = offset || 0;
+    const effectiveLimit = limit || 100; // Default limit if not specified
 
-    const query = this.container.items.query(querySpec, queryOptions);
+    // Check if offset exceeds maximum allowed
+    const maxOffset = this.paginationCache.getMaxOffset();
+
+    if (effectiveOffset > maxOffset) {
+      throw new Error(
+        `Offset ${effectiveOffset} exceeds maximum allowed offset of ${maxOffset}. ` +
+          `Consider using filters to narrow down your results instead of deep pagination.`,
+      );
+    }
+
+    // Generate query hash for cache lookup
+    const queryHash = this.paginationCache.generateQueryHash(
+      querySpec.query,
+      querySpec.parameters,
+      partitionKey,
+    );
+
+    // Try to find a cached continuation token close to our target offset
+    const cachedEntry = this.paginationCache.findBestToken(queryHash, effectiveOffset);
+
+    let startOffset = 0;
+
+    if (cachedEntry) {
+      // Resume from cached position
+      startOffset = cachedEntry.offset;
+      queryOptions.continuationToken = cachedEntry.continuationToken;
+    }
+
+    // Calculate how many items we need to skip from the start position
+    const itemsToSkip = effectiveOffset - startOffset;
+    const totalItemsNeeded = itemsToSkip + effectiveLimit;
+
+    // Set page size - use a reasonable batch size for efficiency
+    // Larger batches = fewer round trips but more memory
+    const pageSize = Math.min(Math.max(effectiveLimit, 100), 1000);
+    queryOptions.maxItemCount = pageSize;
 
     const results: ItemDefinition[] = [];
     let itemsFetched = 0;
-    const targetCount = (offset || 0) + (limit || 0);
+    let lastContinuationToken: string | undefined;
+    let currentOffset = startOffset;
+
+    // Create query iterator
+    const queryIterator = this.container.items.query(querySpec, queryOptions);
 
     // Iterate through pages until we have enough items
     // eslint-disable-next-line no-restricted-syntax
-    for await (const { resources: page } of query.getAsyncIterator()) {
+    for await (const response of queryIterator.getAsyncIterator()) {
+      const { resources: page, continuationToken } = response;
+
+      // Store continuation token for future use at regular intervals
+      // Cache every ~1000 items or at significant boundaries
+      if (continuationToken && currentOffset > 0 && currentOffset % 1000 < pageSize) {
+        this.paginationCache.storeToken(queryHash, currentOffset, continuationToken);
+      }
+
       results.push(...page);
       itemsFetched += page.length;
+      currentOffset += page.length;
+      lastContinuationToken = continuationToken;
 
       // Stop fetching if we have enough items
-      if (limit && itemsFetched >= targetCount) {
+      if (itemsFetched >= totalItemsNeeded) {
+        break;
+      }
+
+      // Safety check: if no more pages, break
+      if (!continuationToken) {
         break;
       }
     }
 
-    // Apply offset and limit
-    let finalResults = results;
-
-    if (offset) {
-      finalResults = finalResults.slice(offset);
+    // Store the final continuation token if we have one
+    if (lastContinuationToken && currentOffset > startOffset) {
+      this.paginationCache.storeToken(queryHash, currentOffset, lastContinuationToken);
     }
 
-    if (limit) {
-      finalResults = finalResults.slice(0, limit);
+    // Apply offset (skip items we don't need) and limit
+    let finalResults = results;
+
+    if (itemsToSkip > 0) {
+      finalResults = finalResults.slice(itemsToSkip);
+    }
+
+    if (effectiveLimit) {
+      finalResults = finalResults.slice(0, effectiveLimit);
     }
 
     return finalResults.map(item => Serializer.serialize(item));
