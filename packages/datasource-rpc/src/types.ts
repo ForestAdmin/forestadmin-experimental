@@ -1,3 +1,4 @@
+import type { DataSourceOptions } from '@forestadmin/datasource-customizer';
 import type { CollectionSchema, RelationSchema } from '@forestadmin/datasource-toolkit';
 
 export type RpcSchema = {
@@ -12,4 +13,8 @@ export type RpcDataSourceOptions = {
   uri: string;
   introspection?: RpcSchema;
   disableSSE?: boolean;
+};
+
+export type PluginOptions = {
+  rename?: DataSourceOptions['rename'];
 };

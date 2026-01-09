@@ -28,13 +28,19 @@ export default class RpcSchemaRoute extends BaseRoute {
     router.get('/rpc-schema', this.handleRpc.bind(this));
   }
 
-  buildCollection(collection: Collection) {
+  buildCollection(collection: Collection, relations) {
     const buildedFields = Object.entries(collection.schema.fields).reduce(
       (fields, [name, schema]) => {
-        fields[name] = keysToSnake(schema);
+        const field = keysToSnake(schema);
 
-        if (schema.type === 'Column') {
-          fields[name].filter_operators = transformFilteroperator(schema.filterOperators);
+        if (schema.type !== 'Column' && this.rpcCollections.includes(schema.foreignCollection)) {
+          relations[name] = field;
+        } else {
+          fields[name] = keysToSnake(schema);
+
+          if (schema.type === 'Column') {
+            fields[name].filter_operators = transformFilteroperator(schema.filterOperators);
+          }
         }
 
         return fields;
@@ -64,9 +70,9 @@ export default class RpcSchemaRoute extends BaseRoute {
     const collections = [];
 
     this.dataSource.collections.forEach(collection => {
-      if (this.rpcCollections.includes(collection.name)) {
-        const relations = {};
+      const relations = {};
 
+      if (this.rpcCollections.includes(collection.name)) {
         Object.entries(collection.schema.fields).forEach(([name, field]) => {
           if (field.type !== 'Column' && !this.rpcCollections.includes(field.foreignCollection)) {
             relations[name] = keysToSnake(field);
@@ -75,7 +81,7 @@ export default class RpcSchemaRoute extends BaseRoute {
 
         if (Object.keys(relations).length > 0) rpcRelations[collection.name] = relations;
       } else {
-        collections.push(this.buildCollection(collection));
+        collections.push(this.buildCollection(collection, relations));
       }
     });
 
