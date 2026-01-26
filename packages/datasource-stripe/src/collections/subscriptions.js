@@ -2,8 +2,8 @@
  * SubscriptionsCollection - Stripe Subscriptions resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Subscriptions
@@ -43,7 +43,16 @@ class SubscriptionsCollection extends StripeCollection {
     this.addField('status', {
       type: 'Column',
       columnType: 'Enum',
-      enumValues: ['incomplete', 'incomplete_expired', 'trialing', 'active', 'past_due', 'canceled', 'unpaid', 'paused'],
+      enumValues: [
+        'incomplete',
+        'incomplete_expired',
+        'trialing',
+        'active',
+        'past_due',
+        'canceled',
+        'unpaid',
+        'paused',
+      ],
       isReadOnly: true,
       filterOperators: getFilterOperators('enum'),
       isSortable: false,
@@ -261,15 +270,11 @@ class SubscriptionsCollection extends StripeCollection {
 
     if (records.length === 0) return;
 
-    try {
-      for (const record of records) {
-        await this.stripe.subscriptions.cancel(record.id);
-      }
-    } catch (error) {
-      console.error('Stripe subscription cancel error:', error.message);
-      throw error;
+    for (const record of records) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.stripe.subscriptions.cancel(record.id);
     }
   }
 }
 
-module.exports = SubscriptionsCollection;
+export default SubscriptionsCollection;

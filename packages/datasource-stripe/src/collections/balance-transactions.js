@@ -2,8 +2,8 @@
  * BalanceTransactionsCollection - Stripe Balance Transactions resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Balance Transactions
@@ -201,23 +201,26 @@ class BalanceTransactionsCollection extends StripeCollection {
   /**
    * Override create - Balance transactions cannot be created directly
    */
-  async create(caller, data) {
-    throw new Error('Balance transactions cannot be created directly. They are created automatically when money moves in your Stripe account.');
+  async create() {
+    throw new Error(
+      'Balance transactions cannot be created directly. ' +
+      'They are created automatically when money moves in your Stripe account.'
+    );
   }
 
   /**
    * Override update - Balance transactions cannot be modified
    */
-  async update(caller, filter, patch) {
+  async update() {
     throw new Error('Balance transactions are read-only and cannot be modified.');
   }
 
   /**
    * Override delete - Balance transactions cannot be deleted
    */
-  async delete(caller, filter) {
+  async delete() {
     throw new Error('Balance transactions cannot be deleted.');
   }
 }
 
-module.exports = BalanceTransactionsCollection;
+export default BalanceTransactionsCollection;

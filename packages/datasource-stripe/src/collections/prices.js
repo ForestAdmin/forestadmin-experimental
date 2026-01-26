@@ -2,8 +2,8 @@
  * PricesCollection - Stripe Prices resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Prices
@@ -212,4 +212,4 @@ class PricesCollection extends StripeCollection {
   }
 }
 
-module.exports = PricesCollection;
+export default PricesCollection;

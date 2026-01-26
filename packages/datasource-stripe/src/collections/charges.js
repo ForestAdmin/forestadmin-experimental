@@ -2,8 +2,8 @@
  * ChargesCollection - Stripe Charges resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Charges
@@ -305,16 +305,16 @@ class ChargesCollection extends StripeCollection {
   /**
    * Override create - Charges should be created via PaymentIntents in modern Stripe
    */
-  async create(caller, data) {
+  async create() {
     throw new Error('Charges cannot be created directly. Use Payment Intents instead.');
   }
 
   /**
    * Override delete - Charges cannot be deleted, only refunded
    */
-  async delete(caller, filter) {
+  async delete() {
     throw new Error('Charges cannot be deleted. Create a refund instead.');
   }
 }
 
-module.exports = ChargesCollection;
+export default ChargesCollection;

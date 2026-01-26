@@ -5,11 +5,35 @@
 /**
  * Common filter operators for different field types
  */
-const FILTER_OPERATORS = {
-  string: new Set(['Equal', 'NotEqual', 'In', 'NotIn', 'Contains', 'StartsWith', 'EndsWith']),
-  number: new Set(['Equal', 'NotEqual', 'GreaterThan', 'LessThan', 'GreaterThanOrEqual', 'LessThanOrEqual', 'In', 'NotIn']),
+export const FILTER_OPERATORS = {
+  string: new Set([
+    'Equal',
+    'NotEqual',
+    'In',
+    'NotIn',
+    'Contains',
+    'StartsWith',
+    'EndsWith',
+  ]),
+  number: new Set([
+    'Equal',
+    'NotEqual',
+    'GreaterThan',
+    'LessThan',
+    'GreaterThanOrEqual',
+    'LessThanOrEqual',
+    'In',
+    'NotIn',
+  ]),
   boolean: new Set(['Equal', 'NotEqual']),
-  date: new Set(['Equal', 'NotEqual', 'GreaterThan', 'LessThan', 'GreaterThanOrEqual', 'LessThanOrEqual']),
+  date: new Set([
+    'Equal',
+    'NotEqual',
+    'GreaterThan',
+    'LessThan',
+    'GreaterThanOrEqual',
+    'LessThanOrEqual',
+  ]),
   enum: new Set(['Equal', 'NotEqual', 'In', 'NotIn']),
   json: new Set([]),
 };
@@ -19,7 +43,7 @@ const FILTER_OPERATORS = {
  * @param {string} stripeType - Stripe field type
  * @returns {string} Forest Admin column type
  */
-function mapFieldType(stripeType) {
+export function mapFieldType(stripeType) {
   const typeMap = {
     string: 'String',
     number: 'Number',
@@ -40,7 +64,7 @@ function mapFieldType(stripeType) {
  * @param {string} stripeType - Stripe field type
  * @returns {Set<string>} Set of supported filter operators
  */
-function getFilterOperators(stripeType) {
+export function getFilterOperators(stripeType) {
   const operatorMap = {
     string: FILTER_OPERATORS.string,
     number: FILTER_OPERATORS.number,
@@ -62,15 +86,9 @@ function getFilterOperators(stripeType) {
  * @param {string} resourceType - Stripe resource type
  * @returns {boolean} Whether the field is read-only
  */
-function isReadOnlyField(fieldName, resourceType) {
+export function isReadOnlyField(fieldName, resourceType) {
   // Common read-only fields across all resources
-  const commonReadOnly = [
-    'id',
-    'object',
-    'created',
-    'updated',
-    'livemode',
-  ];
+  const commonReadOnly = ['id', 'object', 'created', 'updated', 'livemode'];
 
   if (commonReadOnly.includes(fieldName)) {
     return true;
@@ -79,8 +97,23 @@ function isReadOnlyField(fieldName, resourceType) {
   // Resource-specific read-only fields
   const resourceReadOnlyFields = {
     customers: ['balance', 'delinquent', 'invoice_prefix', 'next_invoice_sequence'],
-    subscriptions: ['latest_invoice', 'current_period_start', 'current_period_end', 'status', 'start_date', 'ended_at'],
-    invoices: ['amount_due', 'amount_paid', 'amount_remaining', 'status', 'number', 'hosted_invoice_url', 'invoice_pdf'],
+    subscriptions: [
+      'latest_invoice',
+      'current_period_start',
+      'current_period_end',
+      'status',
+      'start_date',
+      'ended_at',
+    ],
+    invoices: [
+      'amount_due',
+      'amount_paid',
+      'amount_remaining',
+      'status',
+      'number',
+      'hosted_invoice_url',
+      'invoice_pdf',
+    ],
     payment_intents: ['amount_received', 'status', 'client_secret'],
     charges: ['amount_captured', 'amount_refunded', 'status', 'receipt_url'],
     products: [],
@@ -88,6 +121,7 @@ function isReadOnlyField(fieldName, resourceType) {
   };
 
   const readOnlyFields = resourceReadOnlyFields[resourceType] || [];
+
   return readOnlyFields.includes(fieldName);
 }
 
@@ -96,8 +130,9 @@ function isReadOnlyField(fieldName, resourceType) {
  * @param {number} timestamp - Unix timestamp in seconds
  * @returns {Date|null} JavaScript Date object or null
  */
-function timestampToDate(timestamp) {
+export function timestampToDate(timestamp) {
   if (timestamp == null) return null;
+
   return new Date(timestamp * 1000);
 }
 
@@ -106,9 +141,11 @@ function timestampToDate(timestamp) {
  * @param {Date|string} date - Date object or ISO string
  * @returns {number|null} Unix timestamp in seconds or null
  */
-function dateToTimestamp(date) {
+export function dateToTimestamp(date) {
   if (date == null) return null;
+
   const d = date instanceof Date ? date : new Date(date);
+
   return Math.floor(d.getTime() / 1000);
 }
 
@@ -118,11 +155,25 @@ function dateToTimestamp(date) {
  * @param {string} currency - Currency code (e.g., 'usd')
  * @returns {number} Amount in decimal format
  */
-function formatCurrencyAmount(amount, currency) {
+export function formatCurrencyAmount(amount, currency) {
   // Zero-decimal currencies (amount is already in whole units)
   const zeroDecimalCurrencies = [
-    'bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw', 'mga',
-    'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf',
+    'bif',
+    'clp',
+    'djf',
+    'gnf',
+    'jpy',
+    'kmf',
+    'krw',
+    'mga',
+    'pyg',
+    'rwf',
+    'ugx',
+    'vnd',
+    'vuv',
+    'xaf',
+    'xof',
+    'xpf',
   ];
 
   if (zeroDecimalCurrencies.includes(currency?.toLowerCase())) {
@@ -138,10 +189,24 @@ function formatCurrencyAmount(amount, currency) {
  * @param {string} currency - Currency code (e.g., 'usd')
  * @returns {number} Amount in cents
  */
-function toCurrencyAmount(amount, currency) {
+export function toCurrencyAmount(amount, currency) {
   const zeroDecimalCurrencies = [
-    'bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw', 'mga',
-    'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf',
+    'bif',
+    'clp',
+    'djf',
+    'gnf',
+    'jpy',
+    'kmf',
+    'krw',
+    'mga',
+    'pyg',
+    'rwf',
+    'ugx',
+    'vnd',
+    'vuv',
+    'xaf',
+    'xof',
+    'xpf',
   ];
 
   if (zeroDecimalCurrencies.includes(currency?.toLowerCase())) {
@@ -150,14 +215,3 @@ function toCurrencyAmount(amount, currency) {
 
   return Math.round(amount * 100);
 }
-
-module.exports = {
-  mapFieldType,
-  getFilterOperators,
-  isReadOnlyField,
-  timestampToDate,
-  dateToTimestamp,
-  formatCurrencyAmount,
-  toCurrencyAmount,
-  FILTER_OPERATORS,
-};

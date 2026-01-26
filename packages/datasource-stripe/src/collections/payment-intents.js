@@ -2,8 +2,8 @@
  * PaymentIntentsCollection - Stripe PaymentIntents resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Payment Intents
@@ -59,7 +59,15 @@ class PaymentIntentsCollection extends StripeCollection {
     this.addField('status', {
       type: 'Column',
       columnType: 'Enum',
-      enumValues: ['requires_payment_method', 'requires_confirmation', 'requires_action', 'processing', 'requires_capture', 'canceled', 'succeeded'],
+      enumValues: [
+        'requires_payment_method',
+        'requires_confirmation',
+        'requires_action',
+        'processing',
+        'requires_capture',
+        'canceled',
+        'succeeded',
+      ],
       isReadOnly: true,
       filterOperators: getFilterOperators('enum'),
       isSortable: false,
@@ -140,7 +148,15 @@ class PaymentIntentsCollection extends StripeCollection {
     this.addField('cancellation_reason', {
       type: 'Column',
       columnType: 'Enum',
-      enumValues: ['duplicate', 'fraudulent', 'requested_by_customer', 'abandoned', 'failed_invoice', 'void_invoice', 'automatic'],
+      enumValues: [
+        'duplicate',
+        'fraudulent',
+        'requested_by_customer',
+        'abandoned',
+        'failed_invoice',
+        'void_invoice',
+        'automatic',
+      ],
       isReadOnly: true,
       filterOperators: getFilterOperators('enum'),
       isSortable: false,
@@ -261,18 +277,14 @@ class PaymentIntentsCollection extends StripeCollection {
 
     if (records.length === 0) return;
 
-    try {
-      for (const record of records) {
-        // Only cancel if not already in a terminal state
-        if (!['succeeded', 'canceled'].includes(record.status)) {
-          await this.stripe.paymentIntents.cancel(record.id);
-        }
+    for (const record of records) {
+      // Only cancel if not already in a terminal state
+      if (!['succeeded', 'canceled'].includes(record.status)) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.stripe.paymentIntents.cancel(record.id);
       }
-    } catch (error) {
-      console.error('Stripe payment intent cancel error:', error.message);
-      throw error;
     }
   }
 }
 
-module.exports = PaymentIntentsCollection;
+export default PaymentIntentsCollection;

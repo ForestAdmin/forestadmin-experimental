@@ -2,8 +2,8 @@
  * InvoicesCollection - Stripe Invoices resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Invoices
@@ -326,22 +326,19 @@ class InvoicesCollection extends StripeCollection {
 
     if (records.length === 0) return;
 
-    try {
-      for (const record of records) {
-        if (record.status === 'draft') {
-          // Draft invoices can be deleted
-          await this.stripe.invoices.del(record.id);
-        } else if (record.status === 'open') {
-          // Open invoices must be voided
-          await this.stripe.invoices.voidInvoice(record.id);
-        }
-        // Paid/void/uncollectible invoices cannot be deleted or voided
+    for (const record of records) {
+      if (record.status === 'draft') {
+        // Draft invoices can be deleted
+        // eslint-disable-next-line no-await-in-loop
+        await this.stripe.invoices.del(record.id);
+      } else if (record.status === 'open') {
+        // Open invoices must be voided
+        // eslint-disable-next-line no-await-in-loop
+        await this.stripe.invoices.voidInvoice(record.id);
       }
-    } catch (error) {
-      console.error('Stripe invoice delete/void error:', error.message);
-      throw error;
+      // Paid/void/uncollectible invoices cannot be deleted or voided
     }
   }
 }
 
-module.exports = InvoicesCollection;
+export default InvoicesCollection;

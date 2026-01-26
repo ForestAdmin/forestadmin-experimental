@@ -2,8 +2,8 @@
  * ProductsCollection - Stripe Products resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Products
@@ -182,4 +182,4 @@ class ProductsCollection extends StripeCollection {
   }
 }
 
-module.exports = ProductsCollection;
+export default ProductsCollection;

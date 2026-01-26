@@ -2,11 +2,11 @@
  * StripeDataSource - Forest Admin DataSource implementation for Stripe
  */
 
-const { BaseDataSource } = require('@forestadmin/datasource-toolkit');
-const Stripe = require('stripe');
+import { BaseDataSource } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
 
-const { STRIPE_API_VERSION, SUPPORTED_RESOURCES } = require('./constants');
-const {
+import { STRIPE_API_VERSION, SUPPORTED_RESOURCES } from './constants';
+import {
   CustomersCollection,
   ProductsCollection,
   PricesCollection,
@@ -16,7 +16,7 @@ const {
   ChargesCollection,
   RefundsCollection,
   BalanceTransactionsCollection,
-} = require('./collections');
+} from './collections';
 
 /**
  * StripeDataSource - Main datasource class
@@ -86,7 +86,6 @@ class StripeDataSource extends BaseDataSource {
 
     const CollectionClass = collectionMap[resourceName];
     if (!CollectionClass) {
-      console.warn(`[StripeDataSource] Unknown resource type: ${resourceName}`);
       return null;
     }
 
@@ -109,16 +108,8 @@ class StripeDataSource extends BaseDataSource {
       apiVersion: this.options.apiVersion,
     });
 
-    console.log('[StripeDataSource] Initializing...');
-
     // Verify connection by fetching account info
-    try {
-      const account = await this.stripe.accounts.retrieve();
-      console.log(`[StripeDataSource] Connected to Stripe account: ${account.id}`);
-    } catch (error) {
-      console.error('[StripeDataSource] Failed to connect to Stripe:', error.message);
-      throw error;
-    }
+    await this.stripe.accounts.retrieve();
 
     // Store stripe client globally for actions
     global.stripeClient = this.stripe;
@@ -126,20 +117,16 @@ class StripeDataSource extends BaseDataSource {
     // Register collections for each supported resource
     for (const resourceName of SUPPORTED_RESOURCES) {
       if (!this._shouldIncludeResource(resourceName)) {
-        console.log(`[StripeDataSource] Skipping resource: ${resourceName}`);
+        // eslint-disable-next-line no-continue
         continue;
       }
-
-      console.log(`[StripeDataSource] Adding collection for: ${resourceName}`);
 
       const collection = this._createCollection(resourceName);
       if (collection) {
         this.addCollection(collection);
       }
     }
-
-    console.log(`[StripeDataSource] Initialized with ${this.collections.length} collection(s)`);
   }
 }
 
-module.exports = StripeDataSource;
+export default StripeDataSource;

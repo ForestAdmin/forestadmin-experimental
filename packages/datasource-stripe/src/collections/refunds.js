@@ -2,8 +2,8 @@
  * RefundsCollection - Stripe Refunds resource
  */
 
-const StripeCollection = require('../stripe-collection');
-const { getFilterOperators } = require('../field-mapper');
+import StripeCollection from '../stripe-collection';
+import { getFilterOperators } from '../field-mapper';
 
 /**
  * Collection for Stripe Refunds
@@ -182,18 +182,14 @@ class RefundsCollection extends StripeCollection {
 
     if (records.length === 0) return;
 
-    try {
-      for (const record of records) {
-        // Only pending refunds can be canceled
-        if (record.status === 'pending' || record.status === 'requires_action') {
-          await this.stripe.refunds.cancel(record.id);
-        }
+    for (const record of records) {
+      // Only pending refunds can be canceled
+      if (record.status === 'pending' || record.status === 'requires_action') {
+        // eslint-disable-next-line no-await-in-loop
+        await this.stripe.refunds.cancel(record.id);
       }
-    } catch (error) {
-      console.error('Stripe refund cancel error:', error.message);
-      throw error;
     }
   }
 }
 
-module.exports = RefundsCollection;
+export default RefundsCollection;

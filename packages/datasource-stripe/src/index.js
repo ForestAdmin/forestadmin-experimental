@@ -4,15 +4,15 @@
  * Forest Admin DataSource for Stripe
  */
 
-const StripeDataSource = require('./stripe-datasource');
-const StripeCollection = require('./stripe-collection');
-const {
+import StripeDataSource from './stripe-datasource';
+import StripeCollection from './stripe-collection';
+import {
   DEFAULT_PAGE_SIZE,
   BATCH_SIZE,
   STRIPE_API_VERSION,
   SUPPORTED_RESOURCES,
-} = require('./constants');
-const {
+} from './constants';
+import {
   mapFieldType,
   getFilterOperators,
   isReadOnlyField,
@@ -21,10 +21,10 @@ const {
   formatCurrencyAmount,
   toCurrencyAmount,
   FILTER_OPERATORS,
-} = require('./field-mapper');
+} from './field-mapper';
 
 // Import all collection classes
-const {
+import {
   CustomersCollection,
   ProductsCollection,
   PricesCollection,
@@ -34,7 +34,7 @@ const {
   ChargesCollection,
   RefundsCollection,
   BalanceTransactionsCollection,
-} = require('./collections');
+} from './collections';
 
 /**
  * Factory function to create a Stripe DataSource
@@ -61,7 +61,7 @@ function createStripeDataSource(options = {}) {
   };
 }
 
-module.exports = {
+export {
   // Main exports
   createStripeDataSource,
   StripeDataSource,

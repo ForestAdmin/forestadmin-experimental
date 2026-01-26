@@ -2,17 +2,17 @@
  * Export all Stripe collection classes
  */
 
-const CustomersCollection = require('./customers');
-const ProductsCollection = require('./products');
-const PricesCollection = require('./prices');
-const SubscriptionsCollection = require('./subscriptions');
-const InvoicesCollection = require('./invoices');
-const PaymentIntentsCollection = require('./payment-intents');
-const ChargesCollection = require('./charges');
-const RefundsCollection = require('./refunds');
-const BalanceTransactionsCollection = require('./balance-transactions');
+import CustomersCollection from './customers';
+import ProductsCollection from './products';
+import PricesCollection from './prices';
+import SubscriptionsCollection from './subscriptions';
+import InvoicesCollection from './invoices';
+import PaymentIntentsCollection from './payment-intents';
+import ChargesCollection from './charges';
+import RefundsCollection from './refunds';
+import BalanceTransactionsCollection from './balance-transactions';
 
-module.exports = {
+export {
   CustomersCollection,
   ProductsCollection,
   PricesCollection,

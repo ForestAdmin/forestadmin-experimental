@@ -2,9 +2,10 @@
  * StripeCollection - Base class for Stripe resource collections
  */
 
-const { BaseCollection } = require('@forestadmin/datasource-toolkit');
-const { DEFAULT_PAGE_SIZE } = require('./constants');
-const { timestampToDate, dateToTimestamp } = require('./field-mapper');
+import { BaseCollection } from '@forestadmin/datasource-toolkit';
+
+import { DEFAULT_PAGE_SIZE } from './constants';
+import { dateToTimestamp, timestampToDate } from './field-mapper';
 
 /**
  * Base collection class for Stripe resources
@@ -59,6 +60,7 @@ class StripeCollection extends BaseCollection {
 
     // Only keep fields that are registered in the schema
     const record = {};
+
     for (const [key, value] of Object.entries(stripeObject)) {
       if (registeredFields.has(key)) {
         record[key] = value;
@@ -69,6 +71,7 @@ class StripeCollection extends BaseCollection {
     if (record.created) {
       record.created = timestampToDate(record.created);
     }
+
     if (record.updated) {
       record.updated = timestampToDate(record.updated);
     }
@@ -114,11 +117,7 @@ class StripeCollection extends BaseCollection {
     delete data.livemode;
 
     // Convert dates back to timestamps where needed
-    const timestampFields = [
-      'trial_end',
-      'billing_cycle_anchor',
-      'cancel_at',
-    ];
+    const timestampFields = ['trial_end', 'billing_cycle_anchor', 'cancel_at'];
 
     for (const field of timestampFields) {
       if (data[field] instanceof Date) {
@@ -163,6 +162,7 @@ class StripeCollection extends BaseCollection {
     // Handle single condition
     if (condition.field && condition.operator && condition.value !== undefined) {
       this._applySingleCondition(params, condition);
+
       return;
     }
 
@@ -188,6 +188,7 @@ class StripeCollection extends BaseCollection {
         if (operator === 'Equal') {
           params.email = value;
         }
+
         break;
 
       case 'created':
@@ -200,30 +201,38 @@ class StripeCollection extends BaseCollection {
         } else if (operator === 'LessThanOrEqual') {
           params.created = { ...params.created, lte: dateToTimestamp(value) };
         }
+
         break;
 
       case 'status':
         if (operator === 'Equal') {
           params.status = value;
         }
+
         break;
 
       case 'customer':
         if (operator === 'Equal') {
           params.customer = value;
         }
+
         break;
 
       case 'active':
         if (operator === 'Equal' && this.resourceName === 'products') {
           params.active = value;
         }
+
         break;
 
       case 'type':
         if (operator === 'Equal') {
           params.type = value;
         }
+
+        break;
+
+      default:
         break;
     }
   }
@@ -261,15 +270,17 @@ class StripeCollection extends BaseCollection {
   async list(caller, filter, projection) {
     // Handle single record retrieval by ID
     const singleRecordId = this._extractSingleRecordId(filter);
+
     if (singleRecordId) {
       try {
         const record = await this.stripeResource.retrieve(singleRecordId);
+
         return [this._transformRecord(record)];
       } catch (error) {
         if (error.code === 'resource_missing') {
           return [];
         }
-        console.error(`Stripe retrieve error (${this.resourceName}):`, error.message);
+
         throw error;
       }
     }
@@ -277,13 +288,9 @@ class StripeCollection extends BaseCollection {
     // Build list parameters
     const params = this._buildListParams(filter);
 
-    try {
-      const response = await this.stripeResource.list(params);
-      return response.data.map(item => this._transformRecord(item));
-    } catch (error) {
-      console.error(`Stripe list error (${this.resourceName}):`, error.message);
-      throw error;
-    }
+    const response = await this.stripeResource.list(params);
+
+    return response.data.map(item => this._transformRecord(item));
   }
 
   /**
@@ -299,12 +306,11 @@ class StripeCollection extends BaseCollection {
       return [{ value: records.length, group: {} }];
     }
 
-    const field = aggregation.field;
-    const values = records
-      .map(r => r[field])
-      .filter(v => v != null && typeof v === 'number');
+    const { field } = aggregation;
+    const values = records.map(r => r[field]).filter(v => v != null && typeof v === 'number');
 
     let result;
+
     switch (aggregation.operation) {
       case 'Sum':
         result = values.reduce((a, b) => a + b, 0);
@@ -330,20 +336,16 @@ class StripeCollection extends BaseCollection {
    * Override in subclasses to customize creation behavior
    */
   async create(caller, data) {
-    try {
-      const results = [];
+    const results = [];
 
-      for (const item of data) {
-        const stripeData = this._transformToStripe(item);
-        const created = await this.stripeResource.create(stripeData);
-        results.push(this._transformRecord(created));
-      }
-
-      return results;
-    } catch (error) {
-      console.error(`Stripe create error (${this.resourceName}):`, error.message);
-      throw error;
+    for (const item of data) {
+      const stripeData = this._transformToStripe(item);
+      // eslint-disable-next-line no-await-in-loop
+      const created = await this.stripeResource.create(stripeData);
+      results.push(this._transformRecord(created));
     }
+
+    return results;
   }
 
   /**
@@ -356,13 +358,9 @@ class StripeCollection extends BaseCollection {
 
     const stripeData = this._transformToStripe(patch);
 
-    try {
-      for (const record of records) {
-        await this.stripeResource.update(record.id, stripeData);
-      }
-    } catch (error) {
-      console.error(`Stripe update error (${this.resourceName}):`, error.message);
-      throw error;
+    for (const record of records) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.stripeResource.update(record.id, stripeData);
     }
   }
 
@@ -375,15 +373,11 @@ class StripeCollection extends BaseCollection {
 
     if (records.length === 0) return;
 
-    try {
-      for (const record of records) {
-        await this.stripeResource.del(record.id);
-      }
-    } catch (error) {
-      console.error(`Stripe delete error (${this.resourceName}):`, error.message);
-      throw error;
+    for (const record of records) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.stripeResource.del(record.id);
     }
   }
 }
 
-module.exports = StripeCollection;
+export default StripeCollection;
