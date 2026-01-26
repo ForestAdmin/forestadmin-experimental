@@ -16,11 +16,11 @@
     "superagent": "^8.0.6"
   },
   "devDependencies": {
-    "@forestadmin/datasource-customizer": "^1.67.2",
+    "@forestadmin/datasource-customizer": "^1.67.3",
     "@forestadmin/datasource-toolkit": "^1.50.1"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-customizer": "^1.67.2",
+    "@forestadmin/datasource-customizer": "^1.67.3",
     "@forestadmin/datasource-toolkit": "^1.50.1"
   },
   "files": [

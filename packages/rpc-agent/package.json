@@ -15,13 +15,13 @@
     "@koa/router": "^12.0.0"
   },
   "devDependencies": {
-    "@forestadmin/agent": "^1.71.0",
-    "@forestadmin/datasource-customizer": "^1.67.2",
+    "@forestadmin/agent": "^1.71.1",
+    "@forestadmin/datasource-customizer": "^1.67.3",
     "@forestadmin/datasource-toolkit": "^1.50.1"
   },
   "peerDependencies": {
-    "@forestadmin/agent": "^1.71.0",
-    "@forestadmin/datasource-customizer": "^1.67.2",
+    "@forestadmin/agent": "^1.71.1",
+    "@forestadmin/datasource-customizer": "^1.67.3",
     "@forestadmin/datasource-toolkit": "^1.50.1"
   },
   "files": [
