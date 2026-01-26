@@ -25,15 +25,19 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
     factory: DataSourceFactory,
     options?: DataSourceOptions & { markCollectionsAsRpc?: boolean },
   ) {
-    let markCollectionsAsRpc = null;
+    let markCollectionsCallback = null;
 
     if (options?.markCollectionsAsRpc) {
-      markCollectionsAsRpc = (datasource: DataSource) => {
+      markCollectionsCallback = (datasource: DataSource) => {
         datasource.collections.forEach(c => this.rpcCollections.push(c.name));
       };
     }
 
-    this.customizer.addDataSource(factory, options, this.restart.bind(this), markCollectionsAsRpc);
+    this.customizer.addDataSource(
+      factory,
+      { ...options, markCollectionsCallback },
+      this.restart.bind(this),
+    );
 
     return this;
   }

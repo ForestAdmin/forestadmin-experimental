@@ -12,9 +12,8 @@ export default class RpcDataSourceCustomizer<
 > extends DataSourceCustomizer<S> {
   override addDataSource(
     factory: DataSourceFactory,
-    options?: DataSourceOptions,
+    options?: DataSourceOptions & { markCollectionsCallback?: (datasource: DataSource) => void },
     restartAgentFunction?: () => Promise<void>,
-    markCollectionsAsRpc?: (datasource: DataSource) => void,
   ): this {
     this.stack.queueCustomization(async logger => {
       let dataSource = await factory(logger, restartAgentFunction);
@@ -31,8 +30,8 @@ export default class RpcDataSourceCustomizer<
         dataSource = renamedDecorator;
       }
 
-      if (markCollectionsAsRpc) {
-        markCollectionsAsRpc(dataSource);
+      if (options.markCollectionsCallback) {
+        options.markCollectionsCallback(dataSource);
       }
 
       this.compositeDataSource.addDataSource(dataSource);
