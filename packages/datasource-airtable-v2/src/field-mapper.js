@@ -4,7 +4,7 @@
  */
 
 // Map Airtable field types to Forest Admin column types
-const FIELD_TYPE_MAP = {
+export const FIELD_TYPE_MAP = {
   // Text types
   singleLineText: 'String',
   multilineText: 'String',
@@ -60,7 +60,7 @@ const FIELD_TYPE_MAP = {
 };
 
 // Fields that are read-only (computed or auto-generated)
-const READ_ONLY_FIELDS = [
+export const READ_ONLY_FIELDS = [
   'formula',
   'rollup',
   'lookup',
@@ -76,9 +76,27 @@ const READ_ONLY_FIELDS = [
 ];
 
 // Filter operators by Forest Admin column type
-const OPERATORS_BY_TYPE = {
-  String: ['Equal', 'NotEqual', 'Present', 'Blank', 'Contains', 'NotContains', 'StartsWith', 'EndsWith'],
-  Number: ['Equal', 'NotEqual', 'Present', 'Blank', 'GreaterThan', 'LessThan', 'GreaterThanOrEqual', 'LessThanOrEqual'],
+export const OPERATORS_BY_TYPE = {
+  String: [
+    'Equal',
+    'NotEqual',
+    'Present',
+    'Blank',
+    'Contains',
+    'NotContains',
+    'StartsWith',
+    'EndsWith',
+  ],
+  Number: [
+    'Equal',
+    'NotEqual',
+    'Present',
+    'Blank',
+    'GreaterThan',
+    'LessThan',
+    'GreaterThanOrEqual',
+    'LessThanOrEqual',
+  ],
   Boolean: ['Equal'],
   Date: ['Equal', 'NotEqual', 'Present', 'Blank', 'GreaterThan', 'LessThan', 'Before', 'After'],
   Dateonly: ['Equal', 'NotEqual', 'Present', 'Blank', 'GreaterThan', 'LessThan', 'Before', 'After'],
@@ -89,111 +107,114 @@ const OPERATORS_BY_TYPE = {
  * Transform functions for specific field types
  * Some Airtable field types return complex objects that need to be simplified
  */
-const TRANSFORM_FUNCTIONS = {
+export const TRANSFORM_FUNCTIONS = {
   // Checkbox: Airtable returns undefined for unchecked, convert to false
-  checkbox: (value) => {
-    return value === true;
-  },
+  checkbox: value => value === true,
 
   // Multiline text may come as object with different formats
-  multilineText: (value) => {
+  multilineText: value => {
     if (value && typeof value === 'object' && value.text) {
       return value.text;
     }
+
     return value;
   },
 
   // Rich text returns HTML, extract text content
-  richText: (value) => {
+  richText: value => {
     if (value && typeof value === 'object' && value.text) {
       return value.text;
     }
+
     return value;
   },
 
   // AI text returns object with value
-  aiText: (value) => {
+  aiText: value => {
     if (value && typeof value === 'object') {
       return value.value || value.state || JSON.stringify(value);
     }
+
     return value;
   },
 
   // Multiple attachments - return first URL only
-  multipleAttachments: (value) => {
+  multipleAttachments: value => {
     if (Array.isArray(value) && value.length > 0) {
       return value[0].url;
     }
+
     return value;
   },
 
   // Single collaborator
-  singleCollaborator: (value) => {
+  singleCollaborator: value => {
     if (value && typeof value === 'object') {
       return {
         id: value.id,
         email: value.email,
-        name: value.name
+        name: value.name,
       };
     }
+
     return value;
   },
 
   // Multiple collaborators
-  multipleCollaborators: (value) => {
+  multipleCollaborators: value => {
     if (Array.isArray(value)) {
       return value.map(collab => ({
         id: collab.id,
         email: collab.email,
-        name: collab.name
+        name: collab.name,
       }));
     }
+
     return value;
   },
 
   // Created by / Last modified by
-  createdBy: (value) => {
+  createdBy: value => {
     if (value && typeof value === 'object') {
       return {
         id: value.id,
         email: value.email,
-        name: value.name
+        name: value.name,
       };
     }
+
     return value;
   },
 
-  lastModifiedBy: (value) => {
+  lastModifiedBy: value => {
     if (value && typeof value === 'object') {
       return {
         id: value.id,
         email: value.email,
-        name: value.name
+        name: value.name,
       };
     }
+
     return value;
   },
 
   // Barcode
-  barcode: (value) => {
+  barcode: value => {
     if (value && typeof value === 'object') {
       return {
         text: value.text,
-        type: value.type
+        type: value.type,
       };
     }
+
     return value;
   },
 
   // Lookup returns array
-  lookup: (value) => {
-    return Array.isArray(value) ? value : [value];
-  },
+  lookup: value => (Array.isArray(value) ? value : [value]),
 
   // Record links
-  multipleRecordLinks: (value) => {
-    return Array.isArray(value) ? value : [];
-  }
+  multipleRecordLinks: value => (Array.isArray(value) ? value : []),
 };
 
 /**
@@ -201,7 +222,7 @@ const TRANSFORM_FUNCTIONS = {
  * @param {string} airtableType - Airtable field type
  * @returns {string} Forest Admin column type
  */
-function getColumnType(airtableType) {
+export function getColumnType(airtableType) {
   return FIELD_TYPE_MAP[airtableType] || 'String';
 }
 
@@ -210,7 +231,7 @@ function getColumnType(airtableType) {
  * @param {string} airtableType - Airtable field type
  * @returns {boolean}
  */
-function isReadOnly(airtableType) {
+export function isReadOnly(airtableType) {
   return READ_ONLY_FIELDS.includes(airtableType);
 }
 
@@ -219,7 +240,7 @@ function isReadOnly(airtableType) {
  * @param {string} columnType - Forest Admin column type
  * @returns {string[]} Array of supported operators
  */
-function getOperators(columnType) {
+export function getOperators(columnType) {
   return OPERATORS_BY_TYPE[columnType] || ['Equal', 'NotEqual'];
 }
 
@@ -229,12 +250,13 @@ function getOperators(columnType) {
  * @param {any} value - The value to transform
  * @returns {any} Transformed value
  */
-function transformValue(fieldType, value) {
+export function transformValue(fieldType, value) {
   if (value === null || value === undefined) {
     return null;
   }
 
   const transformer = TRANSFORM_FUNCTIONS[fieldType];
+
   if (transformer) {
     return transformer(value);
   }
@@ -248,7 +270,7 @@ function transformValue(fieldType, value) {
  * @param {any} value - The value to prepare
  * @returns {any} Prepared value
  */
-function prepareValueForWrite(fieldType, value) {
+export function prepareValueForWrite(fieldType, value) {
   if (value === null || value === undefined) {
     return null;
   }
@@ -270,9 +292,11 @@ function prepareValueForWrite(fieldType, value) {
       if (value instanceof Date) {
         return value.toISOString().split('T')[0];
       }
+
       if (typeof value === 'string' && value.includes('T')) {
         return value.split('T')[0];
       }
+
       return value;
 
     case 'dateTime':
@@ -280,6 +304,7 @@ function prepareValueForWrite(fieldType, value) {
       if (value instanceof Date) {
         return value.toISOString();
       }
+
       return value;
 
     case 'multipleSelects':
@@ -295,9 +320,11 @@ function prepareValueForWrite(fieldType, value) {
       if (typeof value === 'string') {
         return [{ url: value }];
       }
+
       if (Array.isArray(value)) {
-        return value.map(item => typeof item === 'string' ? { url: item } : item);
+        return value.map(item => (typeof item === 'string' ? { url: item } : item));
       }
+
       return value;
 
     case 'singleCollaborator':
@@ -305,9 +332,11 @@ function prepareValueForWrite(fieldType, value) {
       if (typeof value === 'string') {
         return { id: value };
       }
+
       if (value && typeof value === 'object' && value.id) {
         return { id: value.id };
       }
+
       return value;
 
     case 'multipleCollaborators':
@@ -315,17 +344,21 @@ function prepareValueForWrite(fieldType, value) {
       if (typeof value === 'string') {
         return [{ id: value }];
       }
+
       if (Array.isArray(value)) {
         return value.map(item => {
           if (typeof item === 'string') {
             return { id: item };
           }
+
           if (item && typeof item === 'object' && item.id) {
             return { id: item.id };
           }
+
           return item;
         });
       }
+
       return value;
 
     case 'barcode':
@@ -333,24 +366,14 @@ function prepareValueForWrite(fieldType, value) {
       if (typeof value === 'string') {
         return { text: value };
       }
+
       if (value && typeof value === 'object' && value.text) {
         return { text: value.text };
       }
+
       return value;
 
     default:
       return value;
   }
 }
-
-module.exports = {
-  FIELD_TYPE_MAP,
-  READ_ONLY_FIELDS,
-  OPERATORS_BY_TYPE,
-  TRANSFORM_FUNCTIONS,
-  getColumnType,
-  isReadOnly,
-  getOperators,
-  transformValue,
-  prepareValueForWrite
-};

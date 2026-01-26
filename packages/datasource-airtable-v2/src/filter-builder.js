@@ -8,10 +8,11 @@
  * @param {string} value - The value to escape
  * @returns {string} Escaped value
  */
-function escapeFormulaString(value) {
+export function escapeFormulaString(value) {
   if (typeof value !== 'string') {
     return String(value);
   }
+
   // Escape double quotes and backslashes
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
@@ -21,7 +22,7 @@ function escapeFormulaString(value) {
  * @param {any} value - The value to format
  * @returns {string} Formatted value for formula
  */
-function formatValue(value) {
+export function formatValue(value) {
   if (value === null || value === undefined) {
     return 'BLANK()';
   }
@@ -49,7 +50,7 @@ function formatValue(value) {
  * @param {any} value - Filter value
  * @returns {string} Airtable formula condition
  */
-function buildCondition(field, operator, value) {
+export function buildCondition(field, operator, value) {
   const fieldRef = `{${field}}`;
 
   switch (operator) {
@@ -57,12 +58,14 @@ function buildCondition(field, operator, value) {
       if (value === null || value === undefined) {
         return `${fieldRef} = BLANK()`;
       }
+
       return `${fieldRef} = ${formatValue(value)}`;
 
     case 'NotEqual':
       if (value === null || value === undefined) {
         return `${fieldRef} != BLANK()`;
       }
+
       return `${fieldRef} != ${formatValue(value)}`;
 
     case 'GreaterThan':
@@ -104,19 +107,22 @@ function buildCondition(field, operator, value) {
     case 'In':
       if (Array.isArray(value) && value.length > 0) {
         const conditions = value.map(v => `${fieldRef} = ${formatValue(v)}`);
+
         return `OR(${conditions.join(', ')})`;
       }
+
       return 'FALSE()';
 
     case 'NotIn':
       if (Array.isArray(value) && value.length > 0) {
         const conditions = value.map(v => `${fieldRef} != ${formatValue(v)}`);
+
         return `AND(${conditions.join(', ')})`;
       }
+
       return 'TRUE()';
 
     default:
-      console.warn(`Unknown operator: ${operator}, defaulting to Equal`);
       return `${fieldRef} = ${formatValue(value)}`;
   }
 }
@@ -126,7 +132,7 @@ function buildCondition(field, operator, value) {
  * @param {object} conditionTree - Forest Admin condition tree
  * @returns {string|null} Airtable filterByFormula string or null
  */
-function buildFilterFormula(conditionTree) {
+export function buildFilterFormula(conditionTree) {
   if (!conditionTree) {
     return null;
   }
@@ -137,14 +143,13 @@ function buildFilterFormula(conditionTree) {
     if (conditionTree.field === 'id') {
       return null;
     }
+
     return buildCondition(conditionTree.field, conditionTree.operator, conditionTree.value);
   }
 
   // Branch node (AND/OR)
   if (conditionTree.aggregator && conditionTree.conditions) {
-    const validConditions = conditionTree.conditions
-      .map(buildFilterFormula)
-      .filter(Boolean);
+    const validConditions = conditionTree.conditions.map(buildFilterFormula).filter(Boolean);
 
     if (validConditions.length === 0) {
       return null;
@@ -155,6 +160,7 @@ function buildFilterFormula(conditionTree) {
     }
 
     const aggregator = conditionTree.aggregator.toUpperCase();
+
     return `${aggregator}(${validConditions.join(', ')})`;
   }
 
@@ -166,7 +172,7 @@ function buildFilterFormula(conditionTree) {
  * @param {Array} sortClauses - Forest Admin sort clauses
  * @returns {Array} Airtable sort configuration
  */
-function buildSort(sortClauses) {
+export function buildSort(sortClauses) {
   if (!sortClauses || sortClauses.length === 0) {
     return [];
   }
@@ -175,7 +181,7 @@ function buildSort(sortClauses) {
     .filter(clause => clause.field !== 'id') // Cannot sort by record ID
     .map(clause => ({
       field: clause.field,
-      direction: clause.ascending ? 'asc' : 'desc'
+      direction: clause.ascending ? 'asc' : 'desc',
     }));
 }
 
@@ -184,7 +190,7 @@ function buildSort(sortClauses) {
  * @param {Array} projection - Forest Admin projection
  * @returns {Array|null} Airtable fields array or null for all fields
  */
-function buildFields(projection) {
+export function buildFields(projection) {
   if (!projection || projection.length === 0) {
     return null;
   }
@@ -198,13 +204,15 @@ function buildFields(projection) {
  * @param {object} filter - Forest Admin filter
  * @returns {string|null} Record ID or null
  */
-function extractRecordId(filter) {
+export function extractRecordId(filter) {
   const conditionTree = filter?.conditionTree;
 
-  if (conditionTree &&
-      conditionTree.field === 'id' &&
-      conditionTree.operator === 'Equal' &&
-      conditionTree.value) {
+  if (
+    conditionTree &&
+    conditionTree.field === 'id' &&
+    conditionTree.operator === 'Equal' &&
+    conditionTree.value
+  ) {
     return conditionTree.value;
   }
 
@@ -216,26 +224,17 @@ function extractRecordId(filter) {
  * @param {object} filter - Forest Admin filter
  * @returns {Array|null} Record IDs or null
  */
-function extractRecordIds(filter) {
+export function extractRecordIds(filter) {
   const conditionTree = filter?.conditionTree;
 
-  if (conditionTree &&
-      conditionTree.field === 'id' &&
-      conditionTree.operator === 'In' &&
-      Array.isArray(conditionTree.value)) {
+  if (
+    conditionTree &&
+    conditionTree.field === 'id' &&
+    conditionTree.operator === 'In' &&
+    Array.isArray(conditionTree.value)
+  ) {
     return conditionTree.value;
   }
 
   return null;
 }
-
-module.exports = {
-  escapeFormulaString,
-  formatValue,
-  buildCondition,
-  buildFilterFormula,
-  buildSort,
-  buildFields,
-  extractRecordId,
-  extractRecordIds
-};

@@ -3,11 +3,12 @@
  * Handles schema discovery and collection registration
  */
 
-const Airtable = require('airtable');
-const axios = require('axios');
-const { BaseDataSource } = require('@forestadmin/datasource-toolkit');
-const { AIRTABLE_META_URL } = require('./constants');
-const AirtableCollection = require('./airtable-collection');
+import Airtable from 'airtable';
+import axios from 'axios';
+import { BaseDataSource } from '@forestadmin/datasource-toolkit';
+
+import AirtableCollection from './airtable-collection';
+import { AIRTABLE_META_URL } from './constants';
 
 class AirtableDataSource extends BaseDataSource {
   /**
@@ -19,18 +20,25 @@ class AirtableDataSource extends BaseDataSource {
    * @param {string[]} [options.excludeBases] - Exclude these bases (by name)
    * @param {string[]} [options.includeTables] - Only include these tables (by name)
    * @param {string[]} [options.excludeTables] - Exclude these tables (by name)
+   * @param {Function} [options.logger] - Logger function
    */
   constructor(options = {}) {
     super();
 
     this.apiKey = options.apiKey || process.env.AIRTABLE_API_KEY;
+
     if (!this.apiKey) {
-      throw new Error('Airtable API key is required. Provide it via options.apiKey or AIRTABLE_API_KEY environment variable.');
+      throw new Error(
+        'Airtable API key is required. Provide it via options.apiKey or AIRTABLE_API_KEY environment variable.',
+      );
     }
+
+    this.logger = options.logger || (() => {});
 
     this.options = {
       endpointUrl: options.endpointUrl,
-      collectionNameFormatter: options.collectionNameFormatter || ((base, table) => `${base.name} - ${table.name}`),
+      collectionNameFormatter:
+        options.collectionNameFormatter || ((base, table) => `${base.name} - ${table.name}`),
       includeBases: options.includeBases || null,
       excludeBases: options.excludeBases || [],
       includeTables: options.includeTables || null,
@@ -68,22 +76,11 @@ class AirtableDataSource extends BaseDataSource {
    * @returns {Promise<Array>} Array of base objects with workspace info
    */
   async _fetchBases() {
-    try {
-      const response = await axios.get(`${AIRTABLE_META_URL}/bases`, {
-        headers: this._getHeaders(),
-      });
-      const bases = response.data.bases || [];
+    const response = await axios.get(`${AIRTABLE_META_URL}/bases`, {
+      headers: this._getHeaders(),
+    });
 
-      // Log workspace info for debugging
-      for (const base of bases) {
-        console.log(`Base: ${base.name} (${base.id}), Workspace ID: ${base.workspaceId || 'N/A'}`);
-      }
-
-      return bases;
-    } catch (error) {
-      console.error('Error fetching Airtable bases:', error.message);
-      throw new Error(`Failed to fetch Airtable bases: ${error.message}`);
-    }
+    return response.data.bases || [];
   }
 
   /**
@@ -92,15 +89,11 @@ class AirtableDataSource extends BaseDataSource {
    * @returns {Promise<object>} Base schema with tables
    */
   async _fetchBaseSchema(baseId) {
-    try {
-      const response = await axios.get(`${AIRTABLE_META_URL}/bases/${baseId}/tables`, {
-        headers: this._getHeaders(),
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching schema for base ${baseId}:`, error.message);
-      throw new Error(`Failed to fetch schema for base ${baseId}: ${error.message}`);
-    }
+    const response = await axios.get(`${AIRTABLE_META_URL}/bases/${baseId}/tables`, {
+      headers: this._getHeaders(),
+    });
+
+    return response.data;
   }
 
   /**
@@ -142,23 +135,19 @@ class AirtableDataSource extends BaseDataSource {
    * This is called automatically by Forest Admin
    */
   async initialize() {
-    console.log('Initializing Airtable datasource v2 (SDK-based)...');
+    this.logger('Info', 'Initializing Airtable datasource v2 (SDK-based)...');
 
     // Fetch all bases
     const bases = await this._fetchBases();
-    console.log(`Found ${bases.length} Airtable bases`);
+
+    this.logger('Info', `Found ${bases.length} Airtable bases`);
 
     // Process each base
-    for (const baseInfo of bases) {
-      // Check if base should be included
-      if (!this._shouldIncludeBase(baseInfo)) {
-        console.log(`Skipping base: ${baseInfo.name}`);
-        continue;
-      }
+    const basePromises = bases
+      .filter(baseInfo => this._shouldIncludeBase(baseInfo))
+      .map(async baseInfo => {
+        this.logger('Info', `Processing base: ${baseInfo.name} (${baseInfo.id})`);
 
-      console.log(`Processing base: ${baseInfo.name} (${baseInfo.id})`);
-
-      try {
         // Create Airtable SDK base instance
         const base = Airtable.base(baseInfo.id);
         this.bases.set(baseInfo.id, base);
@@ -167,16 +156,13 @@ class AirtableDataSource extends BaseDataSource {
         const schema = await this._fetchBaseSchema(baseInfo.id);
 
         // Process each table in the base
-        for (const table of schema.tables || []) {
-          // Check if table should be included
-          if (!this._shouldIncludeTable(table)) {
-            console.log(`  Skipping table: ${table.name}`);
-            continue;
-          }
+        const tables = (schema.tables || []).filter(table => this._shouldIncludeTable(table));
 
+        for (const table of tables) {
           // Generate collection name
           const collectionName = this.options.collectionNameFormatter(baseInfo, table);
-          console.log(`  Registering collection: ${collectionName}`);
+
+          this.logger('Info', `  Registering collection: ${collectionName}`);
 
           // Create and register collection
           const collection = new AirtableCollection(
@@ -184,19 +170,17 @@ class AirtableDataSource extends BaseDataSource {
             base,
             collectionName,
             table.id,
-            table.fields || []
+            table.fields || [],
           );
 
           this.addCollection(collection);
         }
-      } catch (error) {
-        console.error(`Error processing base ${baseInfo.name}:`, error.message);
-        // Continue with other bases
-      }
-    }
+      });
 
-    console.log(`Airtable datasource initialized with ${this.collections.length} collections`);
+    await Promise.all(basePromises);
+
+    this.logger('Info', `Airtable datasource initialized with ${this.collections.length} collections`);
   }
 }
 
-module.exports = AirtableDataSource;
+export default AirtableDataSource;

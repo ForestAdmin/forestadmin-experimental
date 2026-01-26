@@ -5,8 +5,11 @@
  * @module @forestadmin/datasource-airtable-v2
  */
 
-const AirtableDataSource = require('./airtable-datasource');
-const AirtableCollection = require('./airtable-collection');
+import AirtableCollection from './airtable-collection';
+import AirtableDataSource from './airtable-datasource';
+import * as constants from './constants';
+import * as fieldMapper from './field-mapper';
+import * as filterBuilder from './filter-builder';
 
 /**
  * Create an Airtable datasource factory function for Forest Admin
@@ -43,22 +46,19 @@ const AirtableCollection = require('./airtable-collection');
  * }));
  */
 function createAirtableDataSource(options = {}) {
-  return async () => {
-    const dataSource = new AirtableDataSource(options);
+  return async (logger) => {
+    const dataSource = new AirtableDataSource({ ...options, logger });
     await dataSource.initialize();
+
     return dataSource;
   };
 }
 
-// Export factory function as default and named export
-module.exports = createAirtableDataSource;
-module.exports.createAirtableDataSource = createAirtableDataSource;
+// Export factory function as default
+export default createAirtableDataSource;
 
-// Export classes for advanced usage
-module.exports.AirtableDataSource = AirtableDataSource;
-module.exports.AirtableCollection = AirtableCollection;
+// Export named exports
+export { createAirtableDataSource, AirtableDataSource, AirtableCollection };
 
 // Re-export utilities for customization
-module.exports.fieldMapper = require('./field-mapper');
-module.exports.filterBuilder = require('./filter-builder');
-module.exports.constants = require('./constants');
+export { fieldMapper, filterBuilder, constants };
