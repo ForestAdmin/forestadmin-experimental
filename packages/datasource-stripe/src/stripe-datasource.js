@@ -85,6 +85,7 @@ class StripeDataSource extends BaseDataSource {
     };
 
     const CollectionClass = collectionMap[resourceName];
+
     if (!CollectionClass) {
       return null;
     }
@@ -122,6 +123,7 @@ class StripeDataSource extends BaseDataSource {
       }
 
       const collection = this._createCollection(resourceName);
+
       if (collection) {
         this.addCollection(collection);
       }

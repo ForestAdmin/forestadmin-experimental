@@ -204,7 +204,7 @@ class BalanceTransactionsCollection extends StripeCollection {
   async create() {
     throw new Error(
       'Balance transactions cannot be created directly. ' +
-      'They are created automatically when money moves in your Stripe account.'
+        'They are created automatically when money moves in your Stripe account.',
     );
   }
 

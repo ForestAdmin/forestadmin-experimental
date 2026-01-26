@@ -194,8 +194,8 @@ class PricesCollection extends StripeCollection {
   /**
    * Override _transformToStripe to handle price-specific fields
    */
-  // eslint-disable-next-line no-underscore-dangle
   _transformToStripe(record) {
+    // eslint-disable-next-line no-underscore-dangle
     const data = super._transformToStripe(record);
 
     // Remove read-only field

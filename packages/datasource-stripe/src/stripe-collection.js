@@ -267,8 +267,7 @@ class StripeCollection extends BaseCollection {
   /**
    * LIST - Retrieve records
    */
-  // eslint-disable-next-line no-unused-vars
-  async list(caller, filter, projection) {
+  async list(caller, filter, _projection) {
     // Handle single record retrieval by ID
     const singleRecordId = this._extractSingleRecordId(filter);
 

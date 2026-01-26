@@ -6,15 +6,7 @@
  * Common filter operators for different field types
  */
 export const FILTER_OPERATORS = {
-  string: new Set([
-    'Equal',
-    'NotEqual',
-    'In',
-    'NotIn',
-    'Contains',
-    'StartsWith',
-    'EndsWith',
-  ]),
+  string: new Set(['Equal', 'NotEqual', 'In', 'NotIn', 'Contains', 'StartsWith', 'EndsWith']),
   number: new Set([
     'Equal',
     'NotEqual',

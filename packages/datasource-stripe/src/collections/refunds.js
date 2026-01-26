@@ -160,8 +160,8 @@ class RefundsCollection extends StripeCollection {
   /**
    * Override _transformToStripe for refund creation
    */
-  // eslint-disable-next-line no-underscore-dangle
   _transformToStripe(record) {
+    // eslint-disable-next-line no-underscore-dangle
     const data = super._transformToStripe(record);
 
     // Remove read-only fields

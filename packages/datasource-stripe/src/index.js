@@ -22,8 +22,8 @@ import {
   SUPPORTED_RESOURCES,
 } from './constants';
 import {
-  dateToTimestamp,
   FILTER_OPERATORS,
+  dateToTimestamp,
   formatCurrencyAmount,
   getFilterOperators,
   isReadOnlyField,
@@ -55,6 +55,7 @@ function createStripeDataSource(options = {}) {
   return async () => {
     const dataSource = new StripeDataSource(options);
     await dataSource.initialize();
+
     return dataSource;
   };
 }
