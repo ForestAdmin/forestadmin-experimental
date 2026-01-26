@@ -1,3 +1,48 @@
+# [1.10.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.9.0...datasource-rpc@1.10.0) (2026-01-26)
+
+
+### Bug Fixes
+
+* add an interface of chart ([#152](https://github.com/ForestAdmin/forestadmin-experimental/issues/152)) ([3e93638](https://github.com/ForestAdmin/forestadmin-experimental/commit/3e93638ee91a44b687cbbb12be7f7fb9b8d0046d))
+* add requested_id in approval request ([#172](https://github.com/ForestAdmin/forestadmin-experimental/issues/172)) ([0a2876c](https://github.com/ForestAdmin/forestadmin-experimental/commit/0a2876ce18f9aafa712d2bb561ab70fec1f34533))
+* **agent-tester:** add permission level for current user to support rails agent ([#146](https://github.com/ForestAdmin/forestadmin-experimental/issues/146)) ([7c50a2f](https://github.com/ForestAdmin/forestadmin-experimental/commit/7c50a2fa1f138b125cd52d71038612b16c87b7bb))
+* **agent-tester:** change collection name on segment export csv ([#165](https://github.com/ForestAdmin/forestadmin-experimental/issues/165)) ([18a11a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/18a11a0d2b7cacdad4759a98046ee59662f529d7))
+* **agent-tester:** chart are not well loaded because a bad http method was used ([#147](https://github.com/ForestAdmin/forestadmin-experimental/issues/147)) ([4147916](https://github.com/ForestAdmin/forestadmin-experimental/commit/41479167011906d7f3e6628f216c81a013e77635))
+* **agent-tester:** force release ([#153](https://github.com/ForestAdmin/forestadmin-experimental/issues/153)) ([99864e0](https://github.com/ForestAdmin/forestadmin-experimental/commit/99864e0645756faf0c017d17ce5e9ca943526316))
+* **agent-tester:** force the release ([#150](https://github.com/ForestAdmin/forestadmin-experimental/issues/150)) ([7a88a43](https://github.com/ForestAdmin/forestadmin-experimental/commit/7a88a43588b06e8ed0f409fc99324b9f303a5c32))
+* **agent-tester:** remove load form and load layout ([#154](https://github.com/ForestAdmin/forestadmin-experimental/issues/154)) ([2af8652](https://github.com/ForestAdmin/forestadmin-experimental/commit/2af8652f74e022df6a8ad945aa70091861430ea0))
+* **ci:** test ci ([#178](https://github.com/ForestAdmin/forestadmin-experimental/issues/178)) ([4268e92](https://github.com/ForestAdmin/forestadmin-experimental/commit/4268e9266dfe2f6035a8f931768b22d9262618f8))
+* **ci:** try the new setup ([#176](https://github.com/ForestAdmin/forestadmin-experimental/issues/176)) ([b03006f](https://github.com/ForestAdmin/forestadmin-experimental/commit/b03006f46a7cbeb6f1d8f2e6e0be85196872d875))
+* configure semantic-release npm plugin for OIDC auth ([ea6f439](https://github.com/ForestAdmin/forestadmin-experimental/commit/ea6f4395995e379effba6801b8b6f3249f510fb1))
+* cosmos nested agregation ([#162](https://github.com/ForestAdmin/forestadmin-experimental/issues/162)) ([a0c7c12](https://github.com/ForestAdmin/forestadmin-experimental/commit/a0c7c124fea4168fa07d831f8b8d5e64dad994f8))
+* **datasource-cosmos:** set cosmos id as non sortable ([#174](https://github.com/ForestAdmin/forestadmin-experimental/issues/174)) ([29baba2](https://github.com/ForestAdmin/forestadmin-experimental/commit/29baba2fbaae7050188f9ac7515f9773afe9edb8))
+* explicitly set npm registry for publishing ([6b89230](https://github.com/ForestAdmin/forestadmin-experimental/commit/6b892309620a427c6e7ccc27c102f0f6bbf03983))
+* fix virtual object selection and edition ([#183](https://github.com/ForestAdmin/forestadmin-experimental/issues/183)) ([852ff32](https://github.com/ForestAdmin/forestadmin-experimental/commit/852ff325d51baece23be9423e94ca149f5d8341e))
+* force release ([#151](https://github.com/ForestAdmin/forestadmin-experimental/issues/151)) ([76b93bc](https://github.com/ForestAdmin/forestadmin-experimental/commit/76b93bcdde97d466da221116d69836ebfe0ff373))
+* implement pagination cache ([#192](https://github.com/ForestAdmin/forestadmin-experimental/issues/192)) ([4d80176](https://github.com/ForestAdmin/forestadmin-experimental/commit/4d80176d9c08646bd2c15a6e96449f3cd1d61304))
+* improve nested fields support ([#164](https://github.com/ForestAdmin/forestadmin-experimental/issues/164)) ([8acc227](https://github.com/ForestAdmin/forestadmin-experimental/commit/8acc22742b2455b13834e3ecd5e36cb712270178))
+* improve performances ([#191](https://github.com/ForestAdmin/forestadmin-experimental/issues/191)) ([b798b08](https://github.com/ForestAdmin/forestadmin-experimental/commit/b798b08814bb08d52a86a86888934a0b1cfbba5b))
+* improve scalability ([#186](https://github.com/ForestAdmin/forestadmin-experimental/issues/186)) ([8f69026](https://github.com/ForestAdmin/forestadmin-experimental/commit/8f690267a5ef4dbb4fba6ddb1a4ecc54484ca3c0))
+* make database name optional ([#189](https://github.com/ForestAdmin/forestadmin-experimental/issues/189)) ([dc93255](https://github.com/ForestAdmin/forestadmin-experimental/commit/dc932552f2afb635939fb1ea9fe23cd726faf6d9))
+* readability ([#190](https://github.com/ForestAdmin/forestadmin-experimental/issues/190)) ([95d4761](https://github.com/ForestAdmin/forestadmin-experimental/commit/95d4761843ffee2f8ad6e5b28b7d14f42ad08872))
+* use npm CLI with OIDC instead of semantic-release npm plugin ([d9e3386](https://github.com/ForestAdmin/forestadmin-experimental/commit/d9e3386b20b2688894363bc07f055ea572a0dfc8))
+
+
+### Features
+
+* add cosmos db datasource ([#159](https://github.com/ForestAdmin/forestadmin-experimental/issues/159)) ([0b25187](https://github.com/ForestAdmin/forestadmin-experimental/commit/0b25187f5e2b7f939fad0c056d056af9872df91c))
+* add introspection config ([#187](https://github.com/ForestAdmin/forestadmin-experimental/issues/187)) ([fc470d3](https://github.com/ForestAdmin/forestadmin-experimental/commit/fc470d39520e32f811f66cadf9c38d9e27e8a1b3))
+* **agent-tester:** add a csv export on collection ([#156](https://github.com/ForestAdmin/forestadmin-experimental/issues/156)) ([fe64937](https://github.com/ForestAdmin/forestadmin-experimental/commit/fe64937049a888d21615c2f4c2f5f422de380d05))
+* **agent-tester:** add a way to override permissions from the agent tester ([#168](https://github.com/ForestAdmin/forestadmin-experimental/issues/168)) ([1d219cb](https://github.com/ForestAdmin/forestadmin-experimental/commit/1d219cb369b584a49ae535f6ea12a7435c4ff2a6))
+* **agent-tester:** add charts to collection ([#149](https://github.com/ForestAdmin/forestadmin-experimental/issues/149)) ([3a2e8c8](https://github.com/ForestAdmin/forestadmin-experimental/commit/3a2e8c88507e291f3cb77649e73ef085c40632ef))
+* **agent-tester:** add csv export on segment ([#157](https://github.com/ForestAdmin/forestadmin-experimental/issues/157)) ([0538935](https://github.com/ForestAdmin/forestadmin-experimental/commit/053893525f2c7187b4312f2eef37777b8d944e52))
+* **agent-tester:** add live query segment ([#158](https://github.com/ForestAdmin/forestadmin-experimental/issues/158)) ([1961202](https://github.com/ForestAdmin/forestadmin-experimental/commit/19612027ca1d6780b657ea7644ec86871b58009f))
+* **approvals:** add a parameter in action.execute to validate approval ([#171](https://github.com/ForestAdmin/forestadmin-experimental/issues/171)) ([b8b4333](https://github.com/ForestAdmin/forestadmin-experimental/commit/b8b43339ae93a83c8445a5feaff7679a01ac1298))
+* **nested object:** use arrow notation ([#167](https://github.com/ForestAdmin/forestadmin-experimental/issues/167)) ([58a99e0](https://github.com/ForestAdmin/forestadmin-experimental/commit/58a99e0944d0bfe4d9c0a0fcf7d0a8144e04f276))
+* **rpc agent:** add mark collection as rpc option on add datasource ([#195](https://github.com/ForestAdmin/forestadmin-experimental/issues/195)) ([6372499](https://github.com/ForestAdmin/forestadmin-experimental/commit/6372499bd80f67d847389743454d1d5e4252ef7f))
+* support manual schema definition in cosmos ([#188](https://github.com/ForestAdmin/forestadmin-experimental/issues/188)) ([d819342](https://github.com/ForestAdmin/forestadmin-experimental/commit/d819342d1bda79c47a5b2c948c7f52a428413c10))
+* trigger release ([#185](https://github.com/ForestAdmin/forestadmin-experimental/issues/185)) ([1b378db](https://github.com/ForestAdmin/forestadmin-experimental/commit/1b378dbfe9ce860b22db3c2e4552914ddfe38e16))
+
 # [1.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.8.0...datasource-rpc@1.9.0) (2025-06-19)
 
 
