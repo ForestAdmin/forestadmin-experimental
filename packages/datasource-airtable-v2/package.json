@@ -31,7 +31,8 @@
     "sdk"
   ],
   "dependencies": {
-    "airtable": "^0.12.2"
+    "airtable": "^0.12.2",
+    "axios": "^1.7.9"
   },
   "peerDependencies": {
     "@forestadmin/datasource-toolkit": "^1.0.0"

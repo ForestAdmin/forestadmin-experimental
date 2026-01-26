@@ -3,9 +3,9 @@
  * Handles schema discovery and collection registration
  */
 
+import { BaseDataSource } from '@forestadmin/datasource-toolkit';
 import Airtable from 'airtable';
 import axios from 'axios';
-import { BaseDataSource } from '@forestadmin/datasource-toolkit';
 
 import AirtableCollection from './airtable-collection';
 import { AIRTABLE_META_URL } from './constants';
@@ -29,7 +29,8 @@ class AirtableDataSource extends BaseDataSource {
 
     if (!this.apiKey) {
       throw new Error(
-        'Airtable API key is required. Provide it via options.apiKey or AIRTABLE_API_KEY environment variable.',
+        'Airtable API key is required. ' +
+          'Provide it via options.apiKey or AIRTABLE_API_KEY environment variable.',
       );
     }
 
@@ -179,7 +180,10 @@ class AirtableDataSource extends BaseDataSource {
 
     await Promise.all(basePromises);
 
-    this.logger('Info', `Airtable datasource initialized with ${this.collections.length} collections`);
+    this.logger(
+      'Info',
+      `Airtable datasource initialized with ${this.collections.length} collections`,
+    );
   }
 }
 

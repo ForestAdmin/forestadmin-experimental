@@ -46,7 +46,7 @@ import * as filterBuilder from './filter-builder';
  * }));
  */
 function createAirtableDataSource(options = {}) {
-  return async (logger) => {
+  return async logger => {
     const dataSource = new AirtableDataSource({ ...options, logger });
     await dataSource.initialize();
 

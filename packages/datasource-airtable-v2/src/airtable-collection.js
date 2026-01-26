@@ -331,6 +331,7 @@ class AirtableCollection extends BaseCollection {
         groupedRecords[groupKey].records.push(record);
       }
     } else {
+      // eslint-disable-next-line no-underscore-dangle
       groupedRecords.__all__ = {
         group: {},
         records,
