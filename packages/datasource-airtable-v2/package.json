@@ -1,0 +1,39 @@
+{
+  "name": "@forestadmin-experimental/datasource-airtable-v2",
+  "version": "0.0.1",
+  "description": "Forest Admin datasource connector for Airtable using the official Airtable Node.js SDK",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/datasource-airtable-v2"
+  },
+  "files": [
+    "src/**/*.js",
+    "types/**/*.d.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "echo 'No build required for JS project'",
+    "lint": "eslint src/",
+    "test": "echo 'No tests yet'",
+    "publish:package": "semantic-release"
+  },
+  "keywords": [
+    "forestadmin",
+    "datasource",
+    "airtable",
+    "sdk"
+  ],
+  "dependencies": {
+    "airtable": "^0.12.2"
+  },
+  "peerDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.0.0"
+  }
+}
