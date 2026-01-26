@@ -2,8 +2,8 @@
  * PaymentIntentsCollection - Stripe PaymentIntents resource
  */
 
-import StripeCollection from '../stripe-collection';
 import { getFilterOperators } from '../field-mapper';
+import StripeCollection from '../stripe-collection';
 
 /**
  * Collection for Stripe Payment Intents
@@ -253,6 +253,7 @@ class PaymentIntentsCollection extends StripeCollection {
   /**
    * Override _transformToStripe to handle payment intent-specific fields
    */
+  // eslint-disable-next-line no-underscore-dangle
   _transformToStripe(record) {
     const data = super._transformToStripe(record);
 

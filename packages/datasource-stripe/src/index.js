@@ -4,37 +4,35 @@
  * Forest Admin DataSource for Stripe
  */
 
-import StripeDataSource from './stripe-datasource';
-import StripeCollection from './stripe-collection';
 import {
-  DEFAULT_PAGE_SIZE,
+  BalanceTransactionsCollection,
+  ChargesCollection,
+  CustomersCollection,
+  InvoicesCollection,
+  PaymentIntentsCollection,
+  PricesCollection,
+  ProductsCollection,
+  RefundsCollection,
+  SubscriptionsCollection,
+} from './collections';
+import {
   BATCH_SIZE,
+  DEFAULT_PAGE_SIZE,
   STRIPE_API_VERSION,
   SUPPORTED_RESOURCES,
 } from './constants';
 import {
-  mapFieldType,
+  dateToTimestamp,
+  FILTER_OPERATORS,
+  formatCurrencyAmount,
   getFilterOperators,
   isReadOnlyField,
+  mapFieldType,
   timestampToDate,
-  dateToTimestamp,
-  formatCurrencyAmount,
   toCurrencyAmount,
-  FILTER_OPERATORS,
 } from './field-mapper';
-
-// Import all collection classes
-import {
-  CustomersCollection,
-  ProductsCollection,
-  PricesCollection,
-  SubscriptionsCollection,
-  InvoicesCollection,
-  PaymentIntentsCollection,
-  ChargesCollection,
-  RefundsCollection,
-  BalanceTransactionsCollection,
-} from './collections';
+import StripeCollection from './stripe-collection';
+import StripeDataSource from './stripe-datasource';
 
 /**
  * Factory function to create a Stripe DataSource

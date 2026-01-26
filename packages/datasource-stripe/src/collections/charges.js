@@ -2,8 +2,8 @@
  * ChargesCollection - Stripe Charges resource
  */
 
-import StripeCollection from '../stripe-collection';
 import { getFilterOperators } from '../field-mapper';
+import StripeCollection from '../stripe-collection';
 
 /**
  * Collection for Stripe Charges
@@ -292,6 +292,7 @@ class ChargesCollection extends StripeCollection {
    * Charges are mostly read-only in Stripe (created via PaymentIntents)
    * Only certain fields can be updated after creation
    */
+  // eslint-disable-next-line no-underscore-dangle, class-methods-use-this
   _transformToStripe(record) {
     // Only metadata, description, receipt_email, fraud_details can be updated
     return {

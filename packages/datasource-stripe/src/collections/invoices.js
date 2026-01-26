@@ -2,8 +2,8 @@
  * InvoicesCollection - Stripe Invoices resource
  */
 
-import StripeCollection from '../stripe-collection';
 import { getFilterOperators } from '../field-mapper';
+import StripeCollection from '../stripe-collection';
 
 /**
  * Collection for Stripe Invoices
@@ -289,6 +289,7 @@ class InvoicesCollection extends StripeCollection {
   /**
    * Override _transformToStripe to handle invoice-specific fields
    */
+  // eslint-disable-next-line no-underscore-dangle
   _transformToStripe(record) {
     const data = super._transformToStripe(record);
 

@@ -2,8 +2,8 @@
  * RefundsCollection - Stripe Refunds resource
  */
 
-import StripeCollection from '../stripe-collection';
 import { getFilterOperators } from '../field-mapper';
+import StripeCollection from '../stripe-collection';
 
 /**
  * Collection for Stripe Refunds
@@ -160,6 +160,7 @@ class RefundsCollection extends StripeCollection {
   /**
    * Override _transformToStripe for refund creation
    */
+  // eslint-disable-next-line no-underscore-dangle
   _transformToStripe(record) {
     const data = super._transformToStripe(record);
 

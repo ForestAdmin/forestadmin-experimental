@@ -2,8 +2,8 @@
  * BalanceTransactionsCollection - Stripe Balance Transactions resource
  */
 
-import StripeCollection from '../stripe-collection';
 import { getFilterOperators } from '../field-mapper';
+import StripeCollection from '../stripe-collection';
 
 /**
  * Collection for Stripe Balance Transactions

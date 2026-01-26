@@ -2,15 +2,15 @@
  * Export all Stripe collection classes
  */
 
+import BalanceTransactionsCollection from './balance-transactions';
+import ChargesCollection from './charges';
 import CustomersCollection from './customers';
-import ProductsCollection from './products';
-import PricesCollection from './prices';
-import SubscriptionsCollection from './subscriptions';
 import InvoicesCollection from './invoices';
 import PaymentIntentsCollection from './payment-intents';
-import ChargesCollection from './charges';
+import PricesCollection from './prices';
+import ProductsCollection from './products';
 import RefundsCollection from './refunds';
-import BalanceTransactionsCollection from './balance-transactions';
+import SubscriptionsCollection from './subscriptions';
 
 export {
   CustomersCollection,

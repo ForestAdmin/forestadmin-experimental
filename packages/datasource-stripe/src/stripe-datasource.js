@@ -5,18 +5,18 @@
 import { BaseDataSource } from '@forestadmin/datasource-toolkit';
 import Stripe from 'stripe';
 
-import { STRIPE_API_VERSION, SUPPORTED_RESOURCES } from './constants';
 import {
+  BalanceTransactionsCollection,
+  ChargesCollection,
   CustomersCollection,
-  ProductsCollection,
-  PricesCollection,
-  SubscriptionsCollection,
   InvoicesCollection,
   PaymentIntentsCollection,
-  ChargesCollection,
+  PricesCollection,
+  ProductsCollection,
   RefundsCollection,
-  BalanceTransactionsCollection,
+  SubscriptionsCollection,
 } from './collections';
+import { STRIPE_API_VERSION, SUPPORTED_RESOURCES } from './constants';
 
 /**
  * StripeDataSource - Main datasource class
@@ -99,7 +99,7 @@ class StripeDataSource extends BaseDataSource {
     if (!this.secretKey) {
       throw new Error(
         'Stripe Secret Key is required. ' +
-        'Set STRIPE_SECRET_KEY environment variable or pass secretKey in options.'
+          'Set STRIPE_SECRET_KEY environment variable or pass secretKey in options.',
       );
     }
 
