@@ -1,0 +1,49 @@
+{
+  "name": "@anthropic/datasource-airtable",
+  "version": "1.0.0",
+  "description": "Forest Admin DataSource for Airtable - Connect your Airtable bases to Forest Admin",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm run lint"
+  },
+  "keywords": [
+    "forest-admin",
+    "forestadmin",
+    "airtable",
+    "datasource",
+    "admin-panel",
+    "back-office",
+    "no-code"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}
