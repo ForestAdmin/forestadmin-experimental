@@ -1,33 +1,41 @@
-import { Agent } from '@forestadmin/agent';
+import { Agent, AgentOptions } from '@forestadmin/agent';
 import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
 import { DataSourceOptions, TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
-import { DataSource, DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
+import { DataSource, DataSourceFactory } from '@forestadmin/datasource-toolkit';
 
+import RpcDataSourceCustomizer from './datasource-customizer';
 import { makeRpcRoutes } from './routes';
 import SseRoute from './routes/sse';
 
 export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
   private readonly rpcCollections: string[] = [];
+  protected override customizer: RpcDataSourceCustomizer<S>;
 
   sseRoute: SseRoute;
+
+  constructor(options: AgentOptions) {
+    super(options);
+
+    this.customizer = new RpcDataSourceCustomizer<S>({
+      ignoreMissingSchemaElementErrors: options.ignoreMissingSchemaElementErrors || false,
+    });
+  }
 
   override addDataSource(
     factory: DataSourceFactory,
     options?: DataSourceOptions & { markCollectionsAsRpc?: boolean },
   ) {
-    let factoryFunction = factory;
+    let markCollectionsAsRpc = null;
 
     if (options?.markCollectionsAsRpc) {
-      factoryFunction = async (logger: Logger, restartAggent: () => Promise<void>) => {
-        const datasource = await factory(logger, restartAggent);
-
+      markCollectionsAsRpc = (datasource: DataSource) => {
         datasource.collections.forEach(c => this.rpcCollections.push(c.name));
-
-        return datasource;
       };
     }
 
-    return super.addDataSource(factoryFunction, options);
+    this.customizer.addDataSource(factory, options, this.restart.bind(this), markCollectionsAsRpc);
+
+    return this;
   }
 
   override getRoutes(dataSource: DataSource, services: ForestAdminHttpDriverServices) {
