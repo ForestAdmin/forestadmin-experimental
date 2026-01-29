@@ -29,7 +29,12 @@ describe('AirtableCollection', () => {
         { id: 'fld2', name: 'Email', type: 'email' },
         { id: 'fld3', name: 'Age', type: 'number' },
         { id: 'fld4', name: 'Active', type: 'checkbox' },
-        { id: 'fld5', name: 'Status', type: 'singleSelect', options: { choices: [{ name: 'Active' }, { name: 'Inactive' }] } },
+        {
+          id: 'fld5',
+          name: 'Status',
+          type: 'singleSelect',
+          options: { choices: [{ name: 'Active' }, { name: 'Inactive' }] },
+        },
       ]),
       findById: jest.fn(),
       findByIds: jest.fn(),
@@ -58,7 +63,7 @@ describe('AirtableCollection', () => {
     });
 
     it('should register schema fields', () => {
-      const schema = collection.schema;
+      const { schema } = collection;
       const fields = schema.fields as Record<string, any>;
 
       expect(fields.id).toBeDefined();
@@ -175,8 +180,9 @@ describe('AirtableCollection', () => {
     it('should handle errors', async () => {
       mockModel.query.mockRejectedValue(new Error('API Error'));
 
-      await expect(collection.list(mockCaller, {} as any, new Projection()))
-        .rejects.toThrow('Failed to list records: API Error');
+      await expect(collection.list(mockCaller, {} as any, new Projection())).rejects.toThrow(
+        'Failed to list records: API Error',
+      );
 
       expect(mockLogger).toHaveBeenCalledWith('Error', expect.stringContaining('API Error'));
     });
@@ -199,8 +205,9 @@ describe('AirtableCollection', () => {
     it('should handle create errors', async () => {
       mockModel.create.mockRejectedValue(new Error('Create failed'));
 
-      await expect(collection.create(mockCaller, [{ Name: 'Test' }]))
-        .rejects.toThrow('Failed to create records: Create failed');
+      await expect(collection.create(mockCaller, [{ Name: 'Test' }])).rejects.toThrow(
+        'Failed to create records: Create failed',
+      );
     });
   });
 
@@ -237,8 +244,9 @@ describe('AirtableCollection', () => {
       mockModel.query.mockResolvedValue([{ id: 'rec1' }]);
       mockModel.update.mockRejectedValue(new Error('Update failed'));
 
-      await expect(collection.update(mockCaller, {} as any, { Name: 'Test' }))
-        .rejects.toThrow('Failed to update records: Update failed');
+      await expect(collection.update(mockCaller, {} as any, { Name: 'Test' })).rejects.toThrow(
+        'Failed to update records: Update failed',
+      );
     });
   });
 
@@ -271,8 +279,9 @@ describe('AirtableCollection', () => {
       mockModel.query.mockResolvedValue([{ id: 'rec1' }]);
       mockModel.delete.mockRejectedValue(new Error('Delete failed'));
 
-      await expect(collection.delete(mockCaller, {} as any))
-        .rejects.toThrow('Failed to delete records: Delete failed');
+      await expect(collection.delete(mockCaller, {} as any)).rejects.toThrow(
+        'Failed to delete records: Delete failed',
+      );
     });
   });
 
@@ -319,8 +328,9 @@ describe('AirtableCollection', () => {
     it('should handle aggregation errors', async () => {
       mockModel.query.mockRejectedValue(new Error('Query failed'));
 
-      await expect(collection.aggregate(mockCaller, {} as any, { operation: 'Count', groups: [] } as any))
-        .rejects.toThrow('Failed to aggregate records');
+      await expect(
+        collection.aggregate(mockCaller, {} as any, { operation: 'Count', groups: [] } as any),
+      ).rejects.toThrow('Failed to aggregate records');
     });
   });
 });

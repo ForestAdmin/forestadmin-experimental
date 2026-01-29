@@ -4,14 +4,15 @@
 
 import Airtable from 'airtable';
 
-import { AirtableLogger, ManualSchemaConfig } from '../types/config';
 import AirtableModel from '../model-builder/model';
+import { AirtableLogger, ManualSchemaConfig } from '../types/config';
 
 type AirtableBase = ReturnType<typeof Airtable.base>;
 
 /**
  * Convert manual schema configuration to AirtableModels
  */
+// eslint-disable-next-line import/prefer-default-export
 export async function convertManualSchemaToModels(
   apiKey: string,
   schema: ManualSchemaConfig,

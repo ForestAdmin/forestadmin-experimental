@@ -2,8 +2,8 @@
  * AirtableDataSource - Forest Admin DataSource implementation for Airtable
  */
 
-import Airtable from 'airtable';
 import { BaseDataSource, Logger } from '@forestadmin/datasource-toolkit';
+import Airtable from 'airtable';
 
 import AirtableCollection from './collection';
 import AirtableModel from './model-builder/model';
@@ -21,11 +21,7 @@ export default class AirtableDataSource extends BaseDataSource<AirtableCollectio
    */
   protected readonly logger?: Logger;
 
-  constructor(
-    models: AirtableModel[],
-    bases: Map<string, AirtableBase>,
-    logger?: Logger,
-  ) {
+  constructor(models: AirtableModel[], bases: Map<string, AirtableBase>, logger?: Logger) {
     super();
 
     this.bases = bases;

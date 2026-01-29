@@ -3,10 +3,10 @@
  */
 
 import {
-  withRetry,
+  configureRetryOptions,
   isRateLimitError,
   isTransientError,
-  configureRetryOptions,
+  withRetry,
 } from '../src/utils/retry-handler';
 
 describe('retry-handler', () => {
@@ -75,7 +75,8 @@ describe('retry-handler', () => {
     });
 
     it('should retry on transient errors', async () => {
-      const fn = jest.fn()
+      const fn = jest
+        .fn()
         .mockRejectedValueOnce({ statusCode: 429 })
         .mockRejectedValueOnce({ statusCode: 503 })
         .mockResolvedValue('success');
@@ -103,9 +104,7 @@ describe('retry-handler', () => {
     });
 
     it('should use custom retry options', async () => {
-      const fn = jest.fn()
-        .mockRejectedValueOnce({ statusCode: 429 })
-        .mockResolvedValue('success');
+      const fn = jest.fn().mockRejectedValueOnce({ statusCode: 429 }).mockResolvedValue('success');
 
       const result = await withRetry(fn, {
         maxRetries: 1,
@@ -124,7 +123,8 @@ describe('retry-handler', () => {
         initialDelayMs: 5,
       });
 
-      const fn = jest.fn()
+      const fn = jest
+        .fn()
         .mockRejectedValueOnce({ statusCode: 429 })
         .mockRejectedValueOnce({ statusCode: 429 })
         .mockResolvedValue('success');

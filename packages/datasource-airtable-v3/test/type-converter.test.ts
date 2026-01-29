@@ -123,11 +123,7 @@ describe('TypeConverter', () => {
   describe('getEnumValues', () => {
     it('should extract enum values from choices', () => {
       const options = {
-        choices: [
-          { name: 'Option 1' },
-          { name: 'Option 2' },
-          { name: 'Option 3' },
-        ],
+        choices: [{ name: 'Option 1' }, { name: 'Option 2' }, { name: 'Option 3' }],
       };
       expect(TypeConverter.getEnumValues(options)).toEqual(['Option 1', 'Option 2', 'Option 3']);
     });

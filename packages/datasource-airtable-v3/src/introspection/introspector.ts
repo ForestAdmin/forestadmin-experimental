@@ -5,11 +5,11 @@
 import Airtable from 'airtable';
 import axios from 'axios';
 
+import AirtableModel from '../model-builder/model';
 import { AirtableBaseDefinition, AirtableTableDefinition } from '../types/airtable';
-import { AirtableLogger, AirtableDataSourceOptions } from '../types/config';
+import { AirtableDataSourceOptions, AirtableLogger } from '../types/config';
 import { AIRTABLE_META_URL } from '../utils/constants';
 import { withRetry } from '../utils/retry-handler';
-import AirtableModel from '../model-builder/model';
 
 type AirtableBase = ReturnType<typeof Airtable.base>;
 
@@ -26,11 +26,7 @@ export default class Introspector {
   private readonly options: AirtableDataSourceOptions;
   private readonly logger?: AirtableLogger;
 
-  constructor(
-    apiKey: string,
-    options: AirtableDataSourceOptions,
-    logger?: AirtableLogger,
-  ) {
+  constructor(apiKey: string, options: AirtableDataSourceOptions, logger?: AirtableLogger) {
     this.apiKey = apiKey;
     this.options = options;
     this.logger = logger;
@@ -59,7 +55,10 @@ export default class Introspector {
 
     // Filter bases based on options
     const filteredBases = this.filterBases(bases);
-    this.logger?.('Info', `Introspector - Processing ${filteredBases.length} bases after filtering`);
+    this.logger?.(
+      'Info',
+      `Introspector - Processing ${filteredBases.length} bases after filtering`,
+    );
 
     const models: AirtableModel[] = [];
     const baseInstances = new Map<string, AirtableBase>();
@@ -111,7 +110,10 @@ export default class Introspector {
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        this.logger?.('Warn', `Introspector - Failed to process base ${baseInfo.name}: ${errorMessage}`);
+        this.logger?.(
+          'Warn',
+          `Introspector - Failed to process base ${baseInfo.name}: ${errorMessage}`,
+        );
         // Continue with other bases
       }
     }
@@ -146,10 +148,7 @@ export default class Introspector {
     const headers = this.getHeaders();
 
     const response = await withRetry(async () => {
-      const result = await axios.get(
-        `${AIRTABLE_META_URL}/bases/${baseId}/tables`,
-        { headers },
-      );
+      const result = await axios.get(`${AIRTABLE_META_URL}/bases/${baseId}/tables`, { headers });
 
       return result;
     }, this.options.retryOptions);

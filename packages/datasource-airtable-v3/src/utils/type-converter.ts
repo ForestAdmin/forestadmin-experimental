@@ -189,9 +189,7 @@ export default class TypeConverter {
   /**
    * Get enum values for a single select field
    */
-  static getEnumValues(
-    options?: { choices?: Array<{ name: string }> },
-  ): string[] | undefined {
+  static getEnumValues(options?: { choices?: Array<{ name: string }> }): string[] | undefined {
     if (!options?.choices) {
       return undefined;
     }
@@ -202,9 +200,7 @@ export default class TypeConverter {
   /**
    * Determine the result type of a formula or rollup field
    */
-  static getComputedFieldType(
-    options?: { result?: { type: AirtableFieldType } },
-  ): ColumnType {
+  static getComputedFieldType(options?: { result?: { type: AirtableFieldType } }): ColumnType {
     if (!options?.result?.type) {
       return 'String';
     }

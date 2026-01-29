@@ -32,7 +32,7 @@ export interface AirtableDataSourceOptions {
    */
   collectionNameFormatter?: (
     base: { id: string; name: string },
-    table: { id: string; name: string }
+    table: { id: string; name: string },
   ) => string;
 
   /**
@@ -84,7 +84,7 @@ export interface AirtableDataSourceOptions {
  * Builder pattern configuration function type
  */
 export type ConfigurationOptions = (
-  builder: AirtableDataSourceBuilder
+  builder: AirtableDataSourceBuilder,
 ) => AirtableDataSourceBuilder;
 
 /**

@@ -9,44 +9,119 @@ import {
 } from '@forestadmin/datasource-toolkit';
 
 /**
- * Convert Forest Admin condition tree to Airtable filter formula
+ * Escape field name for use in Airtable formula
  */
-export function buildFilterFormula(conditionTree?: ConditionTree): string | undefined {
-  if (!conditionTree) {
-    return undefined;
-  }
-
-  return convertConditionTree(conditionTree);
+function escapeFieldName(fieldName: string): string {
+  // Airtable field names in formulas are wrapped in {}
+  // Special characters don't need additional escaping inside {}
+  return fieldName;
 }
 
 /**
- * Convert a condition tree node to Airtable formula
+ * Format a string value with proper escaping
  */
-function convertConditionTree(node: ConditionTree): string {
-  if ('aggregator' in node) {
-    return convertBranch(node as ConditionTreeBranch);
-  }
+function formatStringValue(value: string): string {
+  // Escape double quotes by doubling them
+  const escaped = value.replace(/"/g, '\\"');
 
-  return convertLeaf(node as ConditionTreeLeaf);
+  return `"${escaped}"`;
 }
 
 /**
- * Convert a branch (AND/OR) to Airtable formula
+ * Format a date value for Airtable
  */
-function convertBranch(branch: ConditionTreeBranch): string {
-  const conditions = branch.conditions.map(c => convertConditionTree(c));
-
-  if (conditions.length === 0) {
-    return '';
+function formatDateValue(value: unknown): string {
+  if (value instanceof Date) {
+    return `DATETIME_PARSE("${value.toISOString()}")`;
   }
 
-  if (conditions.length === 1) {
-    return conditions[0];
+  if (typeof value === 'string') {
+    return `DATETIME_PARSE("${value}")`;
   }
 
-  const aggregator = branch.aggregator === 'And' ? 'AND' : 'OR';
+  return 'BLANK()';
+}
 
-  return `${aggregator}(${conditions.join(', ')})`;
+/**
+ * Format a value for Airtable formula
+ */
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return 'BLANK()';
+  }
+
+  if (typeof value === 'string') {
+    return formatStringValue(value);
+  }
+
+  if (typeof value === 'number') {
+    return String(value);
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'TRUE()' : 'FALSE()';
+  }
+
+  if (value instanceof Date) {
+    return formatDateValue(value);
+  }
+
+  return formatStringValue(String(value));
+}
+
+/**
+ * Format equality comparison
+ */
+function formatEquality(field: string, value: unknown): string {
+  if (value === null || value === undefined) {
+    return `{${field}} = BLANK()`;
+  }
+
+  return `{${field}} = ${formatValue(value)}`;
+}
+
+/**
+ * Format not equality comparison
+ */
+function formatNotEquality(field: string, value: unknown): string {
+  if (value === null || value === undefined) {
+    return `NOT({${field}} = BLANK())`;
+  }
+
+  return `{${field}} != ${formatValue(value)}`;
+}
+
+/**
+ * Format IN operator
+ */
+function formatIn(field: string, values: unknown[]): string {
+  if (!values || values.length === 0) {
+    return 'FALSE()';
+  }
+
+  if (values.length === 1) {
+    return formatEquality(field, values[0]);
+  }
+
+  const conditions = values.map(v => `{${field}} = ${formatValue(v)}`);
+
+  return `OR(${conditions.join(', ')})`;
+}
+
+/**
+ * Convert SQL LIKE pattern to Airtable REGEX_MATCH
+ */
+function convertLikeToRegex(field: string, pattern: string): string {
+  // Convert SQL LIKE wildcards to regex
+  let regexPattern = pattern
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars first
+    .replace(/%/g, '.*') // % -> .*
+    .replace(/_/g, '.'); // _ -> .
+
+  // Anchor the pattern
+  regexPattern = `^${regexPattern}$`;
+
+  return `REGEX_MATCH({${field}}, "${regexPattern}")`;
 }
 
 /**
@@ -94,10 +169,14 @@ function convertLeaf(leaf: ConditionTreeLeaf): string {
       return `FIND(${formatStringValue(String(value))}, {${escapedField}}) = 0`;
 
     case 'StartsWith':
-      return `LEFT({${escapedField}}, ${String(value).length}) = ${formatStringValue(String(value))}`;
+      return `LEFT({${escapedField}}, ${String(value).length}) = ${formatStringValue(
+        String(value),
+      )}`;
 
     case 'EndsWith':
-      return `RIGHT({${escapedField}}, ${String(value).length}) = ${formatStringValue(String(value))}`;
+      return `RIGHT({${escapedField}}, ${String(value).length}) = ${formatStringValue(
+        String(value),
+      )}`;
 
     case 'In':
       return formatIn(escapedField, value as unknown[]);
@@ -120,25 +199,35 @@ function convertLeaf(leaf: ConditionTreeLeaf): string {
     case 'PreviousXDays': {
       const days = typeof value === 'number' ? value : parseInt(String(value), 10);
 
-      return `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -${days}, 'days')), ` +
-        `IS_BEFORE({${escapedField}}, DATEADD(TODAY(), 1, 'days')))`;
+      return (
+        `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -${days}, 'days')), ` +
+        `IS_BEFORE({${escapedField}}, DATEADD(TODAY(), 1, 'days')))`
+      );
     }
 
     case 'PreviousWeek':
-      return `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -7, 'days')), ` +
-        `IS_BEFORE({${escapedField}}, TODAY()))`;
+      return (
+        `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -7, 'days')), ` +
+        `IS_BEFORE({${escapedField}}, TODAY()))`
+      );
 
     case 'PreviousMonth':
-      return `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -1, 'months')), ` +
-        `IS_BEFORE({${escapedField}}, TODAY()))`;
+      return (
+        `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -1, 'months')), ` +
+        `IS_BEFORE({${escapedField}}, TODAY()))`
+      );
 
     case 'PreviousQuarter':
-      return `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -3, 'months')), ` +
-        `IS_BEFORE({${escapedField}}, TODAY()))`;
+      return (
+        `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -3, 'months')), ` +
+        `IS_BEFORE({${escapedField}}, TODAY()))`
+      );
 
     case 'PreviousYear':
-      return `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -1, 'years')), ` +
-        `IS_BEFORE({${escapedField}}, TODAY()))`;
+      return (
+        `AND(IS_AFTER({${escapedField}}, DATEADD(TODAY(), -1, 'years')), ` +
+        `IS_BEFORE({${escapedField}}, TODAY()))`
+      );
 
     case 'Like':
       // Convert SQL LIKE pattern to Airtable REGEX
@@ -152,119 +241,45 @@ function convertLeaf(leaf: ConditionTreeLeaf): string {
 }
 
 /**
- * Format equality comparison
+ * Convert a condition tree node to Airtable formula
  */
-function formatEquality(field: string, value: unknown): string {
-  if (value === null || value === undefined) {
-    return `{${field}} = BLANK()`;
+function convertConditionTree(node: ConditionTree): string {
+  if ('aggregator' in node) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    return convertBranch(node as ConditionTreeBranch);
   }
 
-  return `{${field}} = ${formatValue(value)}`;
+  return convertLeaf(node as ConditionTreeLeaf);
 }
 
 /**
- * Format not equality comparison
+ * Convert a branch (AND/OR) to Airtable formula
  */
-function formatNotEquality(field: string, value: unknown): string {
-  if (value === null || value === undefined) {
-    return `NOT({${field}} = BLANK())`;
+function convertBranch(branch: ConditionTreeBranch): string {
+  const conditions = branch.conditions.map(c => convertConditionTree(c));
+
+  if (conditions.length === 0) {
+    return '';
   }
 
-  return `{${field}} != ${formatValue(value)}`;
+  if (conditions.length === 1) {
+    return conditions[0];
+  }
+
+  const aggregator = branch.aggregator === 'And' ? 'AND' : 'OR';
+
+  return `${aggregator}(${conditions.join(', ')})`;
 }
 
 /**
- * Format IN operator
+ * Convert Forest Admin condition tree to Airtable filter formula
  */
-function formatIn(field: string, values: unknown[]): string {
-  if (!values || values.length === 0) {
-    return 'FALSE()';
+export function buildFilterFormula(conditionTree?: ConditionTree): string | undefined {
+  if (!conditionTree) {
+    return undefined;
   }
 
-  if (values.length === 1) {
-    return formatEquality(field, values[0]);
-  }
-
-  const conditions = values.map(v => `{${field}} = ${formatValue(v)}`);
-
-  return `OR(${conditions.join(', ')})`;
-}
-
-/**
- * Format a value for Airtable formula
- */
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return 'BLANK()';
-  }
-
-  if (typeof value === 'string') {
-    return formatStringValue(value);
-  }
-
-  if (typeof value === 'number') {
-    return String(value);
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? 'TRUE()' : 'FALSE()';
-  }
-
-  if (value instanceof Date) {
-    return formatDateValue(value);
-  }
-
-  return formatStringValue(String(value));
-}
-
-/**
- * Format a string value with proper escaping
- */
-function formatStringValue(value: string): string {
-  // Escape double quotes by doubling them
-  const escaped = value.replace(/"/g, '\\"');
-
-  return `"${escaped}"`;
-}
-
-/**
- * Format a date value for Airtable
- */
-function formatDateValue(value: unknown): string {
-  if (value instanceof Date) {
-    return `DATETIME_PARSE("${value.toISOString()}")`;
-  }
-
-  if (typeof value === 'string') {
-    return `DATETIME_PARSE("${value}")`;
-  }
-
-  return 'BLANK()';
-}
-
-/**
- * Escape field name for use in Airtable formula
- */
-function escapeFieldName(fieldName: string): string {
-  // Airtable field names in formulas are wrapped in {}
-  // Special characters don't need additional escaping inside {}
-  return fieldName;
-}
-
-/**
- * Convert SQL LIKE pattern to Airtable REGEX_MATCH
- */
-function convertLikeToRegex(field: string, pattern: string): string {
-  // Convert SQL LIKE wildcards to regex
-  let regexPattern = pattern
-    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars first
-    .replace(/%/g, '.*') // % -> .*
-    .replace(/_/g, '.'); // _ -> .
-
-  // Anchor the pattern
-  regexPattern = `^${regexPattern}$`;
-
-  return `REGEX_MATCH({${field}}, "${regexPattern}")`;
+  return convertConditionTree(conditionTree);
 }
 
 /**
@@ -281,7 +296,7 @@ export function buildSort(
     .filter(s => s.field !== 'id') // Airtable doesn't support sorting by record ID
     .map(s => ({
       field: s.field,
-      direction: s.ascending ? 'asc' as const : 'desc' as const,
+      direction: s.ascending ? ('asc' as const) : ('desc' as const),
     }));
 }
 

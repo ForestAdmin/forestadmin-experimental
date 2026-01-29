@@ -5,9 +5,9 @@
 import { ConditionTree, Filter } from '@forestadmin/datasource-toolkit';
 
 import {
+  buildFields,
   buildFilterFormula,
   buildSort,
-  buildFields,
   extractRecordId,
   extractRecordIds,
 } from '../src/utils/filter-converter';
@@ -261,7 +261,9 @@ describe('filter-converter', () => {
         operator: 'Yesterday' as const,
         value: null,
       } as unknown as ConditionTree;
-      expect(buildFilterFormula(tree)).toBe("IS_SAME({CreatedAt}, DATEADD(TODAY(), -1, 'days'), 'day')");
+      expect(buildFilterFormula(tree)).toBe(
+        "IS_SAME({CreatedAt}, DATEADD(TODAY(), -1, 'days'), 'day')",
+      );
     });
 
     it('should handle Before operator', () => {
@@ -560,7 +562,7 @@ describe('filter-converter', () => {
     });
   });
 
-  describe('extractRecordId', () => {
+  describe('extractRecordId additional', () => {
     it('should return null when conditionTree is empty', () => {
       const filter = {} as unknown as Filter;
       expect(extractRecordId(filter)).toBeNull();

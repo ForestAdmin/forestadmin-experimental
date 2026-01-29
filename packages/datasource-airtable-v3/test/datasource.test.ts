@@ -51,9 +51,7 @@ describe('AirtableDataSource', () => {
     ];
 
     // Create mock bases
-    mockBases = new Map([
-      ['appBase1', { id: 'appBase1' }],
-    ]);
+    mockBases = new Map([['appBase1', { id: 'appBase1' }]]);
 
     mockLogger = jest.fn();
   });

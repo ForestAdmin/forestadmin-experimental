@@ -4,8 +4,8 @@
 
 import { Logger } from '@forestadmin/datasource-toolkit';
 
-import { RetryOptions } from '../types/config';
 import { DEFAULT_RETRY_OPTIONS, HTTP_STATUS } from './constants';
+import { RetryOptions } from '../types/config';
 
 /**
  * Shared retry options instance
@@ -101,7 +101,7 @@ function calculateDelay(
   }
 
   // Calculate exponential backoff
-  let delay = options.initialDelayMs * Math.pow(options.backoffMultiplier, attempt);
+  let delay = options.initialDelayMs * options.backoffMultiplier ** attempt;
 
   // Add jitter if enabled (randomize by +/- 25%)
   if (options.jitter) {
@@ -126,7 +126,7 @@ function extractRetryAfter(error: unknown): number | undefined {
   if (err.headers?.['retry-after']) {
     const value = parseInt(err.headers['retry-after'], 10);
 
-    if (!isNaN(value)) {
+    if (!Number.isNaN(value)) {
       return value;
     }
   }
@@ -138,7 +138,9 @@ function extractRetryAfter(error: unknown): number | undefined {
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
 
 /**
@@ -149,10 +151,7 @@ function sleep(ms: number): Promise<void> {
  * @returns The result of the function
  * @throws The last error if all retries fail
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options?: RetryOptions,
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T> {
   const opts: Required<RetryOptions> = {
     ...sharedRetryOptions,
     ...options,
@@ -160,8 +159,9 @@ export async function withRetry<T>(
 
   let lastError: Error | unknown;
 
-  for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
+  for (let attempt = 0; attempt <= opts.maxRetries; attempt += 1) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       return await fn();
     } catch (error) {
       lastError = error;

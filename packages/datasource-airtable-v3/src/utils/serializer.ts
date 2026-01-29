@@ -172,7 +172,7 @@ export default class Serializer {
     try {
       const date = new Date(String(value));
 
-      if (isNaN(date.getTime())) {
+      if (Number.isNaN(date.getTime())) {
         return null;
       }
 
@@ -393,7 +393,7 @@ export default class Serializer {
 
       const date = new Date(String(value));
 
-      if (isNaN(date.getTime())) {
+      if (Number.isNaN(date.getTime())) {
         return null;
       }
 
@@ -411,22 +411,24 @@ export default class Serializer {
       return [];
     }
 
-    return value.map(att => {
-      if (typeof att === 'string') {
-        return { url: att };
-      }
+    return value
+      .map(att => {
+        if (typeof att === 'string') {
+          return { url: att };
+        }
 
-      if (typeof att === 'object' && att !== null) {
-        const attachment = att as { url?: string; filename?: string };
+        if (typeof att === 'object' && att !== null) {
+          const attachment = att as { url?: string; filename?: string };
 
-        return {
-          url: attachment.url,
-          filename: attachment.filename,
-        };
-      }
+          return {
+            url: attachment.url,
+            filename: attachment.filename,
+          };
+        }
 
-      return null;
-    }).filter(Boolean);
+        return null;
+      })
+      .filter(Boolean);
   }
 
   /**
@@ -465,9 +467,7 @@ export default class Serializer {
       return single ? [single] : [];
     }
 
-    return value
-      .map(v => Serializer.deserializeCollaborator(v))
-      .filter(Boolean);
+    return value.map(v => Serializer.deserializeCollaborator(v)).filter(Boolean);
   }
 
   /**

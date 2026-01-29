@@ -3,8 +3,8 @@
  */
 
 import {
-  Aggregation,
   AggregateResult,
+  Aggregation,
   BaseCollection,
   Caller,
   DataSource,
@@ -17,15 +17,15 @@ import {
 
 import AirtableModel from './model-builder/model';
 import { AirtableFieldType } from './types/airtable';
-import TypeConverter from './utils/type-converter';
 import AggregationConverter from './utils/aggregation-converter';
 import {
+  buildFields,
   buildFilterFormula,
   buildSort,
-  buildFields,
   extractRecordId,
   extractRecordIds,
 } from './utils/filter-converter';
+import TypeConverter from './utils/type-converter';
 
 export default class AirtableCollection extends BaseCollection {
   /**
@@ -78,9 +78,10 @@ export default class AirtableCollection extends BaseCollection {
       const filterOperators = TypeConverter.getFilterOperators(columnType);
 
       // Handle enum values for single select fields
-      const enumValues = columnType === 'Enum'
-        ? TypeConverter.getEnumValues(field.options as { choices?: Array<{ name: string }> })
-        : undefined;
+      const enumValues =
+        columnType === 'Enum'
+          ? TypeConverter.getEnumValues(field.options as { choices?: Array<{ name: string }> })
+          : undefined;
 
       this.addField(field.name, {
         type: 'Column',
@@ -115,7 +116,7 @@ export default class AirtableCollection extends BaseCollection {
       const multipleIds = extractRecordIds(filter);
 
       if (multipleIds && multipleIds.length > 0) {
-        return this.model.findByIds(multipleIds);
+        return await this.model.findByIds(multipleIds);
       }
 
       // Build query options

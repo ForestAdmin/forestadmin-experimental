@@ -8,7 +8,11 @@
 import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
 
 import AirtableDataSource from './datasource';
-import { Introspector, AirtableDatasourceBuilder, convertManualSchemaToModels } from './introspection';
+import {
+  AirtableDatasourceBuilder,
+  Introspector,
+  convertManualSchemaToModels,
+} from './introspection';
 import {
   AirtableDataSourceOptions,
   ConfigurationOptions,
@@ -108,7 +112,7 @@ export function createAirtableDataSource(
     if (!apiKey) {
       throw new Error(
         'Airtable API key is required. ' +
-        'Set AIRTABLE_API_KEY environment variable or pass apiKey in options.',
+          'Set AIRTABLE_API_KEY environment variable or pass apiKey in options.',
       );
     }
 

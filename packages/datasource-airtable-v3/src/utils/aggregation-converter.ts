@@ -3,7 +3,7 @@
  * Since Airtable doesn't support server-side aggregations, we perform them client-side
  */
 
-import { Aggregation, AggregateResult, RecordData } from '@forestadmin/datasource-toolkit';
+import { AggregateResult, Aggregation, RecordData } from '@forestadmin/datasource-toolkit';
 
 export default class AggregationConverter {
   /**
@@ -23,11 +23,7 @@ export default class AggregationConverter {
     const results: AggregateResult[] = [];
 
     for (const [, { group, records: groupRecords }] of Object.entries(groupedRecords)) {
-      const value = AggregationConverter.calculateAggregation(
-        operation,
-        field,
-        groupRecords,
-      );
+      const value = AggregationConverter.calculateAggregation(operation, field, groupRecords);
 
       results.push({
         value,
@@ -64,7 +60,8 @@ export default class AggregationConverter {
 
     if (!groups || groups.length === 0) {
       // No grouping - single group with all records
-      grouped['__all__'] = {
+      // eslint-disable-next-line no-underscore-dangle
+      grouped.__all__ = {
         group: {},
         records,
       };
@@ -107,17 +104,14 @@ export default class AggregationConverter {
   /**
    * Apply grouping operation to a value (e.g., extracting month from date)
    */
-  private static applyGroupingOperation(
-    value: unknown,
-    operation: string,
-  ): unknown {
+  private static applyGroupingOperation(value: unknown, operation: string): unknown {
     if (!value) {
       return null;
     }
 
     const date = new Date(String(value));
 
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
       return value;
     }
 
@@ -186,7 +180,7 @@ export default class AggregationConverter {
     return records.reduce((sum, record) => {
       const value = Number(record[field]);
 
-      return sum + (isNaN(value) ? 0 : value);
+      return sum + (Number.isNaN(value) ? 0 : value);
     }, 0);
   }
 
@@ -201,7 +195,7 @@ export default class AggregationConverter {
     const validRecords = records.filter(r => {
       const value = r[field];
 
-      return value !== null && value !== undefined && !isNaN(Number(value));
+      return value !== null && value !== undefined && !Number.isNaN(Number(value));
     });
 
     if (validRecords.length === 0) {
@@ -217,9 +211,7 @@ export default class AggregationConverter {
    * Calculate maximum value
    */
   private static calculateMax(records: RecordData[], field: string): number | null {
-    const values = records
-      .map(r => Number(r[field]))
-      .filter(v => !isNaN(v));
+    const values = records.map(r => Number(r[field])).filter(v => !Number.isNaN(v));
 
     if (values.length === 0) {
       return null;
@@ -232,9 +224,7 @@ export default class AggregationConverter {
    * Calculate minimum value
    */
   private static calculateMin(records: RecordData[], field: string): number | null {
-    const values = records
-      .map(r => Number(r[field]))
-      .filter(v => !isNaN(v));
+    const values = records.map(r => Number(r[field])).filter(v => !Number.isNaN(v));
 
     if (values.length === 0) {
       return null;

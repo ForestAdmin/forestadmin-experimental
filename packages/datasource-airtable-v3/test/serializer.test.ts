@@ -228,15 +228,11 @@ describe('Serializer', () => {
 
   describe('deserializeValue', () => {
     it('should handle attachment deserialization', () => {
-      const attachments = [
-        { url: 'https://example.com/file1.pdf', filename: 'file1.pdf' },
-      ];
+      const attachments = [{ url: 'https://example.com/file1.pdf', filename: 'file1.pdf' }];
 
       const result = Serializer.deserializeValue(attachments, 'multipleAttachments');
 
-      expect(result).toEqual([
-        { url: 'https://example.com/file1.pdf', filename: 'file1.pdf' },
-      ]);
+      expect(result).toEqual([{ url: 'https://example.com/file1.pdf', filename: 'file1.pdf' }]);
     });
 
     it('should handle URL-only attachments', () => {
@@ -547,9 +543,9 @@ describe('Serializer', () => {
     });
 
     it('should handle currency', () => {
-      const result = Serializer.serializeValue(100.50, 'currency');
+      const result = Serializer.serializeValue(100.5, 'currency');
 
-      expect(result).toBe(100.50);
+      expect(result).toBe(100.5);
     });
 
     it('should handle rating', () => {

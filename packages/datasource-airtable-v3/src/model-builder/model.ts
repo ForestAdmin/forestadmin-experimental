@@ -5,13 +5,13 @@
  * following the pattern used in datasource-cosmos.
  */
 
-import Airtable, { FieldSet, Record as AirtableSDKRecord } from 'airtable';
 import { RecordData } from '@forestadmin/datasource-toolkit';
+import Airtable, { Record as AirtableSDKRecord, FieldSet } from 'airtable';
 
 import { AirtableFieldType } from '../types/airtable';
 import { RetryOptions } from '../types/config';
 import { BATCH_SIZE, DEFAULT_PAGE_SIZE } from '../utils/constants';
-import { withRetry, getSharedRetryOptions } from '../utils/retry-handler';
+import { getSharedRetryOptions, withRetry } from '../utils/retry-handler';
 import Serializer from '../utils/serializer';
 
 // Airtable SDK types
@@ -96,10 +96,7 @@ export default class AirtableModel {
    */
   async findById(id: string): Promise<RecordData | null> {
     try {
-      const record = await withRetry(
-        () => this.table.find(id),
-        this.retryOptions,
-      );
+      const record = await withRetry(() => this.table.find(id), this.retryOptions);
 
       return this.transformRecord(record);
     } catch (error) {
@@ -162,10 +159,7 @@ export default class AirtableModel {
     }
 
     // Use .all() to handle pagination automatically
-    const records = await withRetry(
-      () => this.table.select(queryOptions).all(),
-      this.retryOptions,
-    );
+    const records = await withRetry(() => this.table.select(queryOptions).all(), this.retryOptions);
 
     return records.map(record => this.transformRecord(record));
   }
@@ -186,10 +180,7 @@ export default class AirtableModel {
       const batch = recordsToCreate.slice(i, i + BATCH_SIZE);
 
       // eslint-disable-next-line no-await-in-loop
-      const created = await withRetry(
-        () => this.table.create(batch),
-        this.retryOptions,
-      );
+      const created = await withRetry(() => this.table.create(batch), this.retryOptions);
 
       for (const record of created) {
         createdRecords.push(this.transformRecord(record));
@@ -215,10 +206,7 @@ export default class AirtableModel {
       const batch = recordsToUpdate.slice(i, i + BATCH_SIZE);
 
       // eslint-disable-next-line no-await-in-loop
-      await withRetry(
-        () => this.table.update(batch),
-        this.retryOptions,
-      );
+      await withRetry(() => this.table.update(batch), this.retryOptions);
     }
   }
 
@@ -231,10 +219,7 @@ export default class AirtableModel {
       const batch = ids.slice(i, i + BATCH_SIZE);
 
       // eslint-disable-next-line no-await-in-loop
-      await withRetry(
-        () => this.table.destroy(batch),
-        this.retryOptions,
-      );
+      await withRetry(() => this.table.destroy(batch), this.retryOptions);
     }
   }
 
