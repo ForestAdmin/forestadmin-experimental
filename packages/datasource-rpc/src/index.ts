@@ -5,7 +5,7 @@ import superagent from 'superagent';
 
 import RpcDataSource from './datasource';
 import { RpcDataSourceOptions, RpcSchema } from './types';
-import { appendHeaders, getAuthoriztionHeaders } from './utils';
+import { appendHeaders, cameliseKeys, getAuthoriztionHeaders, toPascalCase } from './utils';
 
 export { reconciliateRpc } from './plugins';
 
@@ -22,8 +22,52 @@ export async function getintrospection(
   appendHeaders(introRq, authSecret);
 
   const introResp = await introRq.send();
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { collections, charts, rpc_relations, native_query_connections } = introResp.body;
 
-  return introResp.body;
+  const parsedCollections = collections.map(collection => {
+    const parsedActions = Object.entries(collection.actions).reduce((actions, [name, schema]) => {
+      actions[name] = cameliseKeys(schema);
+
+      return actions;
+    }, {});
+
+    const parsedFields = Object.entries(collection.fields).reduce((fields, [name, schema]) => {
+      fields[name] = cameliseKeys(schema);
+      fields[name].filterOperators = fields[name].filterOperators.map(toPascalCase);
+
+      return fields;
+    }, {});
+
+    return {
+      ...collection,
+      actions: parsedActions,
+      fields: parsedFields,
+    };
+  });
+
+  const parsedRelations = Object.entries(rpc_relations).reduce(
+    (rpcRelations, [collectionName, collectionRelations]) => {
+      rpcRelations[collectionName] = Object.entries(collectionRelations).reduce(
+        (relations, [name, schema]) => {
+          relations[name] = cameliseKeys(schema);
+
+          return relations;
+        },
+        {},
+      );
+
+      return rpcRelations;
+    },
+    {},
+  );
+
+  return {
+    collections: parsedCollections,
+    charts,
+    rpcRelations: parsedRelations,
+    nativeQueryConnections: native_query_connections,
+  };
 }
 
 function getHash(schema: RpcSchema) {

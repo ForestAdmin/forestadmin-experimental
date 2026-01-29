@@ -4,6 +4,8 @@ import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/typ
 import { Collection, DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
+import { keysToSnake, transformFilteroperator } from '../utils';
+
 export default class RpcSchemaRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
@@ -26,17 +28,41 @@ export default class RpcSchemaRoute extends BaseRoute {
     router.get('/rpc-schema', this.handleRpc.bind(this));
   }
 
-  buildCollection(collection: Collection) {
-    const fields = Object.entries(collection.schema.fields).reduce((fileds, [name, schema]) => {
-      fileds[name] = {
-        ...schema,
-        filterOperators: Array.from(schema.type === 'Column' ? schema.filterOperators : []),
-      };
+  buildCollection(collection: Collection, relations) {
+    const buildedFields = Object.entries(collection.schema.fields).reduce(
+      (fields, [name, schema]) => {
+        const field = keysToSnake(schema);
 
-      return fileds;
-    }, {});
+        if (schema.type !== 'Column' && this.rpcCollections.includes(schema.foreignCollection)) {
+          relations[name] = field;
+        } else {
+          fields[name] = keysToSnake(schema);
 
-    return { name: collection.name, ...collection.schema, fields };
+          if (schema.type === 'Column') {
+            fields[name].filter_operators = transformFilteroperator(schema.filterOperators);
+          }
+        }
+
+        return fields;
+      },
+      {},
+    );
+
+    const buildedActions = Object.entries(collection.schema.actions).reduce(
+      (actions, [name, schema]) => {
+        actions[name] = keysToSnake(schema);
+
+        return actions;
+      },
+      {},
+    );
+
+    return {
+      name: collection.name,
+      ...collection.schema,
+      fields: buildedFields,
+      actions: buildedActions,
+    };
   }
 
   async handleRpc(context: any) {
@@ -44,25 +70,28 @@ export default class RpcSchemaRoute extends BaseRoute {
     const collections = [];
 
     this.dataSource.collections.forEach(collection => {
-      if (this.rpcCollections.includes(collection.name)) {
-        const relations = {};
+      const relations = {};
 
+      if (this.rpcCollections.includes(collection.name)) {
         Object.entries(collection.schema.fields).forEach(([name, field]) => {
           if (field.type !== 'Column' && !this.rpcCollections.includes(field.foreignCollection)) {
-            relations[name] = field;
+            relations[name] = keysToSnake(field);
           }
         });
 
         if (Object.keys(relations).length > 0) rpcRelations[collection.name] = relations;
       } else {
-        collections.push(this.buildCollection(collection));
+        collections.push(this.buildCollection(collection, relations));
       }
     });
 
     context.response.body = {
       collections: collections.filter(Boolean),
       charts: this.dataSource.schema.charts,
-      rpcRelations,
+      rpc_relations: rpcRelations,
+      native_query_connections: Object.keys(this.dataSource.nativeQueryConnections).map(c => ({
+        name: c,
+      })),
     };
   }
 }
