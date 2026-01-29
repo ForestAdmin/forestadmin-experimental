@@ -2,24 +2,28 @@
  * SubscriptionsCollection - Stripe Subscriptions resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, Projection, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators, withRetry } from '../utils';
 
 /**
  * Collection for Stripe Subscriptions
  * https://stripe.com/docs/api/subscriptions
  */
-class SubscriptionsCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Subscriptions', dataSource, stripe, 'subscriptions');
+export default class SubscriptionsCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Subscriptions', dataSource, stripe, 'subscriptions', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Subscriptions collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -242,11 +246,10 @@ class SubscriptionsCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe to handle subscription-specific fields
+   * Override transformToStripe to handle subscription-specific fields
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove read-only fields specific to subscriptions
     delete data.status;
@@ -266,16 +269,21 @@ class SubscriptionsCollection extends StripeCollection {
   /**
    * Override delete - Cancels the subscription instead of deleting
    */
-  async delete(caller, filter) {
-    const records = await this.list(caller, filter, null);
+  override async delete(caller: Caller, filter: PaginatedFilter): Promise<void> {
+    const records = await this.list(caller, filter, new Projection('id'));
 
-    if (records.length === 0) return;
+    if (records.length === 0) {
+      return;
+    }
 
-    for (const record of records) {
-      // eslint-disable-next-line no-await-in-loop
-      await this.stripe.subscriptions.cancel(record.id);
+    try {
+      for (const record of records) {
+         
+        await withRetry(() => this.stripe.subscriptions.cancel(record.id as string));
+      }
+    } catch (error) {
+      this.log('Error', `Stripe subscription cancel error: ${(error as Error).message}`);
+      throw error;
     }
   }
 }
-
-export default SubscriptionsCollection;

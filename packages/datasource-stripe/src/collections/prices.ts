@@ -2,24 +2,28 @@
  * PricesCollection - Stripe Prices resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators } from '../utils';
 
 /**
  * Collection for Stripe Prices
  * https://stripe.com/docs/api/prices
  */
-class PricesCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Prices', dataSource, stripe, 'prices');
+export default class PricesCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Prices', dataSource, stripe, 'prices', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Prices collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -55,12 +59,12 @@ class PricesCollection extends StripeCollection {
       isSortable: false,
     });
 
-    // Pricing
+    // Pricing (stored as formatted strings like "200.00")
     this.addField('unit_amount', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: false,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
@@ -192,11 +196,10 @@ class PricesCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe to handle price-specific fields
+   * Override transformToStripe to handle price-specific fields
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove read-only field
     delete data.type;
@@ -207,10 +210,8 @@ class PricesCollection extends StripeCollection {
   /**
    * Override delete - Prices cannot be deleted in Stripe, only archived
    */
-  async delete(caller, filter) {
+  override async delete(caller: Caller, filter: PaginatedFilter): Promise<void> {
     // Instead of deleting, we set active to false
     await this.update(caller, filter, { active: false });
   }
 }
-
-export default PricesCollection;

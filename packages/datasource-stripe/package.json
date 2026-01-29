@@ -1,9 +1,8 @@
 {
   "name": "@forestadmin-experimental/datasource-stripe",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Forest Admin DataSource for Stripe - Connect your Stripe account to Forest Admin",
-  "main": "src/index.js",
-  "types": "types/index.d.ts",
+  "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {
     "access": "public"
@@ -14,14 +13,18 @@
     "directory": "packages/datasource-stripe"
   },
   "files": [
-    "src/**/*.js",
-    "types/**/*.d.ts",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
     "README.md"
   ],
   "scripts": {
-    "build": "echo 'No build required for JS project'",
-    "lint": "eslint src/",
-    "test": "echo 'No tests yet'",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "lint": "eslint src test",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "publish:package": "semantic-release"
   },
   "keywords": [
@@ -39,10 +42,24 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "dependencies": {
-    "stripe": "^14.25.0"
-  },
   "peerDependencies": {
-    "@forestadmin/datasource-toolkit": "^1.0.0"
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "stripe": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "@jest/types": "^29.6.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "jest": "^29.7.0",
+    "jest-extended": "^4.0.0",
+    "stripe": "^17.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
   }
 }

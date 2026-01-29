@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+*.log
+.DS_Store
+
+# Don't commit compiled files - only keep .ts sources
+*.js
+*.d.ts
+*.d.ts.map
+
+# Exceptions: allow .js config files
+!.releaserc.js
+!*.config.js
+!jest.config.ts

@@ -2,8 +2,12 @@
  * BalanceTransactionsCollection - Stripe Balance Transactions resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators } from '../utils';
 
 /**
  * Collection for Stripe Balance Transactions
@@ -12,17 +16,17 @@ import StripeCollection from '../stripe-collection';
  * Note: Balance transactions are read-only in Stripe.
  * They are created automatically when money moves in or out of your Stripe account.
  */
-class BalanceTransactionsCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Balance Transactions', dataSource, stripe, 'balance_transactions');
+export default class BalanceTransactionsCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Balance Transactions', dataSource, stripe, 'balance_transactions', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Balance Transactions collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -201,7 +205,7 @@ class BalanceTransactionsCollection extends StripeCollection {
   /**
    * Override create - Balance transactions cannot be created directly
    */
-  async create() {
+  override async create(_caller: Caller, _data: RecordData[]): Promise<RecordData[]> {
     throw new Error(
       'Balance transactions cannot be created directly. ' +
         'They are created automatically when money moves in your Stripe account.',
@@ -211,16 +215,18 @@ class BalanceTransactionsCollection extends StripeCollection {
   /**
    * Override update - Balance transactions cannot be modified
    */
-  async update() {
+  override async update(
+    _caller: Caller,
+    _filter: PaginatedFilter,
+    _patch: RecordData,
+  ): Promise<void> {
     throw new Error('Balance transactions are read-only and cannot be modified.');
   }
 
   /**
    * Override delete - Balance transactions cannot be deleted
    */
-  async delete() {
+  override async delete(_caller: Caller, _filter: PaginatedFilter): Promise<void> {
     throw new Error('Balance transactions cannot be deleted.');
   }
 }
-
-export default BalanceTransactionsCollection;

@@ -1,4 +1,4 @@
-# @forestadmin/datasource-stripe
+# @forestadmin-experimental/datasource-stripe
 
 Forest Admin DataSource for Stripe - Connect your Stripe account to Forest Admin.
 
@@ -10,6 +10,41 @@ Forest Admin DataSource for Stripe - Connect your Stripe account to Forest Admin
 - **Type Mapping**: Automatic mapping of Stripe types to Forest Admin field types
 - **Filtering**: Support for common filter operations on Stripe data
 - **Resource Selection**: Include or exclude specific Stripe resources
+- **Retry Mechanism**: Built-in retry with exponential backoff for rate limiting
+- **TypeScript**: Full TypeScript support with type definitions
+
+## Architecture
+
+```
+datasource-stripe/
+├── src/
+│   ├── collections/          # Individual collection implementations
+│   │   ├── balance-transactions.ts
+│   │   ├── charges.ts
+│   │   ├── customers.ts
+│   │   ├── index.ts
+│   │   ├── invoices.ts
+│   │   ├── payment-intents.ts
+│   │   ├── prices.ts
+│   │   ├── products.ts
+│   │   ├── refunds.ts
+│   │   └── subscriptions.ts
+│   ├── types/                # TypeScript type definitions
+│   │   ├── config.ts
+│   │   ├── index.ts
+│   │   └── stripe.ts
+│   ├── utils/                # Utility functions
+│   │   ├── constants.ts
+│   │   ├── index.ts
+│   │   ├── retry-handler.ts
+│   │   ├── serializer.ts
+│   │   └── type-converter.ts
+│   ├── collection.ts         # Base collection class
+│   ├── datasource.ts         # Main datasource class
+│   └── index.ts              # Public API exports
+├── test/                     # Unit tests
+└── package.json
+```
 
 ## Supported Resources
 
@@ -30,16 +65,16 @@ Forest Admin DataSource for Stripe - Connect your Stripe account to Forest Admin
 ## Installation
 
 ```bash
-npm install @forestadmin/datasource-stripe stripe
+npm install @forestadmin-experimental/datasource-stripe stripe
 ```
 
 ## Quick Start
 
 ### Basic Usage
 
-```javascript
-const { createAgent } = require('@forestadmin/agent');
-const { createStripeDataSource } = require('@forestadmin/datasource-stripe');
+```typescript
+import { createAgent } from '@forestadmin/agent';
+import { createStripeDataSource } from '@forestadmin-experimental/datasource-stripe';
 
 const agent = createAgent({
   authSecret: process.env.FOREST_AUTH_SECRET,
@@ -56,7 +91,7 @@ agent.start();
 
 ### With Configuration
 
-```javascript
+```typescript
 agent.addDataSource(createStripeDataSource({
   // Stripe Secret Key (optional if STRIPE_SECRET_KEY env var is set)
   secretKey: 'sk_test_xxxxx',
@@ -69,6 +104,14 @@ agent.addDataSource(createStripeDataSource({
 
   // Exclude specific resources (optional)
   excludeResources: ['balance_transactions'],
+
+  // Retry options for rate limiting (optional)
+  retryOptions: {
+    maxRetries: 5,
+    initialDelayMs: 1000,
+    maxDelayMs: 30000,
+    backoffMultiplier: 2,
+  },
 }));
 ```
 
@@ -80,6 +123,16 @@ agent.addDataSource(createStripeDataSource({
 | `apiVersion` | `string` | `'2023-10-16'` | Stripe API version |
 | `includeResources` | `string[]` | `null` (all) | Only include these resources |
 | `excludeResources` | `string[]` | `[]` | Exclude these resources |
+| `retryOptions` | `RetryOptions` | See below | Retry configuration |
+
+### Retry Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `maxRetries` | `number` | `3` | Maximum number of retry attempts |
+| `initialDelayMs` | `number` | `1000` | Initial delay before first retry (ms) |
+| `maxDelayMs` | `number` | `30000` | Maximum delay between retries (ms) |
+| `backoffMultiplier` | `number` | `2` | Multiplier for exponential backoff |
 
 ## Environment Variables
 
@@ -216,21 +269,24 @@ The datasource supports filtering on common fields:
 
 Stripe uses cents for currency amounts. The datasource provides utility functions:
 
-```javascript
-const { formatCurrencyAmount, toCurrencyAmount } = require('@forestadmin/datasource-stripe');
+```typescript
+import { formatCurrencyAmount, toCurrencyAmount } from '@forestadmin-experimental/datasource-stripe';
 
 // Convert from cents to decimal
 formatCurrencyAmount(1000, 'usd'); // Returns 10.00
 
 // Convert from decimal to cents
 toCurrencyAmount(10.00, 'usd'); // Returns 1000
+
+// Zero-decimal currencies (JPY, KRW, etc.) are handled automatically
+formatCurrencyAmount(1000, 'jpy'); // Returns 1000
 ```
 
 ## Customization
 
 ### Adding Custom Actions
 
-```javascript
+```typescript
 agent.customizeCollection('Stripe Customers', collection => {
   collection.addAction('Send Welcome Email', {
     scope: 'Single',
@@ -245,7 +301,7 @@ agent.customizeCollection('Stripe Customers', collection => {
 
 ### Adding Computed Fields
 
-```javascript
+```typescript
 agent.customizeCollection('Stripe Invoices', collection => {
   collection.addField('amount_due_formatted', {
     columnType: 'String',
@@ -264,17 +320,68 @@ The datasource handles Stripe API errors and provides meaningful error messages.
 - **Authentication Error**: Invalid or missing API key
 - **Resource Missing**: Record not found
 - **Invalid Request**: Invalid parameters or operation
+- **Rate Limit Error**: Too many requests (automatically retried)
+
+### Rate Limiting
+
+The datasource includes built-in retry logic for rate limit errors (HTTP 429). By default:
+- Up to 3 retries with exponential backoff
+- Initial delay of 1 second, doubling with each retry
+- Maximum delay capped at 30 seconds
+
+## Exported Utilities
+
+```typescript
+import {
+  // Main exports
+  createStripeDataSource,
+  StripeDataSource,
+  StripeCollection,
+
+  // Collection classes
+  CustomersCollection,
+  ProductsCollection,
+  PricesCollection,
+  SubscriptionsCollection,
+  InvoicesCollection,
+  PaymentIntentsCollection,
+  ChargesCollection,
+  RefundsCollection,
+  BalanceTransactionsCollection,
+
+  // Types
+  StripeDataSourceOptions,
+  RetryOptions,
+  StripeResourceType,
+  StripeRecord,
+
+  // Utilities
+  withRetry,
+  formatCurrencyAmount,
+  toCurrencyAmount,
+  timestampToDate,
+  dateToTimestamp,
+  mapFieldType,
+  getFilterOperators,
+
+  // Constants
+  DEFAULT_PAGE_SIZE,
+  STRIPE_API_VERSION,
+  SUPPORTED_RESOURCES,
+  ZERO_DECIMAL_CURRENCIES,
+} from '@forestadmin-experimental/datasource-stripe';
+```
 
 ## Limitations
 
 1. **Pagination**: Stripe uses cursor-based pagination; page numbers are not supported
 2. **Sorting**: Limited sorting options based on Stripe API capabilities
 3. **Complex Filters**: Some advanced filtering may require client-side processing
-4. **Rate Limits**: Subject to Stripe API rate limits
+4. **Rate Limits**: Subject to Stripe API rate limits (automatic retry included)
 
 ## License
 
-MIT
+GPL-3.0
 
 ## Contributing
 
@@ -282,6 +389,6 @@ Contributions are welcome! Please read the contributing guidelines first.
 
 ## Support
 
-- [GitHub Issues](https://github.com/anthropics/datasource-stripe/issues)
+- [GitHub Issues](https://github.com/ForestAdmin/forestadmin-experimental/issues)
 - [Forest Admin Documentation](https://docs.forestadmin.com/)
 - [Stripe API Documentation](https://stripe.com/docs/api)

@@ -2,24 +2,28 @@
  * PaymentIntentsCollection - Stripe PaymentIntents resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, Projection, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators, withRetry } from '../utils';
 
 /**
  * Collection for Stripe Payment Intents
  * https://stripe.com/docs/api/payment_intents
  */
-class PaymentIntentsCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Payment Intents', dataSource, stripe, 'payment_intents');
+export default class PaymentIntentsCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Payment Intents', dataSource, stripe, 'payment_intents', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the PaymentIntents collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -30,20 +34,20 @@ class PaymentIntentsCollection extends StripeCollection {
       isSortable: false,
     });
 
-    // Amount and currency
+    // Amount and currency (stored as formatted strings like "200.00")
     this.addField('amount', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: false,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('amount_received', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
@@ -120,9 +124,9 @@ class PaymentIntentsCollection extends StripeCollection {
 
     this.addField('amount_capturable', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: false,
     });
 
@@ -162,7 +166,7 @@ class PaymentIntentsCollection extends StripeCollection {
       isSortable: false,
     });
 
-    // Client secret (partially masked for security)
+    // Client secret
     this.addField('client_secret', {
       type: 'Column',
       columnType: 'String',
@@ -251,11 +255,10 @@ class PaymentIntentsCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe to handle payment intent-specific fields
+   * Override transformToStripe to handle payment intent-specific fields
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove read-only fields
     delete data.status;
@@ -273,19 +276,24 @@ class PaymentIntentsCollection extends StripeCollection {
   /**
    * Override delete - Cancels the payment intent instead of deleting
    */
-  async delete(caller, filter) {
-    const records = await this.list(caller, filter, null);
+  override async delete(caller: Caller, filter: PaginatedFilter): Promise<void> {
+    const records = await this.list(caller, filter, new Projection('id', 'status'));
 
-    if (records.length === 0) return;
+    if (records.length === 0) {
+      return;
+    }
 
-    for (const record of records) {
-      // Only cancel if not already in a terminal state
-      if (!['succeeded', 'canceled'].includes(record.status)) {
-        // eslint-disable-next-line no-await-in-loop
-        await this.stripe.paymentIntents.cancel(record.id);
+    try {
+      for (const record of records) {
+        // Only cancel if not already in a terminal state
+        if (!['succeeded', 'canceled'].includes(record.status as string)) {
+           
+          await withRetry(() => this.stripe.paymentIntents.cancel(record.id as string));
+        }
       }
+    } catch (error) {
+      this.log('Error', `Stripe payment intent cancel error: ${(error as Error).message}`);
+      throw error;
     }
   }
 }
-
-export default PaymentIntentsCollection;

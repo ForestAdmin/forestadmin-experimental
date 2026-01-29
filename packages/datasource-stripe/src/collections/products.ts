@@ -2,24 +2,28 @@
  * ProductsCollection - Stripe Products resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Logger, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators } from '../utils';
 
 /**
  * Collection for Stripe Products
  * https://stripe.com/docs/api/products
  */
-class ProductsCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Products', dataSource, stripe, 'products');
+export default class ProductsCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Products', dataSource, stripe, 'products', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Products collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -170,11 +174,10 @@ class ProductsCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe to handle product-specific fields
+   * Override transformToStripe to handle product-specific fields
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove read-only field
     delete data.type;
@@ -182,5 +185,3 @@ class ProductsCollection extends StripeCollection {
     return data;
   }
 }
-
-export default ProductsCollection;

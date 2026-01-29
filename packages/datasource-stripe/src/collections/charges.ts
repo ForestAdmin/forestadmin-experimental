@@ -2,24 +2,28 @@
  * ChargesCollection - Stripe Charges resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators } from '../utils';
 
 /**
  * Collection for Stripe Charges
  * https://stripe.com/docs/api/charges
  */
-class ChargesCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Charges', dataSource, stripe, 'charges');
+export default class ChargesCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Charges', dataSource, stripe, 'charges', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Charges collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -30,28 +34,28 @@ class ChargesCollection extends StripeCollection {
       isSortable: false,
     });
 
-    // Amount and currency
+    // Amount and currency (stored as formatted strings like "200.00")
     this.addField('amount', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('amount_captured', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: false,
     });
 
     this.addField('amount_refunded', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: false,
     });
 
@@ -292,8 +296,7 @@ class ChargesCollection extends StripeCollection {
    * Charges are mostly read-only in Stripe (created via PaymentIntents)
    * Only certain fields can be updated after creation
    */
-  // eslint-disable-next-line no-underscore-dangle, class-methods-use-this
-  _transformToStripe(record) {
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
     // Only metadata, description, receipt_email, fraud_details can be updated
     return {
       description: record.description,
@@ -306,16 +309,14 @@ class ChargesCollection extends StripeCollection {
   /**
    * Override create - Charges should be created via PaymentIntents in modern Stripe
    */
-  async create() {
+  override async create(_caller: Caller, _data: RecordData[]): Promise<RecordData[]> {
     throw new Error('Charges cannot be created directly. Use Payment Intents instead.');
   }
 
   /**
    * Override delete - Charges cannot be deleted, only refunded
    */
-  async delete() {
+  override async delete(_caller: Caller, _filter: PaginatedFilter): Promise<void> {
     throw new Error('Charges cannot be deleted. Create a refund instead.');
   }
 }
-
-export default ChargesCollection;

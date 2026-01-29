@@ -2,24 +2,28 @@
  * InvoicesCollection - Stripe Invoices resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, Projection, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators, withRetry } from '../utils';
 
 /**
  * Collection for Stripe Invoices
  * https://stripe.com/docs/api/invoices
  */
-class InvoicesCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Invoices', dataSource, stripe, 'invoices');
+export default class InvoicesCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Invoices', dataSource, stripe, 'invoices', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Invoices collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -82,52 +86,52 @@ class InvoicesCollection extends StripeCollection {
       isSortable: false,
     });
 
-    // Amounts
+    // Amounts (stored as formatted strings like "200.00")
     this.addField('amount_due', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('amount_paid', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('amount_remaining', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('subtotal', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('total', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
     this.addField('tax', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: true,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: false,
     });
 
@@ -287,11 +291,10 @@ class InvoicesCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe to handle invoice-specific fields
+   * Override transformToStripe to handle invoice-specific fields
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove read-only fields specific to invoices
     delete data.status;
@@ -322,24 +325,29 @@ class InvoicesCollection extends StripeCollection {
    * Override delete - Voids the invoice instead of deleting
    * Only draft invoices can be deleted; others must be voided
    */
-  async delete(caller, filter) {
-    const records = await this.list(caller, filter, null);
+  override async delete(caller: Caller, filter: PaginatedFilter): Promise<void> {
+    const records = await this.list(caller, filter, new Projection('id', 'status'));
 
-    if (records.length === 0) return;
+    if (records.length === 0) {
+      return;
+    }
 
-    for (const record of records) {
-      if (record.status === 'draft') {
-        // Draft invoices can be deleted
-        // eslint-disable-next-line no-await-in-loop
-        await this.stripe.invoices.del(record.id);
-      } else if (record.status === 'open') {
-        // Open invoices must be voided
-        // eslint-disable-next-line no-await-in-loop
-        await this.stripe.invoices.voidInvoice(record.id);
+    try {
+      for (const record of records) {
+        if (record.status === 'draft') {
+          // Draft invoices can be deleted
+           
+          await withRetry(() => this.stripe.invoices.del(record.id as string));
+        } else if (record.status === 'open') {
+          // Open invoices must be voided
+           
+          await withRetry(() => this.stripe.invoices.voidInvoice(record.id as string));
+        }
+        // Paid/void/uncollectible invoices cannot be deleted or voided
       }
-      // Paid/void/uncollectible invoices cannot be deleted or voided
+    } catch (error) {
+      this.log('Error', `Stripe invoice delete/void error: ${(error as Error).message}`);
+      throw error;
     }
   }
 }
-
-export default InvoicesCollection;

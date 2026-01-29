@@ -2,24 +2,28 @@
  * RefundsCollection - Stripe Refunds resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Caller, Logger, PaginatedFilter, Projection, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators, withRetry } from '../utils';
 
 /**
  * Collection for Stripe Refunds
  * https://stripe.com/docs/api/refunds
  */
-class RefundsCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Refunds', dataSource, stripe, 'refunds');
+export default class RefundsCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Refunds', dataSource, stripe, 'refunds', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Refunds collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -30,12 +34,12 @@ class RefundsCollection extends StripeCollection {
       isSortable: false,
     });
 
-    // Amount and currency
+    // Amount and currency (stored as formatted strings like "200.00")
     this.addField('amount', {
       type: 'Column',
-      columnType: 'Number',
+      columnType: 'String',
       isReadOnly: false,
-      filterOperators: getFilterOperators('number'),
+      filterOperators: getFilterOperators('string'),
       isSortable: true,
     });
 
@@ -158,11 +162,10 @@ class RefundsCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe for refund creation
+   * Override transformToStripe for refund creation
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove read-only fields
     delete data.status;
@@ -178,19 +181,24 @@ class RefundsCollection extends StripeCollection {
   /**
    * Override delete - Cancel the refund
    */
-  async delete(caller, filter) {
-    const records = await this.list(caller, filter, null);
+  override async delete(caller: Caller, filter: PaginatedFilter): Promise<void> {
+    const records = await this.list(caller, filter, new Projection('id', 'status'));
 
-    if (records.length === 0) return;
+    if (records.length === 0) {
+      return;
+    }
 
-    for (const record of records) {
-      // Only pending refunds can be canceled
-      if (record.status === 'pending' || record.status === 'requires_action') {
-        // eslint-disable-next-line no-await-in-loop
-        await this.stripe.refunds.cancel(record.id);
+    try {
+      for (const record of records) {
+        // Only pending refunds can be canceled
+        if (record.status === 'pending' || record.status === 'requires_action') {
+           
+          await withRetry(() => this.stripe.refunds.cancel(record.id as string));
+        }
       }
+    } catch (error) {
+      this.log('Error', `Stripe refund cancel error: ${(error as Error).message}`);
+      throw error;
     }
   }
 }
-
-export default RefundsCollection;

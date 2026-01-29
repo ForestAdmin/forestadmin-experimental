@@ -2,24 +2,28 @@
  * CustomersCollection - Stripe Customers resource
  */
 
-import { getFilterOperators } from '../field-mapper';
-import StripeCollection from '../stripe-collection';
+import { Logger, RecordData } from '@forestadmin/datasource-toolkit';
+import Stripe from 'stripe';
+
+import StripeCollection from '../collection';
+import StripeDataSource from '../datasource';
+import { getFilterOperators } from '../utils';
 
 /**
  * Collection for Stripe Customers
  * https://stripe.com/docs/api/customers
  */
-class CustomersCollection extends StripeCollection {
-  constructor(dataSource, stripe) {
-    super('Stripe Customers', dataSource, stripe, 'customers');
+export default class CustomersCollection extends StripeCollection {
+  constructor(dataSource: StripeDataSource, stripe: Stripe, logger?: Logger) {
+    super('Stripe Customers', dataSource, stripe, 'customers', logger);
 
-    this._registerFields();
+    this.registerFields();
   }
 
   /**
    * Register all fields for the Customers collection
    */
-  _registerFields() {
+  private registerFields(): void {
     // Primary key
     this.addField('id', {
       type: 'Column',
@@ -169,11 +173,10 @@ class CustomersCollection extends StripeCollection {
   }
 
   /**
-   * Override _transformToStripe to handle customer-specific fields
+   * Override transformToStripe to handle customer-specific fields
    */
-  _transformToStripe(record) {
-    // eslint-disable-next-line no-underscore-dangle
-    const data = super._transformToStripe(record);
+  protected override transformToStripe(record: RecordData): Record<string, unknown> {
+    const data = super.transformToStripe(record);
 
     // Remove additional read-only fields specific to customers
     delete data.balance;
@@ -184,5 +187,3 @@ class CustomersCollection extends StripeCollection {
     return data;
   }
 }
-
-export default CustomersCollection;
