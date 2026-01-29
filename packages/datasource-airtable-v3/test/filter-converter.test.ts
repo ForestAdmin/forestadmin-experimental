@@ -291,7 +291,8 @@ describe('filter-converter', () => {
         value: 7,
       } as unknown as ConditionTree;
       expect(buildFilterFormula(tree)).toBe(
-        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -7, 'days')), IS_BEFORE({CreatedAt}, DATEADD(TODAY(), 1, 'days')))",
+        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -7, 'days')), " +
+          "IS_BEFORE({CreatedAt}, DATEADD(TODAY(), 1, 'days')))",
       );
     });
 
@@ -302,7 +303,8 @@ describe('filter-converter', () => {
         value: '30',
       } as unknown as ConditionTree;
       expect(buildFilterFormula(tree)).toBe(
-        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -30, 'days')), IS_BEFORE({CreatedAt}, DATEADD(TODAY(), 1, 'days')))",
+        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -30, 'days')), " +
+          "IS_BEFORE({CreatedAt}, DATEADD(TODAY(), 1, 'days')))",
       );
     });
 
@@ -324,7 +326,8 @@ describe('filter-converter', () => {
         value: null,
       } as unknown as ConditionTree;
       expect(buildFilterFormula(tree)).toBe(
-        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -1, 'months')), IS_BEFORE({CreatedAt}, TODAY()))",
+        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -1, 'months')), " +
+          'IS_BEFORE({CreatedAt}, TODAY()))',
       );
     });
 
@@ -335,7 +338,8 @@ describe('filter-converter', () => {
         value: null,
       } as unknown as ConditionTree;
       expect(buildFilterFormula(tree)).toBe(
-        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -3, 'months')), IS_BEFORE({CreatedAt}, TODAY()))",
+        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -3, 'months')), " +
+          'IS_BEFORE({CreatedAt}, TODAY()))',
       );
     });
 
@@ -346,7 +350,8 @@ describe('filter-converter', () => {
         value: null,
       } as unknown as ConditionTree;
       expect(buildFilterFormula(tree)).toBe(
-        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -1, 'years')), IS_BEFORE({CreatedAt}, TODAY()))",
+        "AND(IS_AFTER({CreatedAt}, DATEADD(TODAY(), -1, 'years')), " +
+          'IS_BEFORE({CreatedAt}, TODAY()))',
       );
     });
 
