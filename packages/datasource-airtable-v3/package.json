@@ -1,0 +1,50 @@
+{
+  "name": "@forestadmin-experimental/datasource-airtable-v3",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/datasource-airtable-v3"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "lint": "eslint src test",
+    "test": "jest",
+    "publish:package": "semantic-release"
+  },
+  "peerDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "airtable": "^0.12.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "@jest/types": "^29.6.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "airtable": "^0.12.2",
+    "eslint": "^8.45.0",
+    "jest": "^29.7.0",
+    "jest-extended": "^4.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}
