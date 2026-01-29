@@ -1,5 +1,5 @@
 /**
- * @forestadmin-experimental/datasource-airtable-v3
+ * @forestadmin-experimental/datasource-airtable
  *
  * Forest Admin DataSource for Airtable - TypeScript implementation
  * Following the architecture pattern of datasource-cosmos

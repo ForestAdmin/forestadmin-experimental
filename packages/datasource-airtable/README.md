@@ -1,4 +1,4 @@
-# @forestadmin-experimental/datasource-airtable-v3
+# @forestadmin-experimental/datasource-airtable
 
 A TypeScript implementation of Forest Admin DataSource for Airtable, following the architecture pattern of datasource-cosmos.
 
@@ -14,9 +14,9 @@ A TypeScript implementation of Forest Admin DataSource for Airtable, following t
 ## Installation
 
 ```bash
-npm install @forestadmin-experimental/datasource-airtable-v3
+npm install @forestadmin-experimental/datasource-airtable
 # or
-yarn add @forestadmin-experimental/datasource-airtable-v3
+yarn add @forestadmin-experimental/datasource-airtable
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ yarn add @forestadmin-experimental/datasource-airtable-v3
 
 ```typescript
 import { createAgent } from '@forestadmin/agent';
-import { createAirtableDataSource } from '@forestadmin-experimental/datasource-airtable-v3';
+import { createAirtableDataSource } from '@forestadmin-experimental/datasource-airtable';
 
 const agent = createAgent({
   authSecret: process.env.FOREST_AUTH_SECRET,
@@ -56,7 +56,7 @@ agent.addDataSource(createAirtableDataSource({
 ### Builder Pattern
 
 ```typescript
-import { createAirtableDataSourceWithBuilder } from '@forestadmin-experimental/datasource-airtable-v3';
+import { createAirtableDataSourceWithBuilder } from '@forestadmin-experimental/datasource-airtable';
 
 agent.addDataSource(createAirtableDataSourceWithBuilder(
   'pat...',
@@ -77,7 +77,7 @@ agent.addDataSource(createAirtableDataSourceWithBuilder(
 ### Manual Schema (No Introspection)
 
 ```typescript
-import { createAirtableDataSourceWithSchema } from '@forestadmin-experimental/datasource-airtable-v3';
+import { createAirtableDataSourceWithSchema } from '@forestadmin-experimental/datasource-airtable';
 
 agent.addDataSource(createAirtableDataSourceWithSchema(
   'pat...',
