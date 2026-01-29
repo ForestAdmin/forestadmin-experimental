@@ -1,0 +1,39 @@
+{
+  "name": "@forestadmin-experimental/datasource-airtable",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/datasource-airtable"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf coverage dist",
+    "lint": "eslint src test",
+    "test": "jest",
+    "publish:package": "semantic-release"
+  },
+  "peerDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "airtable": "^0.12.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@forestadmin/datasource-toolkit": "^1.45.0",
+    "airtable": "^0.12.2"
+  }
+}
