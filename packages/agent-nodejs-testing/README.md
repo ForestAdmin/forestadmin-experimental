@@ -1,3 +1,18 @@
+# ⚠️ DEPRECATED
+
+This package is deprecated in favor of [`@forestadmin/agent-testing`](https://www.npmjs.com/package/@forestadmin/agent-testing).
+
+Please migrate to the new package:
+
+```bash
+npm uninstall @forestadmin-experimental/agent-nodejs-testing
+npm install @forestadmin/agent-testing
+```
+
+**Note:** Unit tests from this package have not been backported to `@forestadmin/agent-testing`. Only integration testing utilities are available.
+
+---
+
 # Agent Testing Library
 
 **Internally at Forest Admin, we use it to test our agents.**
