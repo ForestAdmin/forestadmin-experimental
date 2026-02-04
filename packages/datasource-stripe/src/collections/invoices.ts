@@ -268,7 +268,7 @@ export default class InvoicesCollection extends StripeCollection {
       type: 'Column',
       columnType: 'Json',
       isReadOnly: false,
-      filterOperators: new Set([]),
+      filterOperators: new Set(['Contains', 'NotContains', 'Present', 'Blank']),
       isSortable: false,
     });
 
