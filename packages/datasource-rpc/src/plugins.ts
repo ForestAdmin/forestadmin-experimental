@@ -23,7 +23,7 @@ function getCollectionName(collectionName: string, rename?: PluginOptions['renam
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export function reconciliateRpc(dz, options?: PluginOptions) {
+export function reconciliateRpc(dz, _, options?: PluginOptions) {
   dz.compositeDataSource.dataSources.forEach((datasource: BaseDataSource | DataSourceDecorator) => {
     const d = getRealDatasource(datasource);
 
