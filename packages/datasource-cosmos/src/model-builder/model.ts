@@ -1,5 +1,5 @@
 import { Container, CosmosClient, ItemDefinition, SqlQuerySpec } from '@azure/cosmos';
-import { RecordData } from '@forestadmin/datasource-toolkit';
+import { Logger, RecordData } from '@forestadmin/datasource-toolkit';
 import { randomUUID } from 'crypto';
 
 import { OverrideTypeConverter } from '../introspection/builder';
@@ -13,6 +13,29 @@ import {
 import Serializer from '../utils/serializer';
 
 export { RetryOptions, configureRetryOptions, getSharedRetryOptions };
+
+/**
+ * Shared RU logging configuration
+ */
+let sharedRuLoggingEnabled = false;
+let sharedRuLogger: Logger | null = null;
+
+/**
+ * Configure RU logging for all Cosmos DB operations
+ * @param enabled Whether to enable RU consumption logging
+ * @param logger The Forest Admin logger to use for RU logging
+ */
+export function configureRuLogging(enabled: boolean, logger?: Logger): void {
+  sharedRuLoggingEnabled = enabled;
+  sharedRuLogger = logger ?? null;
+}
+
+/**
+ * Check if RU logging is enabled
+ */
+export function isRuLoggingEnabled(): boolean {
+  return sharedRuLoggingEnabled;
+}
 
 export interface CosmosSchema {
   [key: string]: {
@@ -154,12 +177,13 @@ export default class ModelCosmos {
       };
 
       // eslint-disable-next-line no-await-in-loop -- Sequential execution maintains order
-      const { resource } = await withRetry(
+      const response = await withRetry(
         () => this.container.items.create(itemToCreate),
         this.retryOptions,
       );
+      this.logRuConsumption('create', response.requestCharge);
       // Flatten and serialize the response
-      createdRecords.push(Serializer.serialize(resource));
+      createdRecords.push(Serializer.serialize(response.resource));
     }
 
     return createdRecords;
@@ -174,21 +198,23 @@ export default class ModelCosmos {
     for (const { id, partitionKey } of items) {
       // Point read: directly fetch item using id + partition key (1 RU)
       // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-      const { resource: existingItem } = await withRetry(
+      const readResponse = await withRetry(
         () => this.container.item(id, partitionKey).read(),
         this.retryOptions,
       );
+      this.logRuConsumption('update.read', readResponse.requestCharge);
 
-      if (existingItem) {
+      if (readResponse.resource) {
         // Deep merge the unflattened patch with the existing item
-        const updatedItem = Serializer.deepMerge(existingItem, unflattenedPatch);
+        const updatedItem = Serializer.deepMerge(readResponse.resource, unflattenedPatch);
 
         // Point update: directly update using id + partition key
         // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-        await withRetry(
+        const replaceResponse = await withRetry(
           () => this.container.item(id, partitionKey).replace(updatedItem),
           this.retryOptions,
         );
+        this.logRuConsumption('update.replace', replaceResponse.requestCharge);
       }
     }
   }
@@ -198,7 +224,11 @@ export default class ModelCosmos {
     for (const { id, partitionKey } of items) {
       // Point delete: directly delete using id + partition key
       // eslint-disable-next-line no-await-in-loop -- Sequential maintains consistency
-      await withRetry(() => this.container.item(id, partitionKey).delete(), this.retryOptions);
+      const response = await withRetry(
+        () => this.container.item(id, partitionKey).delete(),
+        this.retryOptions,
+      );
+      this.logRuConsumption('delete', response.requestCharge);
     }
   }
 
@@ -222,12 +252,13 @@ export default class ModelCosmos {
 
     // If no pagination parameters, fetch all (backward compatibility)
     if (offset === undefined && limit === undefined) {
-      const { resources } = await withRetry(
+      const response = await withRetry(
         () => this.container.items.query(querySpec, queryOptions).fetchAll(),
         this.retryOptions,
       );
+      this.logRuConsumption('query.fetchAll', response.requestCharge);
 
-      return resources.map(item => Serializer.serialize(item));
+      return response.resources.map(item => Serializer.serialize(item));
     }
 
     const effectiveOffset = offset || 0;
@@ -281,7 +312,8 @@ export default class ModelCosmos {
     // Iterate through pages until we have enough items
     // eslint-disable-next-line no-restricted-syntax
     for await (const response of queryIterator.getAsyncIterator()) {
-      const { resources: page, continuationToken } = response;
+      const { resources: page, continuationToken, requestCharge } = response;
+      this.logRuConsumption('query.page', requestCharge);
 
       // Store continuation token for future use at regular intervals
       const cacheInterval = this.paginationCache.getCacheInterval();
@@ -336,12 +368,13 @@ export default class ModelCosmos {
       queryOptions.partitionKey = partitionKey;
     }
 
-    const { resources } = await withRetry(
+    const response = await withRetry(
       () => this.container.items.query(querySpec, queryOptions).fetchAll(),
       this.retryOptions,
     );
+    this.logRuConsumption('aggregate', response.requestCharge);
 
-    return resources.map(item => Serializer.serialize(item));
+    return response.resources.map(item => Serializer.serialize(item));
   }
 
   public async count(querySpec?: SqlQuerySpec, partitionKey?: string | number): Promise<number> {
@@ -357,22 +390,24 @@ export default class ModelCosmos {
       const countQuery: SqlQuerySpec = {
         query: 'SELECT VALUE COUNT(1) FROM c',
       };
-      const { resources } = await withRetry(
+      const response = await withRetry(
         () => this.container.items.query<number>(countQuery, queryOptions).fetchAll(),
         this.retryOptions,
       );
+      this.logRuConsumption('count', response.requestCharge);
 
-      return resources[0] || 0;
+      return response.resources[0] || 0;
     }
 
     // Convert the query to a COUNT query to avoid fetching all records
     const countQuery = this.convertToCountQuery(querySpec);
-    const { resources } = await withRetry(
+    const response = await withRetry(
       () => this.container.items.query<number>(countQuery, queryOptions).fetchAll(),
       this.retryOptions,
     );
+    this.logRuConsumption('count', response.requestCharge);
 
-    return resources[0] || 0;
+    return response.resources[0] || 0;
   }
 
   /**
@@ -439,5 +474,17 @@ export default class ModelCosmos {
    */
   public getContainerName(): string {
     return this.containerName;
+  }
+
+  /**
+   * Log RU consumption if enabled
+   */
+  private logRuConsumption(operation: string, requestCharge: number | undefined): void {
+    if (!sharedRuLoggingEnabled || requestCharge === undefined) {
+      return;
+    }
+
+    const message = `[Cosmos RU] ${this.name}.${operation}: ${requestCharge} RUs`;
+    sharedRuLogger?.('Info', message);
   }
 }
