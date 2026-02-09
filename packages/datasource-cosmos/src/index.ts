@@ -4,6 +4,7 @@ import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
 import CosmosDataSource from './datasource';
 import { ConfigurationOptions, CosmosDatasourceBuilder } from './introspection/builder';
 import Introspector, { VirtualArrayCollectionConfig } from './introspection/introspector';
+import { configureRuLogging } from './model-builder/model';
 import { ManualSchemaConfig } from './types/manual-schema';
 import { convertManualSchemaToModels } from './utils/manual-schema-converter';
 import VirtualCollectionManager from './virtual-collection-manager';
@@ -59,6 +60,7 @@ export { default as TypeConverter } from './utils/type-converter';
 export { default as ModelCosmos } from './model-builder/model';
 export { configurePaginationCache, getSharedPaginationCache } from './model-builder/model';
 export { configureRetryOptions, getSharedRetryOptions } from './model-builder/model';
+export { configureRuLogging, isRuLoggingEnabled } from './model-builder/model';
 export { default as PaginationCache } from './utils/pagination-cache';
 export {
   withRetry,
@@ -169,6 +171,12 @@ export function createCosmosDataSource(
      * Allows you to define collections and their fields explicitly
      */
     schema?: ManualSchemaConfig;
+    /**
+     * Enable logging of Request Unit (RU) consumption for each Cosmos DB operation
+     * Useful for monitoring and optimizing database costs
+     * Default: false
+     */
+    logRuConsumption?: boolean;
   },
 ): DataSourceFactory {
   return async (logger: Logger) => {
@@ -186,7 +194,13 @@ export function createCosmosDataSource(
       introspectionConfig,
       disableIntrospection,
       schema,
+      logRuConsumption,
     } = options || {};
+
+    // Configure RU logging if enabled
+    if (logRuConsumption) {
+      configureRuLogging(true, logger);
+    }
 
     // Apply introspection config defaults
     const finalIntrospectionConfig: IntrospectionConfig = {
@@ -281,6 +295,12 @@ export function createCosmosDataSourceForEmulator(
     introspectionConfig?: IntrospectionConfig;
     disableIntrospection?: boolean;
     schema?: ManualSchemaConfig;
+    /**
+     * Enable logging of Request Unit (RU) consumption for each Cosmos DB operation
+     * Useful for monitoring and optimizing database costs
+     * Default: false
+     */
+    logRuConsumption?: boolean;
   },
 ): DataSourceFactory {
   // Default emulator connection details
