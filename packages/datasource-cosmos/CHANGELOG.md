@@ -1,3 +1,13 @@
+# [1.7.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.4...datasource-cosmos@1.7.0) (2026-02-09)
+
+
+### Features
+
+* add datasource-stripe ([#198](https://github.com/ForestAdmin/forestadmin-experimental/issues/198)) ([cc3be30](https://github.com/ForestAdmin/forestadmin-experimental/commit/cc3be30e74d92bc9b2ad90a063a29175ae54fb7e))
+* **cosmos:** add RU consumption logs ([#204](https://github.com/ForestAdmin/forestadmin-experimental/issues/204)) ([c7af33e](https://github.com/ForestAdmin/forestadmin-experimental/commit/c7af33ed9292bdd101df43ae286bbacd41e8fdfc))
+* **datasource-airtable:** add Airtable datasource package ([#200](https://github.com/ForestAdmin/forestadmin-experimental/issues/200)) ([155e6fa](https://github.com/ForestAdmin/forestadmin-experimental/commit/155e6fafd089c5ef3a1ed6528ba6923bc0e709b4))
+* **rpc agent:** add mark collection as rpc option on add datasource ([#195](https://github.com/ForestAdmin/forestadmin-experimental/issues/195)) ([6372499](https://github.com/ForestAdmin/forestadmin-experimental/commit/6372499bd80f67d847389743454d1d5e4252ef7f))
+
 ## [1.6.4](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.3...datasource-cosmos@1.6.4) (2025-12-01)
 
 
