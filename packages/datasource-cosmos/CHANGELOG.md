@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.7.0...datasource-cosmos@1.7.1) (2026-02-12)
+
+
+### Bug Fixes
+
+* **cosmos:** rename reserved aliases ([#205](https://github.com/ForestAdmin/forestadmin-experimental/issues/205)) ([8f72858](https://github.com/ForestAdmin/forestadmin-experimental/commit/8f72858caa60fe4d108615d456a91790e7f393d0))
+
 # [1.7.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.6.4...datasource-cosmos@1.7.0) (2026-02-09)
 
 
