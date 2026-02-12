@@ -67,7 +67,33 @@ export default class CosmosDataSource extends BaseDataSource<CosmosCollection> {
 
     const { resources } = await container.items.query(querySpec).fetchAll();
 
-    return resources;
+    return this.renameReservedAliases(resources);
+  }
+
+  /**
+   * Cosmos DB NoSQL treats "value", "key", "previous" and "objective" as reserved keywords,
+   * so they cannot be used as column aliases (e.g. "AS value" fails).
+   * This method allows users to use underscore-prefixed aliases (_value, _key, _previous,
+   * _objective) in their queries and automatically renames them to the names expected
+   * by Forest Admin charts.
+   */
+  private renameReservedAliases(results: Record<string, unknown>[]): Record<string, unknown>[] {
+    const aliasMap: Record<string, string> = {
+      _value: 'value',
+      _key: 'key',
+      _previous: 'previous',
+      _objective: 'objective',
+    };
+
+    return results.map(row => {
+      const renamed: Record<string, unknown> = {};
+
+      for (const [k, v] of Object.entries(row)) {
+        renamed[aliasMap[k] ?? k] = v;
+      }
+
+      return renamed;
+    });
   }
 
   /**
