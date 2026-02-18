@@ -106,6 +106,7 @@ function convertColumn(column: IntrospectedColumn, primaryKeys: string[]): Colum
     isPrimaryKey,
     isReadOnly: isPrimaryKey,
     isSortable: !column.isArray,
+    isGroupable: isPrimaryKey,
     filterOperators: getOperatorsForType(column.type, column.isArray),
     validation: column.nullable ? [] : [{ operator: 'Present' }],
     defaultValue: column.defaultValue,

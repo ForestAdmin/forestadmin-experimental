@@ -4,6 +4,7 @@ import {
   buildAggregateQuery,
   buildCreateMutation,
   buildDeleteMutation,
+  buildGroupedAggregateQuery,
   buildListQuery,
   buildUpdateMutation,
 } from '../../src/utils/query-builder';
@@ -205,17 +206,77 @@ describe('QueryBuilder', () => {
       expect(variables.where).toEqual({ status: { _eq: 'completed' } });
     });
 
-    it('should include group by fields in nodes', () => {
+    it('should generate count(columns: field) for Count with a field', () => {
       const filter = {} as any;
-      const aggregation = {
-        operation: 'Count',
-        groups: [{ field: 'status' }],
+      const aggregation = { operation: 'Count', field: 'rate' } as any;
+
+      const { query } = buildAggregateQuery('posts', filter, aggregation);
+
+      expect(query).toContain('count(columns: rate)');
+    });
+  });
+
+  describe('buildGroupedAggregateQuery', () => {
+    const relInfo = {
+      parentTable: 'users',
+      relationshipName: 'posts',
+      parentPkField: 'id',
+    };
+
+    it('should query the parent collection with nested _aggregate', () => {
+      const filter = {} as any;
+      const aggregation = { operation: 'Count' } as any;
+
+      const { query } = buildGroupedAggregateQuery('posts', relInfo, filter, aggregation);
+
+      expect(query).toContain('query AggregateUsers');
+      expect(query).toContain('users {');
+      expect(query).toContain('id');
+      expect(query).toContain('posts_aggregate');
+      expect(query).toContain('count');
+    });
+
+    it('should build a grouped sum aggregation on parent', () => {
+      const filter = {} as any;
+      const aggregation = { operation: 'Sum', field: 'rate' } as any;
+
+      const { query } = buildGroupedAggregateQuery('posts', relInfo, filter, aggregation);
+
+      expect(query).toContain('users {');
+      expect(query).toContain('posts_aggregate');
+      expect(query).toContain('sum');
+      expect(query).toContain('rate');
+    });
+
+    it('should apply filter on the nested _aggregate (child table bool_exp)', () => {
+      const filter = {
+        conditionTree: {
+          field: 'published',
+          operator: 'Equal',
+          value: true,
+        },
       } as any;
+      const aggregation = { operation: 'Count' } as any;
 
-      const { query } = buildAggregateQuery('orders', filter, aggregation);
+      const { query, variables } = buildGroupedAggregateQuery(
+        'posts',
+        relInfo,
+        filter,
+        aggregation,
+      );
 
-      expect(query).toContain('nodes');
-      expect(query).toContain('status');
+      expect(query).toContain('$where: posts_bool_exp');
+      expect(query).toContain('posts_aggregate(where: $where)');
+      expect(variables.where).toEqual({ published: { _eq: true } });
+    });
+
+    it('should generate count(columns: field) for Count with a field', () => {
+      const filter = {} as any;
+      const aggregation = { operation: 'Count', field: 'rate' } as any;
+
+      const { query } = buildGroupedAggregateQuery('posts', relInfo, filter, aggregation);
+
+      expect(query).toContain('count(columns: rate)');
     });
   });
 });

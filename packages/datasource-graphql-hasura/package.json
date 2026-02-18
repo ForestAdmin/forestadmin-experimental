@@ -1,5 +1,5 @@
 {
-  "name": "@forestadmin/datasource-graphql",
+  "name": "@forestadmin-experimental/datasource-graphql-hasura",
   "version": "1.0.0",
   "main": "dist/index.js",
   "license": "GPL-3.0",

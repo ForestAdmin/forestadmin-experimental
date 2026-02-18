@@ -1,3 +1,4 @@
+import type { GroupRelationInfo } from './aggregation';
 import type { HasuraOrderBy } from '../types';
 import type { Aggregation, PaginatedFilter, Sort } from '@forestadmin/datasource-toolkit';
 
@@ -134,31 +135,6 @@ function buildProjectionFields(projection: Projection): string {
 }
 
 /**
- * Build aggregation fields for Hasura
- */
-function buildAggregationFields(aggregation: Aggregation): string {
-  const operationMap: Record<string, string> = {
-    Count: 'count',
-    Sum: 'sum',
-    Avg: 'avg',
-    Max: 'max',
-    Min: 'min',
-  };
-
-  const hasuraOp = operationMap[aggregation.operation];
-
-  if (aggregation.operation === 'Count') {
-    return 'count';
-  }
-
-  if (aggregation.field) {
-    return `${hasuraOp} {\n        ${aggregation.field}\n      }`;
-  }
-
-  return 'count';
-}
-
-/**
  * Build a GraphQL query for listing records
  */
 export function buildListQuery(
@@ -280,50 +256,29 @@ mutation Delete${capitalize(tableName)}($where: ${tableName}_bool_exp!) {
 }
 
 /**
- * Build group by fields for aggregate query, handling nested relations
+ * Build the aggregate operation fields for a GraphQL aggregate query
  */
-function buildGroupByFields(groups: { field: string }[]): string {
-  const directFields: Set<string> = new Set();
-  const relationFields: Map<string, Set<string>> = new Map();
+function buildAggregationFields(aggregation: Aggregation): string {
+  const { operation, field } = aggregation;
 
-  for (const group of groups) {
-    const { field } = group;
-
-    if (field.includes(':')) {
-      const [relation, ...rest] = field.split(':');
-
-      if (!relationFields.has(relation)) {
-        relationFields.set(relation, new Set());
-      }
-
-      relationFields.get(relation).add(rest.join(':'));
-    } else {
-      directFields.add(field);
-    }
+  if (operation === 'Count') {
+    return field ? `count(columns: ${field})` : 'count';
   }
 
-  let result = Array.from(directFields).join('\n        ');
-
-  for (const [relation, subFields] of relationFields) {
-    const nestedFields = Array.from(subFields).join('\n          ');
-    result += `\n        ${relation} {\n          ${nestedFields}\n        }`;
-  }
-
-  return result;
+  return `${operation.toLowerCase()} {\n        ${field}\n      }`;
 }
 
 /**
- * Build a GraphQL query for aggregating records
- * For grouped aggregations, we fetch nodes and aggregate client-side
+ * Build a GraphQL query for simple (non-grouped) aggregation
  */
 export function buildAggregateQuery(
   tableName: string,
   filter: PaginatedFilter,
   aggregation: Aggregation,
 ): GraphqlQuery {
+  const args: string[] = [];
   const variables: Record<string, unknown> = {};
   const varDefs: string[] = [];
-  const args: string[] = [];
 
   if (filter.conditionTree) {
     varDefs.push(`$where: ${tableName}_bool_exp`);
@@ -333,27 +288,56 @@ export function buildAggregateQuery(
 
   const varDefsString = varDefs.length ? `(${varDefs.join(', ')})` : '';
   const argsString = args.length ? `(${args.join(', ')})` : '';
-
-  // Build aggregation fields
-  const aggFields = buildAggregationFields(aggregation);
-
-  // Build group by fields if any (using nested structure for relations)
-  let groupByFields = '';
-
-  if (aggregation.groups?.length) {
-    const groupFields = buildGroupByFields(aggregation.groups);
-    groupByFields = `
-    nodes {
-      ${groupFields}
-    }`;
-  }
+  const aggregateFields = buildAggregationFields(aggregation);
 
   const query = `
 query Aggregate${capitalize(tableName)}${varDefsString} {
   ${tableName}_aggregate${argsString} {
     aggregate {
-      ${aggFields}
-    }${groupByFields}
+      ${aggregateFields}
+    }
+  }
+}`.trim();
+
+  return { query, variables };
+}
+
+/**
+ * Build a GraphQL query for grouped aggregation via parent collection.
+ * Hasura handles grouping natively through nested _aggregate on relationships.
+ *
+ * Example: count posts grouped by author_id →
+ *   query { users { id  posts_aggregate { aggregate { count } } } }
+ */
+export function buildGroupedAggregateQuery(
+  childTableName: string,
+  relInfo: GroupRelationInfo,
+  filter: PaginatedFilter,
+  aggregation: Aggregation,
+): GraphqlQuery {
+  const aggArgs: string[] = [];
+  const variables: Record<string, unknown> = {};
+  const varDefs: string[] = [];
+
+  if (filter.conditionTree) {
+    varDefs.push(`$where: ${childTableName}_bool_exp`);
+    aggArgs.push('where: $where');
+    variables.where = convertFilter(filter.conditionTree);
+  }
+
+  const varDefsString = varDefs.length ? `(${varDefs.join(', ')})` : '';
+  const aggArgsString = aggArgs.length ? `(${aggArgs.join(', ')})` : '';
+  const aggregateFields = buildAggregationFields(aggregation);
+
+  const query = `
+query Aggregate${capitalize(relInfo.parentTable)}${varDefsString} {
+  ${relInfo.parentTable} {
+    ${relInfo.parentPkField}
+    ${relInfo.relationshipName}_aggregate${aggArgsString} {
+      aggregate {
+        ${aggregateFields}
+      }
+    }
   }
 }`.trim();
 

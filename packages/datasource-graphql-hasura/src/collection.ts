@@ -1,8 +1,10 @@
 import type { IntrospectedTable } from './types';
+import type { GroupRelationInfo } from './utils/aggregation';
 import type {
   AggregateResult,
   Aggregation,
   Caller,
+  ColumnSchema,
   DataSource,
   Filter,
   PaginatedFilter,
@@ -13,14 +15,15 @@ import type { GraphQLClient } from 'graphql-request';
 import { BaseCollection, Projection } from '@forestadmin/datasource-toolkit';
 
 import { buildFields } from './introspection';
+import { executeGroupedAggregate, extractAggregateValue } from './utils/aggregation';
 import {
   buildAggregateQuery,
   buildCreateMutation,
   buildDeleteMutation,
+  buildGroupedAggregateQuery,
   buildListQuery,
   buildUpdateMutation,
 } from './utils/query-builder';
-import convertAggregateResults from './utils/result-converter';
 
 export class GraphqlCollection extends BaseCollection {
   private readonly client: GraphQLClient;
@@ -32,6 +35,13 @@ export class GraphqlCollection extends BaseCollection {
 
     this.enableCount();
     this.addFields(buildFields(table));
+    table.relationships.forEach(rel => {
+      if (rel.type !== 'object') return;
+
+      const fk = Object.keys(rel.mapping)[0];
+      (this.schema.fields[fk] as ColumnSchema).isGroupable = true;
+    });
+    this.setAggregationCapabilities({ supportGroups: true, supportedDateOperations: new Set() });
   }
 
   /**
@@ -118,42 +128,95 @@ export class GraphqlCollection extends BaseCollection {
    * Aggregate records
    */
   async aggregate(
-    caller: Caller,
+    _caller: Caller,
     filter: Filter,
     aggregation: Aggregation,
     limit?: number,
   ): Promise<AggregateResult[]> {
-    const { query, variables } = buildAggregateQuery(
-      this.name,
-      filter as PaginatedFilter,
-      aggregation,
-    );
-
     try {
-      const result = await this.client.request(query, variables);
-
-      const aggregateResult = result[`${this.name}_aggregate`];
-
-      if (!aggregateResult) {
-        return [{ value: 0, group: {} }];
+      if (!aggregation.groups?.length) {
+        return await this.executeSimpleAggregate(filter as PaginatedFilter, aggregation);
       }
 
-      const results = convertAggregateResults(
-        aggregateResult,
-        aggregation.operation,
-        aggregation.field ?? undefined,
-        aggregation.groups,
-      );
-
-      // Apply limit if specified
-      if (limit && results.length > limit) {
-        return results.slice(0, limit);
-      }
-
-      return results;
+      return await this.executeGroupedAggregate(filter as PaginatedFilter, aggregation, limit);
     } catch (error) {
       throw this.wrapError('aggregate', error);
     }
+  }
+
+  /**
+   * Simple aggregation (no groups) — query <table>_aggregate directly
+   */
+  private async executeSimpleAggregate(
+    filter: PaginatedFilter,
+    aggregation: Aggregation,
+  ): Promise<AggregateResult[]> {
+    const { query, variables } = buildAggregateQuery(this.name, filter, aggregation);
+    const result = await this.client.request(query, variables);
+    const data = result[`${this.name}_aggregate`];
+    const value = extractAggregateValue(data.aggregate, aggregation);
+
+    if (value === null || value === undefined) return [];
+
+    return [{ value, group: {} }];
+  }
+
+  /**
+   * Grouped aggregation on FK — query parent collection with nested _aggregate.
+   * Hasura handles the GROUP BY natively through the relationship.
+   */
+  private async executeGroupedAggregate(
+    filter: PaginatedFilter,
+    aggregation: Aggregation,
+    limit?: number,
+  ): Promise<AggregateResult[]> {
+    const groupField = aggregation.groups?.[0].field;
+
+    if (!groupField) return [];
+
+    const relInfo = this.findGroupRelationInfo(groupField);
+    const { query, variables } = buildGroupedAggregateQuery(
+      this.name,
+      relInfo,
+      filter,
+      aggregation,
+    );
+
+    const result = await this.client.request(query, variables);
+
+    return executeGroupedAggregate(result, relInfo, groupField, aggregation, limit);
+  }
+
+  /**
+   * Find the parent table relationship info for a FK field used in grouping.
+   * Looks up the ManyToOne on this collection, then finds the reverse OneToMany on the parent.
+   */
+  private findGroupRelationInfo(fkField: string): GroupRelationInfo {
+    for (const field of Object.values(this.schema.fields)) {
+      if (field.type !== 'ManyToOne' || field.foreignKey !== fkField) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      const parentCollection = this.dataSource.getCollection(field.foreignCollection);
+
+      for (const [relName, relField] of Object.entries(parentCollection.schema.fields)) {
+        if (
+          relField.type === 'OneToMany' &&
+          relField.foreignCollection === this.name &&
+          relField.originKey === fkField
+        ) {
+          return {
+            parentTable: field.foreignCollection,
+            parentPkField: field.foreignKeyTarget,
+            relationshipName: relName,
+            fkField,
+          };
+        }
+      }
+    }
+
+    throw new Error(`No relationship found for FK field '${fkField}' on collection '${this.name}'`);
   }
 
   /**
