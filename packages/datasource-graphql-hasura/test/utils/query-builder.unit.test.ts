@@ -221,6 +221,7 @@ describe('QueryBuilder', () => {
       parentTable: 'users',
       relationshipName: 'posts',
       parentPkField: 'id',
+      fkField: 'user_id',
     };
 
     it('should query the parent collection with nested _aggregate', () => {
