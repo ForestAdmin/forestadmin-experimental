@@ -16,10 +16,10 @@
     "graphql-request": "^6.1.0"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-toolkit": ">=1.50.1"
+    "@forestadmin/datasource-toolkit": ">=1.52.0"
   },
   "devDependencies": {
-    "@forestadmin/datasource-toolkit": "1.50.1"
+    "@forestadmin/datasource-toolkit": "1.52.0"
   },
   "files": [
     "dist/**/*.js",
