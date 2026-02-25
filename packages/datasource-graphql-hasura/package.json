@@ -1,6 +1,6 @@
 {
   "name": "@forestadmin-experimental/datasource-graphql-hasura",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -8,8 +8,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ForestAdmin/agent-nodejs.git",
-    "directory": "packages/datasource-graphql"
+    "url": "git+https://github.com/ForestAdmin/forestadmin-experimental.git",
+    "directory": "packages/datasource-graphql-hasura"
   },
   "dependencies": {
     "graphql": "^16.8.1",
