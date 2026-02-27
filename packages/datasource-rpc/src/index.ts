@@ -2,7 +2,7 @@ import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
 import superagent from 'superagent';
 
 import RpcDataSource from './datasource';
-import { RpcDataSourceOptions, RpcSchema } from './types';
+import { IntrospectionSchema, RpcDataSourceOptions, RpcSchema } from './types';
 import { appendHeaders, cameliseKeys, toPascalCase } from './utils';
 
 export { reconciliateRpc } from './plugins';
@@ -11,38 +11,32 @@ const DEFAULT_POLLING_INTERVAL = 6000;
 const MIN_POLLING_INTERVAL = 3000;
 const MAX_POLLING_INTERVAL = 36000;
 
-export async function getintrospection(
-  logger: Logger,
-  uri: string,
-  authSecret: string,
-  etag?: string,
-): Promise<RpcSchema> {
-  logger('Info', `Getting schema from Rpc agent on ${uri}.`);
-
-  const introRq = superagent.get(`${uri}/forest/rpc-schema`);
-  appendHeaders(introRq, authSecret);
-  if (etag) introRq.set('if-none-match', etag);
-
-  const introResp = await introRq.send();
+function parseIntrospection(introSchema: IntrospectionSchema): RpcSchema {
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { collections, charts, rpc_relations, native_query_connections } = introResp.body;
+  const { collections, charts, rpc_relations, native_query_connections, etag } = introSchema;
 
   const parsedCollections = collections.map(collection => {
-    const parsedActions = Object.entries(collection.actions).reduce((actions, [name, schema]) => {
-      actions[name] = cameliseKeys(schema);
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { actions, fields, aggregation_capabilities, ...rest } = collection;
+    const parsedActions = Object.entries(actions).reduce((pActions, [name, schema]) => {
+      pActions[name] = cameliseKeys(schema);
 
-      return actions;
+      return pActions;
     }, {});
 
-    const parsedFields = Object.entries(collection.fields).reduce((fields, [name, schema]) => {
-      fields[name] = cameliseKeys(schema);
-      fields[name].filterOperators = fields[name].filterOperators.map(toPascalCase);
+    const parsedFields = Object.entries(fields).reduce((pFields, [name, schema]) => {
+      pFields[name] = cameliseKeys(schema);
+      pFields[name].filterOperators = new Set(pFields[name].filterOperators.map(toPascalCase));
 
-      return fields;
+      return pFields;
     }, {});
 
     return {
-      ...collection,
+      ...rest,
+      aggregationCapabilities: {
+        supportedDateOperations: new Set(aggregation_capabilities.supported_date_operations),
+        supportGroups: aggregation_capabilities.support_groups,
+      },
       actions: parsedActions,
       fields: parsedFields,
     };
@@ -69,8 +63,25 @@ export async function getintrospection(
     charts,
     rpcRelations: parsedRelations,
     nativeQueryConnections: native_query_connections,
-    etag: introResp.headers.etag,
+    etag,
   };
+}
+
+async function getIntrospection(
+  logger: Logger,
+  uri: string,
+  authSecret: string,
+  etag?: string,
+): Promise<RpcSchema> {
+  logger('Info', `Getting schema from Rpc agent on ${uri}.`);
+
+  const introRq = superagent.get(`${uri}/forest/rpc-schema`);
+  appendHeaders(introRq, authSecret);
+  if (etag) introRq.set('if-none-match', etag);
+
+  const introResp = await introRq.send();
+
+  return parseIntrospection(introResp.body);
 }
 
 function startPolling(
@@ -86,7 +97,7 @@ function startPolling(
 
   const inter = setInterval(async () => {
     try {
-      const intro = await getintrospection(logger, uri, authSecret, etag);
+      const intro = await getIntrospection(logger, uri, authSecret, etag);
 
       if (etag !== intro?.etag) {
         logger('Info', `Schema change detected on Rpc agent ${uri}. Restarting agent.`);
@@ -112,10 +123,10 @@ export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFa
   return async (logger: Logger, restartAgent: () => Promise<void>) => {
     const { authSecret, uri } = options;
     const { introspection } = options;
-    let schema = introspection;
+    let schema = parseIntrospection(introspection);
 
     try {
-      schema = await getintrospection(logger, uri, authSecret);
+      schema = await getIntrospection(logger, uri, authSecret);
     } catch (error) {
       if (!introspection) throw error;
     }

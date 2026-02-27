@@ -4,24 +4,24 @@ import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/typ
 import { DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
-import { BuildedSchema } from '../types';
+import RpcAgent from '../agent';
 
 export default class RpcSchemaRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
   protected readonly dataSource: DataSource;
-  private readonly buildedSchema: BuildedSchema;
+  private readonly agent: RpcAgent;
 
   constructor(
     services: ForestAdminHttpDriverServices,
     options: AgentOptionsWithDefaults,
     dataSource: DataSource,
-    buildedSchema: BuildedSchema,
+    agent: RpcAgent,
   ) {
     super(services, options);
 
     this.dataSource = dataSource;
-    this.buildedSchema = buildedSchema;
+    this.agent = agent;
   }
 
   override setupRoutes(router: Router): void {
@@ -31,15 +31,13 @@ export default class RpcSchemaRoute extends BaseRoute {
   async handleRpc(context: any) {
     const { 'if-none-match': etag } = context.headers;
 
-    context.set('ETag', this.buildedSchema.etag);
-
-    if (etag && this.buildedSchema.etag === etag) {
+    if (etag && this.agent.buildedSchema.etag === etag) {
       this.options.logger('Debug', 'ETag matches, returning 304 Not Modified');
       context.status = 304;
 
       return;
     }
 
-    context.response.body = this.buildedSchema.schema;
+    context.response.body = this.agent.buildedSchema;
   }
 }

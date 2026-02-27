@@ -47,14 +47,12 @@ export default class RpcCollection extends BaseCollection {
     schema.charts.forEach(chart => this.addChart(chart));
 
     Object.entries(schema.fields).forEach(([fieldName, fieldSchema]) => {
-      if (fieldSchema.type === 'Column') {
-        fieldSchema.filterOperators = new Set(fieldSchema.filterOperators);
-      }
-
       this.addField(fieldName, fieldSchema);
     });
 
     this.addSegments(schema.segments);
+
+    this.setAggregationCapabilities(schema.aggregationCapabilities);
   }
 
   async create(caller: Caller, data: RecordData[]) {

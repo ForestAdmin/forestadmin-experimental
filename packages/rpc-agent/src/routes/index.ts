@@ -17,7 +17,7 @@ import RpcListRoute from './list';
 import RpcNativeQueryRoute from './native-query';
 import RpcSchemaRoute from './schema';
 import RpcUpdateRoute from './update';
-import { BuildedSchema } from '../types';
+import RpcAgent from '../agent';
 
 export const ROOT_ROUTES_CTOR = [
   AuthenticationRoute,
@@ -62,11 +62,11 @@ export function makeRpcRoutes(
   dataSource: DataSource,
   options: Options,
   services: Services,
-  buildedSchema: BuildedSchema,
+  agent: RpcAgent,
 ): BaseRoute[] {
   const routes = [
     ...getRootRoutes(options, services),
-    new RpcSchemaRoute(services, options, dataSource, buildedSchema),
+    new RpcSchemaRoute(services, options, dataSource, agent),
     ...getRpcCollectionsRoutes(dataSource, options, services),
     new RpcDatasourceChartRoute(services, options, dataSource),
     new RpcNativeQueryRoute(services, options, dataSource),

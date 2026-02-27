@@ -1,10 +1,11 @@
-import type { BuildedSchema, RpcSchema } from './types';
+import type { RpcSchema } from './types';
 
 import { Agent, AgentOptions } from '@forestadmin/agent';
 import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
 import { DataSourceOptions, TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
 import { Collection, DataSource, DataSourceFactory } from '@forestadmin/datasource-toolkit';
 import { createHash } from 'crypto';
+import fs from 'fs/promises';
 
 import RpcDataSourceCustomizer from './datasource-customizer';
 import { makeRpcRoutes } from './routes';
@@ -13,10 +14,7 @@ import { keysToSnake, transformFilteroperator } from './utils';
 export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
   private readonly rpcCollections: string[] = [];
   protected override customizer: RpcDataSourceCustomizer<S>;
-  private readonly buildedSchema = {
-    etag: null,
-    schema: null,
-  } as BuildedSchema;
+  private _buildedSchema: RpcSchema = null;
 
   constructor(options: AgentOptions) {
     super(options);
@@ -24,6 +22,10 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
     this.customizer = new RpcDataSourceCustomizer<S>({
       ignoreMissingSchemaElementErrors: options.ignoreMissingSchemaElementErrors || false,
     });
+  }
+
+  get buildedSchema() {
+    return this._buildedSchema;
   }
 
   override addDataSource(
@@ -48,17 +50,23 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
   }
 
   override getRoutes(dataSource: DataSource, services: ForestAdminHttpDriverServices) {
-    return makeRpcRoutes(dataSource, this.options, services, this.buildedSchema);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return makeRpcRoutes(dataSource, this.options, services, this as RpcAgent<any>);
   }
 
   override async sendSchema(dataSource: DataSource): Promise<void> {
-    this.buildedSchema.schema = this.buildSchema(dataSource);
+    this._buildedSchema = this.buildSchema(dataSource);
     this.options.logger('Info', 'RPC agent schema computed from datasource and cached.');
 
-    this.buildedSchema.etag = createHash('sha1')
-      .update(JSON.stringify(this.buildedSchema.schema))
+    this._buildedSchema.etag = createHash('sha1')
+      .update(JSON.stringify(this._buildedSchema))
       .digest('hex');
-    this.options.logger('Debug', `RPC agent schema hash computed: ${this.buildedSchema.etag}`);
+    this.options.logger('Debug', `RPC agent schema hash computed: ${this._buildedSchema.etag}`);
+
+    await fs.writeFile(
+      '.forestadmin-rpc-schema.json',
+      JSON.stringify(this._buildedSchema, null, 2),
+    );
 
     this.options.logger('Info', 'Started as RPC agent, schema not sended.');
   }
@@ -70,37 +78,39 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
   }
 
   buildCollection(collection: Collection, relations) {
-    const buildedFields = Object.entries(collection.schema.fields).reduce(
-      (fields, [name, schema]) => {
-        const field = keysToSnake(schema);
+    const { fields, actions, aggregationCapabilities, ...rest } = collection.schema;
 
-        if (schema.type !== 'Column' && this.rpcCollections.includes(schema.foreignCollection)) {
-          relations[name] = field;
-        } else {
-          fields[name] = keysToSnake(schema);
+    const buildedFields = Object.entries(fields).reduce((bFields, [name, schema]) => {
+      const field = keysToSnake(schema);
 
-          if (schema.type === 'Column') {
-            fields[name].filter_operators = transformFilteroperator(schema.filterOperators);
-          }
+      if (schema.type !== 'Column' && this.rpcCollections.includes(schema.foreignCollection)) {
+        relations[name] = field;
+      } else {
+        bFields[name] = keysToSnake(schema);
+
+        if (schema.type === 'Column') {
+          bFields[name].filter_operators = transformFilteroperator(schema.filterOperators);
         }
+      }
 
-        return fields;
-      },
-      {},
-    );
+      return bFields;
+    }, {});
 
-    const buildedActions = Object.entries(collection.schema.actions).reduce(
-      (actions, [name, schema]) => {
-        actions[name] = keysToSnake(schema);
+    const buildedActions = Object.entries(actions).reduce((bActions, [name, schema]) => {
+      bActions[name] = keysToSnake(schema);
 
-        return actions;
-      },
-      {},
-    );
+      return bActions;
+    }, {});
+
+    const buildAggregationCapabilities = {
+      supported_date_operations: Array.from(aggregationCapabilities.supportedDateOperations),
+      support_groups: aggregationCapabilities.supportGroups,
+    };
 
     return {
       name: collection.name,
-      ...collection.schema,
+      ...rest,
+      aggregation_capabilities: buildAggregationCapabilities,
       fields: buildedFields,
       actions: buildedActions,
     };

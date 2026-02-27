@@ -1,5 +1,9 @@
 import type { DataSourceOptions } from '@forestadmin/datasource-customizer';
-import type { CollectionSchema, RelationSchema } from '@forestadmin/datasource-toolkit';
+import type {
+  CollectionSchema,
+  DateOperation,
+  RelationSchema,
+} from '@forestadmin/datasource-toolkit';
 
 export type RpcSchema = {
   collections: (CollectionSchema & { name: string })[];
@@ -9,10 +13,26 @@ export type RpcSchema = {
   etag: string;
 };
 
+type IntrospectionCollection = Omit<CollectionSchema, 'aggregationCapabilities'> & {
+  name: string;
+  aggregation_capabilities: {
+    support_groups: boolean;
+    supported_date_operations: DateOperation[];
+  };
+};
+
+export type IntrospectionSchema = {
+  collections: IntrospectionCollection[];
+  charts: string[];
+  rpc_relations: Record<string, Record<string, RelationSchema>>;
+  native_query_connections: { name: string }[];
+  etag: string;
+};
+
 export type RpcDataSourceOptions = {
   authSecret: string;
   uri: string;
-  introspection?: RpcSchema;
+  introspection?: IntrospectionSchema;
   pollingInterval?: number;
 };
 
