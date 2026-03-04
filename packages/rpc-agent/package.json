@@ -17,11 +17,6 @@
     "@forestadmin/datasource-customizer": "^1.68.2",
     "@forestadmin/datasource-toolkit": "^1.52.0"
   },
-  "devDependencies": {
-    "@forestadmin/agent": "^1.72.2",
-    "@forestadmin/datasource-customizer": "^1.67.3",
-    "@forestadmin/datasource-toolkit": "^1.50.1"
-  },
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts"
