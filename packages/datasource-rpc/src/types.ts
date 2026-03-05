@@ -33,6 +33,7 @@ export type RpcDataSourceOptions = {
   authSecret: string;
   uri: string;
   introspection?: IntrospectionSchema;
+  /** Setup polling interval in second */
   pollingInterval?: number;
 };
 

@@ -7,9 +7,10 @@ import { appendHeaders, cameliseKeys, toPascalCase } from './utils';
 
 export { reconciliateRpc } from './plugins';
 
-const DEFAULT_POLLING_INTERVAL = 6000;
-const MIN_POLLING_INTERVAL = 3000;
-const MAX_POLLING_INTERVAL = 36000;
+/** polling interval in second */
+const DEFAULT_POLLING_INTERVAL = 600;
+const MIN_POLLING_INTERVAL = 1;
+const MAX_POLLING_INTERVAL = 3600;
 
 function parseIntrospection(introSchema: IntrospectionSchema): RpcSchema {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -116,19 +117,21 @@ function startPolling(
         );
       }
     }
-  }, pollingInterval);
+  }, pollingInterval * 1000);
 }
 
 export function createRpcDataSource(options: RpcDataSourceOptions): DataSourceFactory {
   return async (logger: Logger, restartAgent: () => Promise<void>) => {
     const { authSecret, uri } = options;
     const { introspection } = options;
-    let schema = parseIntrospection(introspection);
+    let schema: RpcSchema;
 
     try {
       schema = await getIntrospection(logger, uri, authSecret);
     } catch (error) {
       if (!introspection) throw error;
+
+      schema = parseIntrospection(introspection);
     }
 
     const pollingInterval = Math.min(

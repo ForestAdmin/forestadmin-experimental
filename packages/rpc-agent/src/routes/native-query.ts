@@ -4,7 +4,7 @@ import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/typ
 import { DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
-export default class RpcDatasourceChartRoute extends BaseRoute {
+export default class RpcDatasourceNativeQueryRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
   protected readonly dataSource: DataSource;
