@@ -32,7 +32,7 @@ export function reconciliateRpc(dz, _, options?: PluginOptions) {
       d.collections.forEach(c => {
         if (!c.schema.searchable) {
           const cz: CollectionCustomizer = dz.getCollection(
-            getCollectionName(c.name, options.rename),
+            getCollectionName(c.name, options?.rename),
           );
           cz.disableSearch();
         }
@@ -44,14 +44,14 @@ export function reconciliateRpc(dz, _, options?: PluginOptions) {
         Object.entries(relations).forEach(([relationName, relationDefinition]) => {
           const foreignCollection = getCollectionName(
             relationDefinition.foreignCollection,
-            options.rename,
+            options?.rename,
           );
 
           switch (relationDefinition.type) {
             case 'ManyToMany': {
               const throughCollection = getCollectionName(
                 relationDefinition.throughCollection,
-                options.rename,
+                options?.rename,
               );
               cz.addManyToManyRelation(
                 relationName,
