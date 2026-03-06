@@ -1,6 +1,7 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
-import { ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
+
+import { keysToSnake, parseCaller, parseFilter } from '../utils';
 
 export default class RpcActionRoute extends CollectionRoute {
   setupRoutes(router: Router): void {
@@ -9,54 +10,35 @@ export default class RpcActionRoute extends CollectionRoute {
   }
 
   public async handleExecute(context: any) {
-    const action = context.query.action as string;
-    const queryFilter = context.request.body.filter;
-    const caller = JSON.parse(context.headers.forest_caller as string);
-
-    const filter = new Filter({
-      ...queryFilter,
-      conditionTree: queryFilter?.conditionTree
-        ? ConditionTreeFactory.fromPlainObject(queryFilter.conditionTree)
-        : undefined,
-    });
+    const { action, filter, data } = context.request.body;
 
     const actionResult = await this.collection.execute(
-      caller,
+      parseCaller(context),
       action,
-      context.request.body.formValues,
-      filter,
+      data,
+      parseFilter(this.collection, filter),
     );
 
     // TODO action with file
 
     context.response.body = {
-      ...actionResult,
+      ...keysToSnake(actionResult),
       invalidated: actionResult.type === 'Success' ? Array.from(actionResult.invalidated) : [],
     };
   }
 
   public async handleForm(context: any) {
-    const action = context.query.action as string;
-
     // All this things can be null when asking form fo FA schema generation
-    const { metas, filter: queryFilter, formValues } = context.request.body;
-    const caller = JSON.parse(context.headers.forest_caller || '{}');
-
-    const filter = new Filter({
-      ...(queryFilter || {}),
-      conditionTree: queryFilter?.conditionTree
-        ? ConditionTreeFactory.fromPlainObject(queryFilter.conditionTree)
-        : undefined,
-    });
+    const { action, metas, filter, data } = context.request.body;
 
     const actionFields = await this.collection.getForm(
-      caller,
+      parseCaller(context),
       action,
-      formValues,
-      filter,
+      data,
+      parseFilter(this.collection, filter),
       metas || {},
     );
 
-    context.response.body = actionFields;
+    context.response.body = keysToSnake(actionFields);
   }
 }

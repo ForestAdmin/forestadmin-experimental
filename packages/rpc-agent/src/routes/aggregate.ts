@@ -1,6 +1,8 @@
 import CollectionRoute from '@forestadmin/agent/dist/routes/collection-route';
-import { Aggregation, ConditionTreeFactory, Filter } from '@forestadmin/datasource-toolkit';
+import { Aggregation } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
+
+import { parseCaller, parseFilter } from '../utils';
 
 export default class RpcAggregateRoute extends CollectionRoute {
   setupRoutes(router: Router): void {
@@ -8,19 +10,11 @@ export default class RpcAggregateRoute extends CollectionRoute {
   }
 
   public async handleaggregate(context: any) {
-    const { aggregation, filter: queryFilter, limit } = context.request.body;
-    const caller = JSON.parse(context.headers.forest_caller as string);
-
-    const filter = new Filter({
-      ...queryFilter,
-      conditionTree: queryFilter?.conditionTree
-        ? ConditionTreeFactory.fromPlainObject(queryFilter.conditionTree)
-        : undefined,
-    });
+    const { aggregation, filter, limit } = context.request.body;
 
     const records = await this.collection.aggregate(
-      caller,
-      filter,
+      parseCaller(context),
+      parseFilter(this.collection, filter),
       new Aggregation(aggregation),
       Number.isNaN(limit) ? null : limit,
     );
