@@ -1,3 +1,21 @@
+# [1.11.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.10.0...datasource-rpc@1.11.0) (2026-03-06)
+
+
+### Bug Fixes
+
+* **cosmos:** rename reserved aliases ([#205](https://github.com/ForestAdmin/forestadmin-experimental/issues/205)) ([8f72858](https://github.com/ForestAdmin/forestadmin-experimental/commit/8f72858caa60fe4d108615d456a91790e7f393d0))
+* rpc stack connection ([#169](https://github.com/ForestAdmin/forestadmin-experimental/issues/169)) ([e88a2ba](https://github.com/ForestAdmin/forestadmin-experimental/commit/e88a2baa9f6d25a00049a625e40c6248921d7a60))
+
+
+### Features
+
+* add datasource-stripe ([#198](https://github.com/ForestAdmin/forestadmin-experimental/issues/198)) ([cc3be30](https://github.com/ForestAdmin/forestadmin-experimental/commit/cc3be30e74d92bc9b2ad90a063a29175ae54fb7e))
+* add hasura graphql datasource ([#194](https://github.com/ForestAdmin/forestadmin-experimental/issues/194)) ([5db0b0a](https://github.com/ForestAdmin/forestadmin-experimental/commit/5db0b0a5e6256a7df750ea2d5085e85fca54e94d))
+* **cosmos:** add RU consumption logs ([#204](https://github.com/ForestAdmin/forestadmin-experimental/issues/204)) ([c7af33e](https://github.com/ForestAdmin/forestadmin-experimental/commit/c7af33ed9292bdd101df43ae286bbacd41e8fdfc))
+* **datasource graphql hasura:** fix release ([a843269](https://github.com/ForestAdmin/forestadmin-experimental/commit/a843269da8c9cfdfaee2ea20449724624b7d3041))
+* **datasource graphql hasura:** relase datasource ([#206](https://github.com/ForestAdmin/forestadmin-experimental/issues/206)) ([c105758](https://github.com/ForestAdmin/forestadmin-experimental/commit/c105758c75f948018b09e84432968602e38e6c34))
+* **datasource-airtable:** add Airtable datasource package ([#200](https://github.com/ForestAdmin/forestadmin-experimental/issues/200)) ([155e6fa](https://github.com/ForestAdmin/forestadmin-experimental/commit/155e6fafd089c5ef3a1ed6528ba6923bc0e709b4))
+
 # [1.10.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.9.0...datasource-rpc@1.10.0) (2026-01-26)
 
 
