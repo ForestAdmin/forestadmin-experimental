@@ -4,7 +4,6 @@ import {
   Aggregation,
   AggregationOperation,
   ConditionTree,
-  DateOperation,
 } from '@forestadmin/datasource-toolkit';
 
 import QueryConverter from './query-converter';
@@ -30,14 +29,17 @@ export default class AggregationConverter {
   };
 
   /**
-   * Convert Forest Admin field notation (arrow ->) to Cosmos DB notation (dot .)
-   * Also validates the field name to prevent SQL injection
+   * Convert Forest Admin field notation (arrow ->) to Cosmos DB bracket notation.
+   * Validates the field name to prevent SQL injection.
+   * Uses bracket notation to avoid reserved keyword issues (e.g. "value", "type").
    */
   private static toCosmosField(field: string, context = 'Aggregation field'): string {
-    // Validate field name to prevent SQL injection
     this.validator.validateFieldName(field, context);
 
-    return field.replace(/->/g, '.');
+    return field
+      .split('->')
+      .map((part, i) => (i === 0 ? part : `["${part}"]`))
+      .join('');
   }
 
   /**
@@ -69,15 +71,12 @@ export default class AggregationConverter {
    */
   private static buildAggregateExpression(aggregation: Aggregation): string {
     if (!aggregation.field) {
-      // COUNT(*) case
       return 'COUNT(1)';
     }
 
     const operation = this.AGGREGATION_OPERATION[aggregation.operation];
-    const cosmosField = this.toCosmosField(aggregation.field, 'Aggregation target field');
-    const fieldPath = `c.${cosmosField}`;
 
-    return `${operation}(${fieldPath})`;
+    return `${operation}(c.${this.toCosmosField(aggregation.field, 'Aggregation target field')})`;
   }
 
   /**
@@ -91,179 +90,65 @@ export default class AggregationConverter {
   ): SqlQuerySpec {
     const groups = aggregation.groups || [];
 
-    // Build the aggregate expression
+    if (groups.length !== 1 || groups[0].operation) {
+      throw new Error(
+        'Complex grouping with multiple fields or date operations requires ' +
+          'application-level processing. Please implement this using the raw query ' +
+          'results and post-processing.',
+      );
+    }
+
+    const groupField = `c.${this.toCosmosField(groups[0].field, 'Group by field')}`;
     const aggregateExpr = this.buildAggregateExpression(aggregation);
 
-    // Build the full query
-    // Note: Cosmos DB doesn't support GROUP BY directly in SQL API
-    // We need to use a different approach with subqueries or application-level grouping
-    // For now, we'll use VALUE syntax with DISTINCT for simple grouping
+    const query = `
+      SELECT ${groupField} as groupKey, ${aggregateExpr} as aggregateValue
+      FROM c
+      ${whereFragment}
+      GROUP BY ${groupField}
+      ORDER BY ${groupField}
+      ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
+    `
+      .trim()
+      .replace(/\s+/g, ' ');
 
-    if (groups.length === 1 && !groups[0].operation) {
-      // Simple single field grouping
-      const cosmosGroupField = this.toCosmosField(groups[0].field, 'Group by field');
-      const groupField = `c.${cosmosGroupField}`;
-
-      // For Count operation without field, we need a different approach
-      if (aggregation.operation === 'Count' && !aggregation.field) {
-        const query = `
-          SELECT ${groupField} as groupKey, COUNT(1) as aggregateValue
-          FROM c
-          ${whereFragment}
-          GROUP BY ${groupField}
-          ORDER BY ${groupField}
-          ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
-        `
-          .trim()
-          .replace(/\s+/g, ' ');
-
-        return { query, parameters };
-      }
-
-      // For other aggregations
-      const query = `
-        SELECT ${groupField} as groupKey, ${aggregateExpr} as aggregateValue
-        FROM c
-        ${whereFragment}
-        GROUP BY ${groupField}
-        ORDER BY ${groupField}
-        ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
-      `
-        .trim()
-        .replace(/\s+/g, ' ');
-
-      return { query, parameters };
-    }
-
-    // Multiple groups or date operations - more complex, needs special handling
-    // For now, throw an error as this requires more complex implementation
-    const errorMessage =
-      'Complex grouping with multiple fields or date operations requires ' +
-      'application-level processing. Please implement this using the raw query ' +
-      'results and post-processing.';
-
-    throw new Error(errorMessage);
-  }
-
-  /**
-   * Build date grouping expression
-   */
-  private static buildDateGroupExpression(
-    field: string,
-    operation: DateOperation,
-    alias: string,
-  ): string {
-    const cosmosField = this.toCosmosField(field, 'Date group field');
-    const fieldPath = `c.${cosmosField}`;
-
-    switch (operation) {
-      case 'Year':
-        return `DateTimeYear(${fieldPath}) as ${alias}`;
-      case 'Month':
-        return `CONCAT(DateTimeYear(${fieldPath}), '-', DateTimeMonth(${fieldPath})) as ${alias}`;
-      case 'Week':
-        // Cosmos DB doesn't have built-in week function, we'll approximate
-        return `DateTimeDay(${fieldPath}) as ${alias}`;
-      case 'Day':
-        return (
-          `CONCAT(DateTimeYear(${fieldPath}), '-', DateTimeMonth(${fieldPath}), '-', ` +
-          `DateTimeDay(${fieldPath})) as ${alias}`
-        );
-      default:
-        throw new Error(`Unsupported date operation: ${operation}`);
-    }
+    return { query, parameters };
   }
 
   /**
    * Process raw aggregation results into Forest Admin format
    */
+  /**
+   * Extract the aggregate value from a raw Cosmos DB result row.
+   * Falls back to 0 when the value is undefined/null, which happens when
+   * Cosmos DB SUM/AVG encounters mixed types (strings, booleans alongside numbers).
+   */
+  private static extractAggregateValue(result: Record<string, unknown>): unknown {
+    return Serializer.serializeValue(result.aggregateValue ?? result.value ?? 0);
+  }
+
   static processAggregationResults(
     rawResults: Array<Record<string, unknown>>,
     aggregation: Aggregation,
   ): AggregateResult[] {
-    // Handle simple aggregation without grouping
     if (!aggregation.groups || aggregation.groups.length === 0) {
       if (rawResults.length === 0) {
         return [{ value: 0, group: {} }];
       }
 
-      const firstResult = rawResults[0];
-      const resultValue = (firstResult.aggregateValue ?? firstResult.value) as unknown;
-
-      return [
-        {
-          value: Serializer.serializeValue(resultValue),
-          group: {},
-        },
-      ];
+      return [{ value: this.extractAggregateValue(rawResults[0]), group: {} }];
     }
 
-    // Handle grouped aggregation
     return rawResults.map(result => {
       const group: Record<string, unknown> = {};
 
-      if (aggregation.groups) {
-        aggregation.groups.forEach((groupDef, index) => {
-          const groupKey = result.groupKey || result[`group${index}`];
-          group[groupDef.field] = Serializer.serializeValue(groupKey);
-        });
-      }
+      aggregation.groups.forEach((groupDef, index) => {
+        group[groupDef.field] = Serializer.serializeValue(
+          result.groupKey || result[`group${index}`],
+        );
+      });
 
-      return {
-        value: Serializer.serializeValue(result.aggregateValue ?? result.value),
-        group,
-      };
+      return { value: this.extractAggregateValue(result), group };
     });
-  }
-
-  /**
-   * Build a simpler aggregation query for single-group scenarios
-   */
-  static buildSimpleAggregationQuery(
-    operation: AggregationOperation,
-    field: string | null,
-    groupByField: string | null,
-    conditionTree?: ConditionTree,
-    limit?: number,
-  ): SqlQuerySpec {
-    const queryConverter = new QueryConverter();
-    const { where, parameters } = queryConverter.getWhereClause(conditionTree);
-    const whereFragment = where ? `WHERE ${where}` : '';
-
-    let selectClause: string;
-    let groupByClause = '';
-    let orderByClause = '';
-
-    const cosmosField = field ? this.toCosmosField(field, 'Aggregation target field') : null;
-    const cosmosGroupByField = groupByField
-      ? this.toCosmosField(groupByField, 'Group by field')
-      : null;
-
-    if (!cosmosField) {
-      // COUNT(*) case
-      selectClause = cosmosGroupByField
-        ? `c.${cosmosGroupByField} as groupKey, COUNT(1) as aggregateValue`
-        : 'COUNT(1) as aggregateValue';
-    } else {
-      const op = this.AGGREGATION_OPERATION[operation];
-      const fieldPath = `c.${cosmosField}`;
-      selectClause = cosmosGroupByField
-        ? `c.${cosmosGroupByField} as groupKey, ${op}(${fieldPath}) as aggregateValue`
-        : `${op}(${fieldPath}) as aggregateValue`;
-    }
-
-    if (cosmosGroupByField) {
-      groupByClause = `GROUP BY c.${cosmosGroupByField}`;
-      orderByClause = `ORDER BY c.${cosmosGroupByField}`;
-    }
-
-    const limitClause = limit && groupByField ? `OFFSET 0 LIMIT ${limit}` : '';
-
-    const queryString =
-      `SELECT ${selectClause} FROM c ${whereFragment} ${groupByClause} ` +
-      `${orderByClause} ${limitClause}`;
-    const query = queryString.trim().replace(/\s+/g, ' ');
-
-    return { query, parameters };
   }
 }

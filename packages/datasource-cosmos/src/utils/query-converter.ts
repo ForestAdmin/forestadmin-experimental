@@ -69,12 +69,21 @@ export default class QueryConverter {
   }
 
   /**
+   * Convert Forest Admin field notation (arrow ->) to Cosmos DB bracket notation
+   * Uses bracket notation to avoid reserved keyword issues (e.g. "value", "type")
+   */
+  private toCosmosField(field: string): string {
+    const parts = field.split('->');
+
+    return parts.map((part, i) => (i === 0 ? part : `["${part}"]`)).join('');
+  }
+
+  /**
    * Convert a single condition to SQL WHERE clause fragment
    */
   private makeWhereClause(field: string, operator: Operator, value?: unknown): string {
     // Use 'c' as the root alias for Cosmos DB queries
-    // Convert arrow notation (->) back to dot notation (.) for Cosmos DB
-    const cosmosField = field.replace(/->/g, '.');
+    const cosmosField = this.toCosmosField(field);
     const fieldPath = field === 'id' ? 'c.id' : `c.${cosmosField}`;
 
     switch (operator) {
@@ -281,7 +290,7 @@ export default class QueryConverter {
                   return 'c.id';
                 }
 
-                const cosmosField = field.replace(/->/g, '.');
+                const cosmosField = this.toCosmosField(field);
 
                 return `c.${cosmosField}`;
               })
@@ -313,8 +322,7 @@ export default class QueryConverter {
     if (!sort || sort.length === 0) return '';
 
     const sortClauses = sort.map(({ field, ascending }) => {
-      // Convert arrow notation (->) to dot notation (.) for Cosmos DB
-      const cosmosField = field.replace(/->/g, '.');
+      const cosmosField = this.toCosmosField(field);
       const fieldPath = `c.${cosmosField}`;
       const direction = ascending ? 'ASC' : 'DESC';
 

@@ -37,6 +37,29 @@ export function isRuLoggingEnabled(): boolean {
   return sharedRuLoggingEnabled;
 }
 
+/**
+ * Shared query logging configuration
+ */
+let sharedQueryLoggingEnabled = false;
+let sharedQueryLogger: Logger | null = null;
+
+/**
+ * Configure query logging for all Cosmos DB operations
+ * @param enabled Whether to enable query logging
+ * @param logger The Forest Admin logger to use for query logging
+ */
+export function configureQueryLogging(enabled: boolean, logger?: Logger): void {
+  sharedQueryLoggingEnabled = enabled;
+  sharedQueryLogger = logger ?? null;
+}
+
+/**
+ * Check if query logging is enabled
+ */
+export function isQueryLoggingEnabled(): boolean {
+  return sharedQueryLoggingEnabled;
+}
+
 export interface CosmosSchema {
   [key: string]: {
     type: string;
@@ -250,6 +273,8 @@ export default class ModelCosmos {
       queryOptions.partitionKey = partitionKey;
     }
 
+    this.logQuery('query', querySpec, partitionKey);
+
     // If no pagination parameters, fetch all (backward compatibility)
     if (offset === undefined && limit === undefined) {
       const response = await withRetry(
@@ -368,6 +393,8 @@ export default class ModelCosmos {
       queryOptions.partitionKey = partitionKey;
     }
 
+    this.logQuery('aggregate', querySpec, partitionKey);
+
     const response = await withRetry(
       () => this.container.items.query(querySpec, queryOptions).fetchAll(),
       this.retryOptions,
@@ -390,6 +417,7 @@ export default class ModelCosmos {
       const countQuery: SqlQuerySpec = {
         query: 'SELECT VALUE COUNT(1) FROM c',
       };
+      this.logQuery('count', countQuery, partitionKey);
       const response = await withRetry(
         () => this.container.items.query<number>(countQuery, queryOptions).fetchAll(),
         this.retryOptions,
@@ -401,6 +429,7 @@ export default class ModelCosmos {
 
     // Convert the query to a COUNT query to avoid fetching all records
     const countQuery = this.convertToCountQuery(querySpec);
+    this.logQuery('count', countQuery, partitionKey);
     const response = await withRetry(
       () => this.container.items.query<number>(countQuery, queryOptions).fetchAll(),
       this.retryOptions,
@@ -486,5 +515,26 @@ export default class ModelCosmos {
 
     const message = `[Cosmos RU] ${this.name}.${operation}: ${requestCharge} RUs`;
     sharedRuLogger?.('Info', message);
+  }
+
+  /**
+   * Log query details if enabled
+   */
+  private logQuery(
+    operation: string,
+    querySpec: SqlQuerySpec,
+    partitionKey?: string | number,
+  ): void {
+    if (!sharedQueryLoggingEnabled) {
+      return;
+    }
+
+    const params = querySpec.parameters ? JSON.stringify(querySpec.parameters) : '[]';
+    const pk = partitionKey !== undefined ? String(partitionKey) : 'undefined';
+    const message =
+      `[Cosmos Query] ${this.name}.${operation}: ${querySpec.query}` +
+      ` | Params: ${params}` +
+      ` | PartitionKey: ${pk}`;
+    sharedQueryLogger?.('Info', message);
   }
 }
