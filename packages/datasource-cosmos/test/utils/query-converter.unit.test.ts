@@ -64,7 +64,7 @@ describe('QueryConverter', () => {
         const sort = [{ field: 'address->city', ascending: true }] as unknown as Sort;
         const result = converter.getSqlQuerySpec(undefined, sort);
 
-        expect(result.query).toBe('SELECT c FROM c  ORDER BY c.address.city ASC');
+        expect(result.query).toBe('SELECT c FROM c  ORDER BY c.address["city"] ASC');
       });
     });
 
@@ -361,11 +361,11 @@ describe('QueryConverter', () => {
     });
 
     describe('nested fields', () => {
-      it('should convert arrow notation to dot notation', () => {
+      it('should convert arrow notation to bracket notation', () => {
         const condition = new ConditionTreeLeaf('address->city', 'Equal', 'Paris');
         const result = converter.getSqlQuerySpec(condition);
 
-        expect(result.query).toBe('SELECT c FROM c WHERE c.address.city = @param0');
+        expect(result.query).toBe('SELECT c FROM c WHERE c.address["city"] = @param0');
         expect(result.parameters).toEqual([{ name: '@param0', value: 'Paris' }]);
       });
 
@@ -373,7 +373,9 @@ describe('QueryConverter', () => {
         const condition = new ConditionTreeLeaf('user->profile->settings->theme', 'Equal', 'dark');
         const result = converter.getSqlQuerySpec(condition);
 
-        expect(result.query).toBe('SELECT c FROM c WHERE c.user.profile.settings.theme = @param0');
+        expect(result.query).toBe(
+          'SELECT c FROM c WHERE c.user["profile"]["settings"]["theme"] = @param0',
+        );
       });
     });
 

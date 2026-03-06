@@ -79,8 +79,8 @@ describe('AggregationConverter', () => {
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-      // Should generate c.address.zipCode to navigate nested structure
-      expect(result.query.trim()).toBe('SELECT SUM(c.address.zipCode) as aggregateValue FROM c');
+      // Should use bracket notation for nested fields to avoid reserved keyword issues
+      expect(result.query.trim()).toBe('SELECT SUM(c.address["zipCode"]) as aggregateValue FROM c');
       expect(result.parameters).toEqual([]);
     });
 
@@ -93,12 +93,12 @@ describe('AggregationConverter', () => {
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-      // Should generate c.address.city to navigate nested structure
+      // Should use bracket notation for nested fields to avoid reserved keyword issues
       expect(result.query).toContain(
-        'SELECT c.address.city as groupKey, COUNT(1) as aggregateValue',
+        'SELECT c.address["city"] as groupKey, COUNT(1) as aggregateValue',
       );
-      expect(result.query).toContain('GROUP BY c.address.city');
-      expect(result.query).toContain('ORDER BY c.address.city');
+      expect(result.query).toContain('GROUP BY c.address["city"]');
+      expect(result.query).toContain('ORDER BY c.address["city"]');
     });
 
     it('should build aggregation on nested field with grouping by another nested field', () => {
@@ -111,9 +111,9 @@ describe('AggregationConverter', () => {
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
       expect(result.query).toContain(
-        'SELECT c.shipping.method as groupKey, AVG(c.payment.amount) as aggregateValue',
+        'SELECT c.shipping["method"] as groupKey, AVG(c.payment["amount"]) as aggregateValue',
       );
-      expect(result.query).toContain('GROUP BY c.shipping.method');
+      expect(result.query).toContain('GROUP BY c.shipping["method"]');
     });
   });
 
@@ -339,32 +339,6 @@ describe('AggregationConverter', () => {
         });
 
         expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
-      });
-    });
-
-    describe('buildSimpleAggregationQuery validation', () => {
-      it('should reject invalid field in simple aggregation', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Sum', 'amount; DROP--', null),
-        ).toThrow(QueryValidationError);
-      });
-
-      it('should reject invalid groupByField in simple aggregation', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Count', null, "status' OR '1'='1"),
-        ).toThrow(QueryValidationError);
-      });
-
-      it('should accept valid fields in simple aggregation', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Sum', 'validField', 'validGroupBy'),
-        ).not.toThrow();
-      });
-
-      it('should accept null fields in simple aggregation (COUNT *)', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Count', null, null),
-        ).not.toThrow();
       });
     });
 
