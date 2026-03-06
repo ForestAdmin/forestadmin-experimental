@@ -184,6 +184,84 @@ describe('AggregationConverter', () => {
       ]);
     });
 
+    it('should return 0 when aggregateValue is undefined (mixed types in SUM)', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount',
+      });
+
+      // Cosmos DB returns undefined when SUM encounters non-numeric types
+      const rawResults = [{ aggregateValue: undefined }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 0, group: {} }]);
+    });
+
+    it('should return 0 when nested object does not exist on any document', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount->value',
+      });
+
+      // Cosmos DB SUM returns undefined when all values are undefined
+      // (e.g. nested object "amount" missing on every document)
+      const rawResults = [{ aggregateValue: undefined }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 0, group: {} }]);
+    });
+
+    it('should return the partial sum when nested object exists on some documents', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount->value',
+      });
+
+      // Cosmos DB SUM skips undefined values and sums only the numeric ones
+      // So if 3 docs have amount.value=10 and 2 docs don't have "amount" at all,
+      // Cosmos returns { aggregateValue: 30 }
+      const rawResults = [{ aggregateValue: 30 }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 30, group: {} }]);
+    });
+
+    it('should return 0 when aggregateValue is null', () => {
+      const aggregation = new Aggregation({
+        operation: 'Avg',
+        field: 'score',
+      });
+
+      const rawResults = [{ aggregateValue: null }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 0, group: {} }]);
+    });
+
+    it('should return 0 for undefined aggregateValue in grouped results', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount',
+        groups: [{ field: 'status' }],
+      });
+
+      const rawResults = [
+        { groupKey: 'active', aggregateValue: 10 },
+        { groupKey: 'mixed', aggregateValue: undefined },
+      ];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([
+        { value: 10, group: { status: 'active' } },
+        { value: 0, group: { status: 'mixed' } },
+      ]);
+    });
+
     it('should fallback to "value" for backward compatibility', () => {
       const aggregation = new Aggregation({
         operation: 'Count',

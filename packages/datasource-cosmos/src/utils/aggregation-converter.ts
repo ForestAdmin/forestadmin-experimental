@@ -118,6 +118,15 @@ export default class AggregationConverter {
   /**
    * Process raw aggregation results into Forest Admin format
    */
+  /**
+   * Extract the aggregate value from a raw Cosmos DB result row.
+   * Falls back to 0 when the value is undefined/null, which happens when
+   * Cosmos DB SUM/AVG encounters mixed types (strings, booleans alongside numbers).
+   */
+  private static extractAggregateValue(result: Record<string, unknown>): unknown {
+    return Serializer.serializeValue(result.aggregateValue ?? result.value ?? 0);
+  }
+
   static processAggregationResults(
     rawResults: Array<Record<string, unknown>>,
     aggregation: Aggregation,
@@ -127,12 +136,7 @@ export default class AggregationConverter {
         return [{ value: 0, group: {} }];
       }
 
-      return [
-        {
-          value: Serializer.serializeValue(rawResults[0].aggregateValue ?? rawResults[0].value),
-          group: {},
-        },
-      ];
+      return [{ value: this.extractAggregateValue(rawResults[0]), group: {} }];
     }
 
     return rawResults.map(result => {
@@ -144,10 +148,7 @@ export default class AggregationConverter {
         );
       });
 
-      return {
-        value: Serializer.serializeValue(result.aggregateValue ?? result.value),
-        group,
-      };
+      return { value: this.extractAggregateValue(result), group };
     });
   }
 }

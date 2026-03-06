@@ -153,7 +153,8 @@ describe('Model Builder > Query Logging', () => {
 
         expect(mockLogger).toHaveBeenCalledWith(
           'Info',
-          '[Cosmos Query] users.query: SELECT * FROM c WHERE c.name = @name | Params: [{"name":"@name","value":"Alice"}] | PartitionKey: undefined',
+          '[Cosmos Query] users.query: SELECT * FROM c WHERE c.name = @name' +
+            ' | Params: [{"name":"@name","value":"Alice"}] | PartitionKey: undefined',
         );
       });
 
@@ -209,7 +210,8 @@ describe('Model Builder > Query Logging', () => {
 
         expect(mockLogger).toHaveBeenCalledWith(
           'Info',
-          '[Cosmos Query] users.aggregate: SELECT COUNT(1) as cnt FROM c | Params: [{"name":"@status","value":"active"}] | PartitionKey: undefined',
+          '[Cosmos Query] users.aggregate: SELECT COUNT(1) as cnt FROM c' +
+            ' | Params: [{"name":"@status","value":"active"}] | PartitionKey: undefined',
         );
       });
 
@@ -243,7 +245,8 @@ describe('Model Builder > Query Logging', () => {
 
         expect(mockLogger).toHaveBeenCalledWith(
           'Info',
-          '[Cosmos Query] users.count: SELECT VALUE COUNT(1) FROM c | Params: [] | PartitionKey: undefined',
+          '[Cosmos Query] users.count: SELECT VALUE COUNT(1) FROM c' +
+            ' | Params: [] | PartitionKey: undefined',
         );
       });
 
@@ -262,7 +265,10 @@ describe('Model Builder > Query Logging', () => {
 
         expect(mockLogger).toHaveBeenCalledWith(
           'Info',
-          '[Cosmos Query] users.count: SELECT VALUE COUNT(1) FROM c WHERE c.status = @status | Params: [{"name":"@status","value":"active"}] | PartitionKey: undefined',
+          '[Cosmos Query] users.count: SELECT VALUE COUNT(1) FROM c' +
+            ' WHERE c.status = @status' +
+            ' | Params: [{"name":"@status","value":"active"}]' +
+            ' | PartitionKey: undefined',
         );
       });
 
@@ -278,7 +284,8 @@ describe('Model Builder > Query Logging', () => {
 
         expect(mockLogger).toHaveBeenCalledWith(
           'Info',
-          '[Cosmos Query] users.count: SELECT VALUE COUNT(1) FROM c | Params: [] | PartitionKey: pk1',
+          '[Cosmos Query] users.count: SELECT VALUE COUNT(1) FROM c' +
+            ' | Params: [] | PartitionKey: pk1',
         );
       });
     });
