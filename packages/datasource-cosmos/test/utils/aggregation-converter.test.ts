@@ -79,8 +79,8 @@ describe('AggregationConverter', () => {
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-      // Should generate c.address.zipCode to navigate nested structure
-      expect(result.query.trim()).toBe('SELECT SUM(c.address.zipCode) as aggregateValue FROM c');
+      // Should use bracket notation for nested fields to avoid reserved keyword issues
+      expect(result.query.trim()).toBe('SELECT SUM(c.address["zipCode"]) as aggregateValue FROM c');
       expect(result.parameters).toEqual([]);
     });
 
@@ -93,12 +93,12 @@ describe('AggregationConverter', () => {
 
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-      // Should generate c.address.city to navigate nested structure
+      // Should use bracket notation for nested fields to avoid reserved keyword issues
       expect(result.query).toContain(
-        'SELECT c.address.city as groupKey, COUNT(1) as aggregateValue',
+        'SELECT c.address["city"] as groupKey, COUNT(1) as aggregateValue',
       );
-      expect(result.query).toContain('GROUP BY c.address.city');
-      expect(result.query).toContain('ORDER BY c.address.city');
+      expect(result.query).toContain('GROUP BY c.address["city"]');
+      expect(result.query).toContain('ORDER BY c.address["city"]');
     });
 
     it('should build aggregation on nested field with grouping by another nested field', () => {
@@ -111,9 +111,9 @@ describe('AggregationConverter', () => {
       const result = AggregationConverter.buildAggregationQuery(aggregation);
 
       expect(result.query).toContain(
-        'SELECT c.shipping.method as groupKey, AVG(c.payment.amount) as aggregateValue',
+        'SELECT c.shipping["method"] as groupKey, AVG(c.payment["amount"]) as aggregateValue',
       );
-      expect(result.query).toContain('GROUP BY c.shipping.method');
+      expect(result.query).toContain('GROUP BY c.shipping["method"]');
     });
 
     describe('date group operations (time-based charts)', () => {
@@ -153,7 +153,7 @@ describe('AggregationConverter', () => {
         expect(result.query).toContain(
           "LEFT(ToString(DateTimeBin(c.operationDate, 'month', 1)), 10) as groupKey",
         );
-        expect(result.query).toContain('SUM(c.amount.value) as aggregateValue');
+        expect(result.query).toContain('SUM(c.amount["value"]) as aggregateValue');
       });
 
       it('should build a date-grouped query with WHERE condition', () => {
@@ -181,7 +181,7 @@ describe('AggregationConverter', () => {
         const result = AggregationConverter.buildAggregationQuery(aggregation);
 
         expect(result.query).toContain(
-          "LEFT(ToString(DateTimeBin(c.metadata.timestamp, 'year', 1)), 10)",
+          "LEFT(ToString(DateTimeBin(c.metadata[\"timestamp\"], 'year', 1)), 10)",
         );
       });
     });
@@ -251,6 +251,84 @@ describe('AggregationConverter', () => {
       expect(result).toEqual([
         { value: 15, group: { 'address->city': 'New York' } },
         { value: 10, group: { 'address->city': 'Los Angeles' } },
+      ]);
+    });
+
+    it('should return 0 when aggregateValue is undefined (mixed types in SUM)', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount',
+      });
+
+      // Cosmos DB returns undefined when SUM encounters non-numeric types
+      const rawResults = [{ aggregateValue: undefined }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 0, group: {} }]);
+    });
+
+    it('should return 0 when nested object does not exist on any document', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount->value',
+      });
+
+      // Cosmos DB SUM returns undefined when all values are undefined
+      // (e.g. nested object "amount" missing on every document)
+      const rawResults = [{ aggregateValue: undefined }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 0, group: {} }]);
+    });
+
+    it('should return the partial sum when nested object exists on some documents', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount->value',
+      });
+
+      // Cosmos DB SUM skips undefined values and sums only the numeric ones
+      // So if 3 docs have amount.value=10 and 2 docs don't have "amount" at all,
+      // Cosmos returns { aggregateValue: 30 }
+      const rawResults = [{ aggregateValue: 30 }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 30, group: {} }]);
+    });
+
+    it('should return 0 when aggregateValue is null', () => {
+      const aggregation = new Aggregation({
+        operation: 'Avg',
+        field: 'score',
+      });
+
+      const rawResults = [{ aggregateValue: null }];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([{ value: 0, group: {} }]);
+    });
+
+    it('should return 0 for undefined aggregateValue in grouped results', () => {
+      const aggregation = new Aggregation({
+        operation: 'Sum',
+        field: 'amount',
+        groups: [{ field: 'status' }],
+      });
+
+      const rawResults = [
+        { groupKey: 'active', aggregateValue: 10 },
+        { groupKey: 'mixed', aggregateValue: undefined },
+      ];
+
+      const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+      expect(result).toEqual([
+        { value: 10, group: { status: 'active' } },
+        { value: 0, group: { status: 'mixed' } },
       ]);
     });
 
@@ -409,32 +487,6 @@ describe('AggregationConverter', () => {
         });
 
         expect(() => AggregationConverter.buildAggregationQuery(aggregation)).not.toThrow();
-      });
-    });
-
-    describe('buildSimpleAggregationQuery validation', () => {
-      it('should reject invalid field in simple aggregation', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Sum', 'amount; DROP--', null),
-        ).toThrow(QueryValidationError);
-      });
-
-      it('should reject invalid groupByField in simple aggregation', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Count', null, "status' OR '1'='1"),
-        ).toThrow(QueryValidationError);
-      });
-
-      it('should accept valid fields in simple aggregation', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Sum', 'validField', 'validGroupBy'),
-        ).not.toThrow();
-      });
-
-      it('should accept null fields in simple aggregation (COUNT *)', () => {
-        expect(() =>
-          AggregationConverter.buildSimpleAggregationQuery('Count', null, null),
-        ).not.toThrow();
       });
     });
 

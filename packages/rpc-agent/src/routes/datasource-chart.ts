@@ -4,6 +4,8 @@ import { AgentOptionsWithDefaults, RouteType } from '@forestadmin/agent/dist/typ
 import { DataSource } from '@forestadmin/datasource-toolkit';
 import Router from '@koa/router';
 
+import { parseCaller } from '../utils';
+
 export default class RpcDatasourceChartRoute extends BaseRoute {
   type = RouteType.PrivateRoute;
 
@@ -20,13 +22,12 @@ export default class RpcDatasourceChartRoute extends BaseRoute {
   }
 
   override setupRoutes(router: Router): void {
-    router.get(`/rpc-datasource-chart`, this.handleDatasourceChart.bind(this));
+    router.post(`/rpc-datasource-chart`, this.handleDatasourceChart.bind(this));
   }
 
   async handleDatasourceChart(context: any) {
-    const chartName = context.query.chart;
-    const caller = JSON.parse(context.headers.forest_caller as string);
+    const { chart } = context.request.body;
 
-    context.response.body = await this.dataSource.renderChart(caller, chartName);
+    context.response.body = await this.dataSource.renderChart(parseCaller(context), chart);
   }
 }

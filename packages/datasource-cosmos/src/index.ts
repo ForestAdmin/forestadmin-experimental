@@ -4,7 +4,7 @@ import { DataSourceFactory, Logger } from '@forestadmin/datasource-toolkit';
 import CosmosDataSource from './datasource';
 import { ConfigurationOptions, CosmosDatasourceBuilder } from './introspection/builder';
 import Introspector, { VirtualArrayCollectionConfig } from './introspection/introspector';
-import { configureRuLogging } from './model-builder/model';
+import { configureQueryLogging, configureRuLogging } from './model-builder/model';
 import { ManualSchemaConfig } from './types/manual-schema';
 import { convertManualSchemaToModels } from './utils/manual-schema-converter';
 import VirtualCollectionManager from './virtual-collection-manager';
@@ -61,6 +61,7 @@ export { default as ModelCosmos } from './model-builder/model';
 export { configurePaginationCache, getSharedPaginationCache } from './model-builder/model';
 export { configureRetryOptions, getSharedRetryOptions } from './model-builder/model';
 export { configureRuLogging, isRuLoggingEnabled } from './model-builder/model';
+export { configureQueryLogging, isQueryLoggingEnabled } from './model-builder/model';
 export { default as PaginationCache } from './utils/pagination-cache';
 export {
   withRetry,
@@ -177,6 +178,12 @@ export function createCosmosDataSource(
      * Default: false
      */
     logRuConsumption?: boolean;
+    /**
+     * Enable logging of SQL queries sent to Cosmos DB
+     * Useful for debugging chart/aggregation issues
+     * Default: false
+     */
+    logQueries?: boolean;
   },
 ): DataSourceFactory {
   return async (logger: Logger) => {
@@ -195,11 +202,17 @@ export function createCosmosDataSource(
       disableIntrospection,
       schema,
       logRuConsumption,
+      logQueries,
     } = options || {};
 
     // Configure RU logging if enabled
     if (logRuConsumption) {
       configureRuLogging(true, logger);
+    }
+
+    // Configure query logging if enabled
+    if (logQueries) {
+      configureQueryLogging(true, logger);
     }
 
     // Apply introspection config defaults
@@ -301,6 +314,12 @@ export function createCosmosDataSourceForEmulator(
      * Default: false
      */
     logRuConsumption?: boolean;
+    /**
+     * Enable logging of SQL queries sent to Cosmos DB
+     * Useful for debugging chart/aggregation issues
+     * Default: false
+     */
+    logQueries?: boolean;
   },
 ): DataSourceFactory {
   // Default emulator connection details

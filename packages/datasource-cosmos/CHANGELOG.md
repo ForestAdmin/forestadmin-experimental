@@ -1,3 +1,18 @@
+# [1.8.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.7.1...datasource-cosmos@1.8.0) (2026-03-06)
+
+
+### Bug Fixes
+
+* fix aggregation when using a reserved keyword ([#207](https://github.com/ForestAdmin/forestadmin-experimental/issues/207)) ([7200f0b](https://github.com/ForestAdmin/forestadmin-experimental/commit/7200f0beecacc1898e9d2c76339e1a2c27b183a5))
+* rpc stack connection ([#169](https://github.com/ForestAdmin/forestadmin-experimental/issues/169)) ([e88a2ba](https://github.com/ForestAdmin/forestadmin-experimental/commit/e88a2baa9f6d25a00049a625e40c6248921d7a60))
+
+
+### Features
+
+* add hasura graphql datasource ([#194](https://github.com/ForestAdmin/forestadmin-experimental/issues/194)) ([5db0b0a](https://github.com/ForestAdmin/forestadmin-experimental/commit/5db0b0a5e6256a7df750ea2d5085e85fca54e94d))
+* **datasource graphql hasura:** fix release ([a843269](https://github.com/ForestAdmin/forestadmin-experimental/commit/a843269da8c9cfdfaee2ea20449724624b7d3041))
+* **datasource graphql hasura:** relase datasource ([#206](https://github.com/ForestAdmin/forestadmin-experimental/issues/206)) ([c105758](https://github.com/ForestAdmin/forestadmin-experimental/commit/c105758c75f948018b09e84432968602e38e6c34))
+
 ## [1.7.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.7.0...datasource-cosmos@1.7.1) (2026-02-12)
 
 

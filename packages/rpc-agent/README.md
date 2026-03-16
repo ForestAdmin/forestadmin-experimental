@@ -10,12 +10,11 @@ you wil be able to acces all your collection as this is a normal agent.
 const { createRpcAgent } = require('@forestadmin-experimental/rpc-agent');
 
 const agent = createRpcAgent({
-  authSecret: process.env.AUTH_SECRET,
+  authSecret: process.env.FOREST_AUTH_SECRET,
   isProduction: process.env.NODE_ENV === 'production',
   loggerLevel: 'Info',
 });
 // use the agent like a real one.
-
 ```
 
 # Deal with nested RPC data source and relationship
@@ -27,10 +26,11 @@ Unlike `removeCollection`, the `markCollectionsAsRpc` function removes the colle
 ## Examples
 
 Given this structure:
-* One RPC agent used to manage Users.
-* One RPC agent used to manage Groups.
-* One RPC agent used to manage Projects.
-* One agent used as a gateway.
+
+- One RPC agent used to manage Users.
+- One RPC agent used to manage Groups.
+- One RPC agent used to manage Projects.
+- One agent used as a gateway.
 
 ### Case 1 declaring relationship inside the gateway
 
@@ -133,7 +133,7 @@ projectAgent
   })
   .markCollectionsAsRpc('group');
 
-// define the gateway 
+// define the gateway
 gateway
   .createRpcDataSource(/*from the user RPC agent*/)
   .createRpcDataSource(/*from the project RPC agent*/)
@@ -157,7 +157,7 @@ projectAgent
     collecion.disableSearch();
   });
 
-// define the gateway 
+// define the gateway
 gateway
   .createRpcDataSource(/*from the project RPC agent*/)
   .use(reconciliateRpc);
