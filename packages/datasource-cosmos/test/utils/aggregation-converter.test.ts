@@ -119,22 +119,19 @@ describe('AggregationConverter', () => {
         ['Day', 10],
         ['Month', 7],
         ['Year', 4],
-      ])(
-        'should build a grouped query with %s date operation',
-        (operation, expectedLength) => {
-          const aggregation = new Aggregation({
-            operation: 'Count',
-            field: null,
-            groups: [{ field: 'createdAt', operation: operation as any }],
-          });
+      ])('should build a grouped query with %s date operation', (operation, expectedLength) => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: operation as any }],
+        });
 
-          const result = AggregationConverter.buildAggregationQuery(aggregation);
-          const expectedExpr = `LEFT(c.createdAt, ${expectedLength})`;
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+        const expectedExpr = `LEFT(c.createdAt, ${expectedLength})`;
 
-          expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
-          expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
-        },
-      );
+        expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
+        expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
+      });
 
       it('should build a date-grouped query with aggregation on a field', () => {
         const aggregation = new Aggregation({
