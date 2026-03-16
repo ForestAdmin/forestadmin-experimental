@@ -80,6 +80,31 @@ export default class AggregationConverter {
   }
 
   /**
+   * Mapping from Forest Admin DateOperation to the number of characters to extract
+   * from an ISO 8601 date string (e.g. "2024-01-15T10:30:00Z").
+   * Year: 4 chars -> "2024", Month: 7 -> "2024-01", Day: 10 -> "2024-01-15"
+   */
+  private static DATE_OPERATION_TO_LENGTH: Record<string, number> = {
+    Year: 4,
+    Month: 7,
+    Day: 10,
+  };
+
+  /**
+   * Build a Cosmos DB expression that truncates a date field to the given granularity.
+   * Uses LEFT() on ISO 8601 string dates stored in Cosmos DB.
+   */
+  private static buildDateGroupExpression(field: string, operation: string): string {
+    const length = this.DATE_OPERATION_TO_LENGTH[operation];
+
+    if (!length) {
+      throw new Error(`Unsupported date operation: "${operation}"`);
+    }
+
+    return `LEFT(${field}, ${length})`;
+  }
+
+  /**
    * Build aggregation query with grouping
    */
   private static buildGroupedAggregationQuery(
@@ -90,23 +115,29 @@ export default class AggregationConverter {
   ): SqlQuerySpec {
     const groups = aggregation.groups || [];
 
-    if (groups.length !== 1 || groups[0].operation) {
+    if (groups.length !== 1) {
       throw new Error(
-        'Complex grouping with multiple fields or date operations requires ' +
+        'Complex grouping with multiple fields requires ' +
           'application-level processing. Please implement this using the raw query ' +
           'results and post-processing.',
       );
     }
 
-    const groupField = `c.${this.toCosmosField(groups[0].field, 'Group by field')}`;
+    const group = groups[0];
+    const cosmosField = `c.${this.toCosmosField(group.field, 'Group by field')}`;
+
+    const groupExpression = group.operation
+      ? this.buildDateGroupExpression(cosmosField, group.operation)
+      : cosmosField;
+
     const aggregateExpr = this.buildAggregateExpression(aggregation);
 
     const query = `
-      SELECT ${groupField} as groupKey, ${aggregateExpr} as aggregateValue
+      SELECT ${groupExpression} as groupKey, ${aggregateExpr} as aggregateValue
       FROM c
       ${whereFragment}
-      GROUP BY ${groupField}
-      ORDER BY ${groupField}
+      GROUP BY ${groupExpression}
+
       ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
     `
       .trim()

@@ -68,7 +68,6 @@ describe('AggregationConverter', () => {
       expect(result.query).toContain('SELECT c.status as groupKey, COUNT(1) as aggregateValue');
       expect(result.query).toContain('FROM c');
       expect(result.query).toContain('GROUP BY c.status');
-      expect(result.query).toContain('ORDER BY c.status');
     });
 
     it('should build aggregation with nested field', () => {
@@ -98,7 +97,6 @@ describe('AggregationConverter', () => {
         'SELECT c.address["city"] as groupKey, COUNT(1) as aggregateValue',
       );
       expect(result.query).toContain('GROUP BY c.address["city"]');
-      expect(result.query).toContain('ORDER BY c.address["city"]');
     });
 
     it('should build aggregation on nested field with grouping by another nested field', () => {
@@ -114,6 +112,78 @@ describe('AggregationConverter', () => {
         'SELECT c.shipping["method"] as groupKey, AVG(c.payment["amount"]) as aggregateValue',
       );
       expect(result.query).toContain('GROUP BY c.shipping["method"]');
+    });
+
+    describe('date group operations (time-based charts)', () => {
+      it.each([
+        ['Day', 10],
+        ['Month', 7],
+        ['Year', 4],
+      ])('should build a grouped query with %s date operation', (operation, expectedLength) => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: operation as any }],
+        });
+
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+        const expectedExpr = `LEFT(c.createdAt, ${expectedLength})`;
+
+        expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
+        expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
+      });
+
+      it('should build a date-grouped query with aggregation on a field', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'amount->value',
+          groups: [{ field: 'operationDate', operation: 'Month' as any }],
+        });
+
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+        expect(result.query).toContain('LEFT(c.operationDate, 7) as groupKey');
+        expect(result.query).toContain('SUM(c.amount["value"]) as aggregateValue');
+      });
+
+      it('should build a date-grouped query with WHERE condition', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: 'Day' as any }],
+        });
+
+        const conditionTree = new ConditionTreeLeaf('status', 'Equal', 'active');
+        const result = AggregationConverter.buildAggregationQuery(aggregation, conditionTree);
+
+        expect(result.query).toContain('WHERE');
+        expect(result.query).toContain('c.status = @param0');
+        expect(result.parameters).toEqual([{ name: '@param0', value: 'active' }]);
+      });
+
+      it('should build a date-grouped query on a nested date field', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'metadata->timestamp', operation: 'Year' as any }],
+        });
+
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+        expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
+      });
+
+      it('should throw for unsupported date operations', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: 'Week' as any }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          'Unsupported date operation: "Week"',
+        );
+      });
     });
   });
 
