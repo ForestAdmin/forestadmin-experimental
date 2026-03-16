@@ -4,7 +4,6 @@ import {
   Aggregation,
   AggregationOperation,
   ConditionTree,
-  DateOperation,
 } from '@forestadmin/datasource-toolkit';
 
 import QueryConverter from './query-converter';
@@ -81,6 +80,32 @@ export default class AggregationConverter {
   }
 
   /**
+   * Mapping from Forest Admin DateOperation to Cosmos DB DateTimeBin parameters.
+   * DateTimeBin(datetime, datePart, binSize) truncates a datetime to the nearest boundary.
+   */
+  private static DATE_OPERATION_TO_BIN: Record<string, { part: string; size: number }> = {
+    Year: { part: 'year', size: 1 },
+    Quarter: { part: 'month', size: 3 },
+    Month: { part: 'month', size: 1 },
+    Week: { part: 'week', size: 1 },
+    Day: { part: 'day', size: 1 },
+  };
+
+  /**
+   * Build a Cosmos DB expression that truncates a date field to the given granularity.
+   * Uses DateTimeBin for truncation and LEFT(ToString(...), 10) to get YYYY-MM-DD format.
+   */
+  private static buildDateGroupExpression(field: string, operation: string): string {
+    const bin = this.DATE_OPERATION_TO_BIN[operation];
+
+    if (!bin) {
+      throw new Error(`Unsupported date operation: "${operation}"`);
+    }
+
+    return `LEFT(ToString(DateTimeBin(${field}, '${bin.part}', ${bin.size})), 10)`;
+  }
+
+  /**
    * Build aggregation query with grouping
    */
   private static buildGroupedAggregationQuery(
@@ -91,87 +116,35 @@ export default class AggregationConverter {
   ): SqlQuerySpec {
     const groups = aggregation.groups || [];
 
-    // Build the aggregate expression
+    if (groups.length !== 1) {
+      throw new Error(
+        'Complex grouping with multiple fields requires ' +
+          'application-level processing. Please implement this using the raw query ' +
+          'results and post-processing.',
+      );
+    }
+
+    const group = groups[0];
+    const cosmosField = `c.${this.toCosmosField(group.field, 'Group by field')}`;
+
+    const groupExpression = group.operation
+      ? this.buildDateGroupExpression(cosmosField, group.operation)
+      : cosmosField;
+
     const aggregateExpr = this.buildAggregateExpression(aggregation);
 
-    // Build the full query
-    // Note: Cosmos DB doesn't support GROUP BY directly in SQL API
-    // We need to use a different approach with subqueries or application-level grouping
-    // For now, we'll use VALUE syntax with DISTINCT for simple grouping
+    const query = `
+      SELECT ${groupExpression} as groupKey, ${aggregateExpr} as aggregateValue
+      FROM c
+      ${whereFragment}
+      GROUP BY ${groupExpression}
+      ORDER BY ${groupExpression}
+      ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
+    `
+      .trim()
+      .replace(/\s+/g, ' ');
 
-    if (groups.length === 1 && !groups[0].operation) {
-      // Simple single field grouping
-      const cosmosGroupField = this.toCosmosField(groups[0].field, 'Group by field');
-      const groupField = `c.${cosmosGroupField}`;
-
-      // For Count operation without field, we need a different approach
-      if (aggregation.operation === 'Count' && !aggregation.field) {
-        const query = `
-          SELECT ${groupField} as groupKey, COUNT(1) as aggregateValue
-          FROM c
-          ${whereFragment}
-          GROUP BY ${groupField}
-          ORDER BY ${groupField}
-          ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
-        `
-          .trim()
-          .replace(/\s+/g, ' ');
-
-        return { query, parameters };
-      }
-
-      // For other aggregations
-      const query = `
-        SELECT ${groupField} as groupKey, ${aggregateExpr} as aggregateValue
-        FROM c
-        ${whereFragment}
-        GROUP BY ${groupField}
-        ORDER BY ${groupField}
-        ${limit ? `OFFSET 0 LIMIT ${limit}` : ''}
-      `
-        .trim()
-        .replace(/\s+/g, ' ');
-
-      return { query, parameters };
-    }
-
-    // Multiple groups or date operations - more complex, needs special handling
-    // For now, throw an error as this requires more complex implementation
-    const errorMessage =
-      'Complex grouping with multiple fields or date operations requires ' +
-      'application-level processing. Please implement this using the raw query ' +
-      'results and post-processing.';
-
-    throw new Error(errorMessage);
-  }
-
-  /**
-   * Build date grouping expression
-   */
-  private static buildDateGroupExpression(
-    field: string,
-    operation: DateOperation,
-    alias: string,
-  ): string {
-    const cosmosField = this.toCosmosField(field, 'Date group field');
-    const fieldPath = `c.${cosmosField}`;
-
-    switch (operation) {
-      case 'Year':
-        return `DateTimeYear(${fieldPath}) as ${alias}`;
-      case 'Month':
-        return `CONCAT(DateTimeYear(${fieldPath}), '-', DateTimeMonth(${fieldPath})) as ${alias}`;
-      case 'Week':
-        // Cosmos DB doesn't have built-in week function, we'll approximate
-        return `DateTimeDay(${fieldPath}) as ${alias}`;
-      case 'Day':
-        return (
-          `CONCAT(DateTimeYear(${fieldPath}), '-', DateTimeMonth(${fieldPath}), '-', ` +
-          `DateTimeDay(${fieldPath})) as ${alias}`
-        );
-      default:
-        throw new Error(`Unsupported date operation: ${operation}`);
-    }
+    return { query, parameters };
   }
 
   /**

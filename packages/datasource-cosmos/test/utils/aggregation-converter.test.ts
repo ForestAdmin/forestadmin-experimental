@@ -115,6 +115,76 @@ describe('AggregationConverter', () => {
       );
       expect(result.query).toContain('GROUP BY c.shipping.method');
     });
+
+    describe('date group operations (time-based charts)', () => {
+      it.each([
+        ['Day', 'day', 1],
+        ['Week', 'week', 1],
+        ['Month', 'month', 1],
+        ['Quarter', 'month', 3],
+        ['Year', 'year', 1],
+      ])(
+        'should build a grouped query with %s date operation',
+        (operation, expectedPart, expectedSize) => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: operation as any }],
+          });
+
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+          const expectedExpr = `LEFT(ToString(DateTimeBin(c.createdAt, '${expectedPart}', ${expectedSize})), 10)`;
+
+          expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
+          expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
+          expect(result.query).toContain(`ORDER BY ${expectedExpr}`);
+        },
+      );
+
+      it('should build a date-grouped query with aggregation on a field', () => {
+        const aggregation = new Aggregation({
+          operation: 'Sum',
+          field: 'amount->value',
+          groups: [{ field: 'operationDate', operation: 'Month' as any }],
+        });
+
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+        expect(result.query).toContain(
+          "LEFT(ToString(DateTimeBin(c.operationDate, 'month', 1)), 10) as groupKey",
+        );
+        expect(result.query).toContain('SUM(c.amount.value) as aggregateValue');
+      });
+
+      it('should build a date-grouped query with WHERE condition', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: 'Day' as any }],
+        });
+
+        const conditionTree = new ConditionTreeLeaf('status', 'Equal', 'active');
+        const result = AggregationConverter.buildAggregationQuery(aggregation, conditionTree);
+
+        expect(result.query).toContain('WHERE');
+        expect(result.query).toContain('c.status = @param0');
+        expect(result.parameters).toEqual([{ name: '@param0', value: 'active' }]);
+      });
+
+      it('should build a date-grouped query on a nested date field', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'metadata->timestamp', operation: 'Year' as any }],
+        });
+
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+        expect(result.query).toContain(
+          "LEFT(ToString(DateTimeBin(c.metadata.timestamp, 'year', 1)), 10)",
+        );
+      });
+    });
   });
 
   describe('processAggregationResults', () => {
