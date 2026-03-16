@@ -133,8 +133,7 @@ describe('AggregationConverter', () => {
           });
 
           const result = AggregationConverter.buildAggregationQuery(aggregation);
-          const expectedExpr =
-            `LEFT(ToString(DateTimeBin(c.createdAt, '${expectedPart}', ${expectedSize})), 10)`;
+          const expectedExpr = `LEFT(ToString(DateTimeBin(c.createdAt, '${expectedPart}', ${expectedSize})), 10)`;
 
           expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
           expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
