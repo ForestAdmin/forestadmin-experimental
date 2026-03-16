@@ -68,7 +68,6 @@ describe('AggregationConverter', () => {
       expect(result.query).toContain('SELECT c.status as groupKey, COUNT(1) as aggregateValue');
       expect(result.query).toContain('FROM c');
       expect(result.query).toContain('GROUP BY c.status');
-      expect(result.query).toContain('ORDER BY c.status');
     });
 
     it('should build aggregation with nested field', () => {
@@ -98,7 +97,6 @@ describe('AggregationConverter', () => {
         'SELECT c.address["city"] as groupKey, COUNT(1) as aggregateValue',
       );
       expect(result.query).toContain('GROUP BY c.address["city"]');
-      expect(result.query).toContain('ORDER BY c.address["city"]');
     });
 
     it('should build aggregation on nested field with grouping by another nested field', () => {
@@ -118,14 +116,12 @@ describe('AggregationConverter', () => {
 
     describe('date group operations (time-based charts)', () => {
       it.each([
-        ['Day', 'day', 1],
-        ['Week', 'week', 1],
-        ['Month', 'month', 1],
-        ['Quarter', 'month', 3],
-        ['Year', 'year', 1],
+        ['Day', 10],
+        ['Month', 7],
+        ['Year', 4],
       ])(
         'should build a grouped query with %s date operation',
-        (operation, expectedPart, expectedSize) => {
+        (operation, expectedLength) => {
           const aggregation = new Aggregation({
             operation: 'Count',
             field: null,
@@ -133,12 +129,10 @@ describe('AggregationConverter', () => {
           });
 
           const result = AggregationConverter.buildAggregationQuery(aggregation);
-          const bin = `DateTimeBin(c.createdAt, '${expectedPart}', ${expectedSize})`;
-          const expectedExpr = `LEFT(ToString(${bin}), 10)`;
+          const expectedExpr = `LEFT(c.createdAt, ${expectedLength})`;
 
           expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
           expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
-          expect(result.query).toContain(`ORDER BY ${expectedExpr}`);
         },
       );
 
@@ -151,9 +145,7 @@ describe('AggregationConverter', () => {
 
         const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-        expect(result.query).toContain(
-          "LEFT(ToString(DateTimeBin(c.operationDate, 'month', 1)), 10) as groupKey",
-        );
+        expect(result.query).toContain('LEFT(c.operationDate, 7) as groupKey');
         expect(result.query).toContain('SUM(c.amount["value"]) as aggregateValue');
       });
 
@@ -181,8 +173,18 @@ describe('AggregationConverter', () => {
 
         const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-        expect(result.query).toContain(
-          'LEFT(ToString(DateTimeBin(c.metadata["timestamp"], \'year\', 1)), 10)',
+        expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
+      });
+
+      it('should throw for unsupported date operations', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: 'Week' as any }],
+        });
+
+        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+          'Unsupported date operation: "Week"',
         );
       });
     });
