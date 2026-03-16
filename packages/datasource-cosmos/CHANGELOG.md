@@ -1,3 +1,11 @@
+## [1.8.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.0...datasource-cosmos@1.8.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* allow aggregation by date ([#208](https://github.com/ForestAdmin/forestadmin-experimental/issues/208)) ([4622350](https://github.com/ForestAdmin/forestadmin-experimental/commit/4622350c90e482fa493159b5e53ac9a36c3da074))
+* **rpc agent:** release ([8f532a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/8f532a0f3f1f3775863967eba217cf3f7d373e6d))
+
 # [1.8.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.7.1...datasource-cosmos@1.8.0) (2026-03-06)
 
 
