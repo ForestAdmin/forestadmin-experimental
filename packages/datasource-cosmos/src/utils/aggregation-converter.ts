@@ -104,6 +104,15 @@ export default class AggregationConverter {
       return `LEFT(DateTimeAdd("day", -1 * ((DateTimePart("dw", ${field}) + 5) % 7), ${field}), 10)`;
     }
 
+    if (operation === 'Quarter') {
+      // Build "YYYY-Q#" string: extract year with LEFT, compute quarter from month.
+      // (month - 1) / 3 + 1 gives quarter number (integer division).
+      const year = `LEFT(${field}, 4)`;
+      const quarter = `((DateTimePart("mm", ${field}) - 1) / 3 + 1)`;
+
+      return `CONCAT(${year}, "-Q", ToString(${quarter}))`;
+    }
+
     const length = this.DATE_OPERATION_TO_LENGTH[operation];
 
     if (!length) {

@@ -173,6 +173,20 @@ describe('AggregationConverter', () => {
         expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
       });
 
+      it('should build a grouped query with Quarter date operation', () => {
+        const aggregation = new Aggregation({
+          operation: 'Count',
+          field: null,
+          groups: [{ field: 'createdAt', operation: 'Quarter' as any }],
+        });
+
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+        expect(result.query).toContain('CONCAT(LEFT(c.createdAt, 4)');
+        expect(result.query).toContain('DateTimePart("mm"');
+        expect(result.query).toContain('as groupKey');
+      });
+
       it('should build a grouped query with Week date operation', () => {
         const aggregation = new Aggregation({
           operation: 'Count',
