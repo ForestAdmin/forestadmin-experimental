@@ -92,9 +92,27 @@ export default class AggregationConverter {
 
   /**
    * Build a Cosmos DB expression that truncates a date field to the given granularity.
-   * Uses LEFT() on ISO 8601 string dates stored in Cosmos DB.
+   * Uses LEFT() on ISO 8601 string dates for Year/Month/Day.
+   * Week uses DateTimeAdd/DateTimePart to compute Monday of the week.
    */
   private static buildDateGroupExpression(field: string, operation: string): string {
+    if (operation === 'Week') {
+      // Compute the Monday of the week using Cosmos DB date functions.
+      // DateTimePart("dw", ...) returns 1=Sunday ... 7=Saturday.
+      // To get days-since-Monday: (dw + 5) % 7 → Mon=0, Tue=1, ..., Sun=6.
+      // Subtract that many days to get Monday's date.
+      return `LEFT(DateTimeAdd("day", -1 * ((DateTimePart("dw", ${field}) + 5) % 7), ${field}), 10)`;
+    }
+
+    if (operation === 'Quarter') {
+      // Return first day of the quarter as "YYYY-MM-01" so Forest Admin can parse it.
+      // Compute quarter start month: FLOOR((month - 1) / 3) * 3 + 1
+      // e.g. Jan-Mar -> 01, Apr-Jun -> 04, Jul-Sep -> 07, Oct-Dec -> 10
+      const startMonth = `FLOOR((DateTimePart("mm", ${field}) - 1) / 3) * 3 + 1`;
+
+      return `CONCAT(LEFT(${field}, 4), "-", RIGHT(CONCAT("0", ToString(${startMonth})), 2), "-01")`;
+    }
+
     const length = this.DATE_OPERATION_TO_LENGTH[operation];
 
     if (!length) {
