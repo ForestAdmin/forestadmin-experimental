@@ -105,12 +105,12 @@ export default class AggregationConverter {
     }
 
     if (operation === 'Quarter') {
-      // Build "YYYY-Q#" string: extract year with LEFT, compute quarter from month.
-      // (month - 1) / 3 + 1 gives quarter number (integer division).
-      const year = `LEFT(${field}, 4)`;
-      const quarter = `((DateTimePart("mm", ${field}) - 1) / 3 + 1)`;
+      // Return first day of the quarter as "YYYY-MM-01" so Forest Admin can parse it.
+      // Compute quarter start month: FLOOR((month - 1) / 3) * 3 + 1
+      // e.g. Jan-Mar -> 01, Apr-Jun -> 04, Jul-Sep -> 07, Oct-Dec -> 10
+      const startMonth = `FLOOR((DateTimePart("mm", ${field}) - 1) / 3) * 3 + 1`;
 
-      return `CONCAT(${year}, "-Q", ToString(${quarter}))`;
+      return `CONCAT(LEFT(${field}, 4), "-", RIGHT(CONCAT("0", ToString(${startMonth})), 2), "-01")`;
     }
 
     const length = this.DATE_OPERATION_TO_LENGTH[operation];
