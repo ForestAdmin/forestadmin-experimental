@@ -101,7 +101,9 @@ export default class AggregationConverter {
       // DateTimePart("dw", ...) returns 1=Sunday ... 7=Saturday.
       // To get days-since-Monday: (dw + 5) % 7 → Mon=0, Tue=1, ..., Sun=6.
       // Subtract that many days to get Monday's date.
-      return `LEFT(DateTimeAdd("day", -1 * ((DateTimePart("dw", ${field}) + 5) % 7), ${field}), 10)`;
+      const dw = `(DateTimePart("dw", ${field}) + 5) % 7`;
+
+      return `LEFT(DateTimeAdd("day", -1 * (${dw}), ${field}), 10)`;
     }
 
     if (operation === 'Quarter') {
@@ -110,7 +112,9 @@ export default class AggregationConverter {
       // e.g. Jan-Mar -> 01, Apr-Jun -> 04, Jul-Sep -> 07, Oct-Dec -> 10
       const startMonth = `FLOOR((DateTimePart("mm", ${field}) - 1) / 3) * 3 + 1`;
 
-      return `CONCAT(LEFT(${field}, 4), "-", RIGHT(CONCAT("0", ToString(${startMonth})), 2), "-01")`;
+      const mm = `RIGHT(CONCAT("0", ToString(${startMonth})), 2)`;
+
+      return `CONCAT(LEFT(${field}, 4), "-", ${mm}, "-01")`;
     }
 
     const length = this.DATE_OPERATION_TO_LENGTH[operation];

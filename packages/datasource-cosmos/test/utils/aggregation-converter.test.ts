@@ -190,7 +190,9 @@ describe('AggregationConverter', () => {
 
           // Verify the exact expression structure
           const weekExpr =
-            'LEFT(DateTimeAdd("day", -1 * ((DateTimePart("dw", c.createdAt) + 5) % 7), c.createdAt), 10)';
+            'LEFT(DateTimeAdd("day", -1 * ' +
+            '((DateTimePart("dw", c.createdAt) + 5) % 7), ' +
+            'c.createdAt), 10)';
           expect(result.query).toContain(`SELECT ${weekExpr} as groupKey`);
           expect(result.query).toContain(`GROUP BY ${weekExpr}`);
         });
