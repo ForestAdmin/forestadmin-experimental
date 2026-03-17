@@ -115,74 +115,176 @@ describe('AggregationConverter', () => {
     });
 
     describe('date group operations (time-based charts)', () => {
-      it.each([
-        ['Day', 10],
-        ['Month', 7],
-        ['Year', 4],
-      ])('should build a grouped query with %s date operation', (operation, expectedLength) => {
-        const aggregation = new Aggregation({
-          operation: 'Count',
-          field: null,
-          groups: [{ field: 'createdAt', operation: operation as any }],
+      describe('simple LEFT() operations (Day, Month, Year)', () => {
+        it.each([
+          ['Day', 10],
+          ['Month', 7],
+          ['Year', 4],
+        ])('should build a grouped query with %s date operation', (operation, expectedLength) => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: operation as any }],
+          });
+
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+          const expectedExpr = `LEFT(c.createdAt, ${expectedLength})`;
+
+          expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
+          expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
+          expect(result.query).not.toContain('ORDER BY');
         });
 
-        const result = AggregationConverter.buildAggregationQuery(aggregation);
-        const expectedExpr = `LEFT(c.createdAt, ${expectedLength})`;
+        it('should use LEFT on nested date fields', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'metadata->timestamp', operation: 'Year' as any }],
+          });
 
-        expect(result.query).toContain(`SELECT ${expectedExpr} as groupKey`);
-        expect(result.query).toContain(`GROUP BY ${expectedExpr}`);
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
+          expect(result.query).toContain('GROUP BY LEFT(c.metadata["timestamp"], 4)');
+        });
+
+        it('should combine date grouping with WHERE condition', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: 'Day' as any }],
+          });
+
+          const conditionTree = new ConditionTreeLeaf('status', 'Equal', 'active');
+          const result = AggregationConverter.buildAggregationQuery(aggregation, conditionTree);
+
+          expect(result.query).toContain('SELECT LEFT(c.createdAt, 10) as groupKey');
+          expect(result.query).toContain('WHERE');
+          expect(result.query).toContain('c.status = @param0');
+          expect(result.parameters).toEqual([{ name: '@param0', value: 'active' }]);
+        });
+
+        it('should combine date grouping with aggregation on a field', () => {
+          const aggregation = new Aggregation({
+            operation: 'Sum',
+            field: 'amount->value',
+            groups: [{ field: 'operationDate', operation: 'Month' as any }],
+          });
+
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          expect(result.query).toContain('LEFT(c.operationDate, 7) as groupKey');
+          expect(result.query).toContain('SUM(c.amount["value"]) as aggregateValue');
+        });
       });
 
-      it('should build a date-grouped query with aggregation on a field', () => {
-        const aggregation = new Aggregation({
-          operation: 'Sum',
-          field: 'amount->value',
-          groups: [{ field: 'operationDate', operation: 'Month' as any }],
+      describe('Week operation (DateTimeAdd/DateTimePart)', () => {
+        it('should compute Monday of the week with exact expression', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: 'Week' as any }],
+          });
+
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          // Verify the exact expression structure
+          const weekExpr =
+            'LEFT(DateTimeAdd("day", -1 * ' +
+            '((DateTimePart("dw", c.createdAt) + 5) % 7), ' +
+            'c.createdAt), 10)';
+          expect(result.query).toContain(`SELECT ${weekExpr} as groupKey`);
+          expect(result.query).toContain(`GROUP BY ${weekExpr}`);
         });
 
-        const result = AggregationConverter.buildAggregationQuery(aggregation);
+        it('should work with nested date fields', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'metadata->timestamp', operation: 'Week' as any }],
+          });
 
-        expect(result.query).toContain('LEFT(c.operationDate, 7) as groupKey');
-        expect(result.query).toContain('SUM(c.amount["value"]) as aggregateValue');
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          expect(result.query).toContain('DateTimePart("dw", c.metadata["timestamp"])');
+          expect(result.query).toContain('DateTimeAdd("day"');
+        });
+
+        it('should combine Week grouping with aggregation on a field', () => {
+          const aggregation = new Aggregation({
+            operation: 'Sum',
+            field: 'amount',
+            groups: [{ field: 'createdAt', operation: 'Week' as any }],
+          });
+
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          expect(result.query).toContain('SUM(c.amount) as aggregateValue');
+          expect(result.query).toContain('DateTimeAdd("day"');
+        });
       });
 
-      it('should build a date-grouped query with WHERE condition', () => {
-        const aggregation = new Aggregation({
-          operation: 'Count',
-          field: null,
-          groups: [{ field: 'createdAt', operation: 'Day' as any }],
+      describe('Quarter operation (CONCAT with FLOOR)', () => {
+        it('should compute first day of the quarter with exact expression', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: 'Quarter' as any }],
+          });
+
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          // Verify the expression builds "YYYY-MM-01" where MM is the quarter start month
+          expect(result.query).toContain('CONCAT(LEFT(c.createdAt, 4)');
+          expect(result.query).toContain(
+            'FLOOR((DateTimePart("mm", c.createdAt) - 1) / 3) * 3 + 1',
+          );
+          expect(result.query).toContain('"-01")');
+          expect(result.query).toContain('as groupKey');
         });
 
-        const conditionTree = new ConditionTreeLeaf('status', 'Equal', 'active');
-        const result = AggregationConverter.buildAggregationQuery(aggregation, conditionTree);
+        it('should work with nested date fields', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'metadata->timestamp', operation: 'Quarter' as any }],
+          });
 
-        expect(result.query).toContain('WHERE');
-        expect(result.query).toContain('c.status = @param0');
-        expect(result.parameters).toEqual([{ name: '@param0', value: 'active' }]);
+          const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+          expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
+          expect(result.query).toContain('DateTimePart("mm", c.metadata["timestamp"])');
+        });
+
+        it('should combine Quarter grouping with WHERE and aggregation', () => {
+          const aggregation = new Aggregation({
+            operation: 'Avg',
+            field: 'score',
+            groups: [{ field: 'createdAt', operation: 'Quarter' as any }],
+          });
+
+          const conditionTree = new ConditionTreeLeaf('active', 'Equal', true);
+          const result = AggregationConverter.buildAggregationQuery(aggregation, conditionTree);
+
+          expect(result.query).toContain('AVG(c.score) as aggregateValue');
+          expect(result.query).toContain('CONCAT(LEFT(c.createdAt, 4)');
+          expect(result.query).toContain('WHERE');
+          expect(result.parameters).toEqual([{ name: '@param0', value: true }]);
+        });
       });
 
-      it('should build a date-grouped query on a nested date field', () => {
-        const aggregation = new Aggregation({
-          operation: 'Count',
-          field: null,
-          groups: [{ field: 'metadata->timestamp', operation: 'Year' as any }],
+      describe('unsupported operations', () => {
+        it('should throw for unknown date operations', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: 'Hour' as any }],
+          });
+
+          expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
+            'Unsupported date operation: "Hour"',
+          );
         });
-
-        const result = AggregationConverter.buildAggregationQuery(aggregation);
-
-        expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
-      });
-
-      it('should throw for unsupported date operations', () => {
-        const aggregation = new Aggregation({
-          operation: 'Count',
-          field: null,
-          groups: [{ field: 'createdAt', operation: 'Week' as any }],
-        });
-
-        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
-          'Unsupported date operation: "Week"',
-        );
       });
     });
   });
