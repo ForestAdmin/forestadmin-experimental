@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.1...datasource-cosmos@1.8.2) (2026-03-17)
+
+
+### Bug Fixes
+
+* use Cosmos DB compatible functions for date aggregation ([#209](https://github.com/ForestAdmin/forestadmin-experimental/issues/209)) ([f4be4e2](https://github.com/ForestAdmin/forestadmin-experimental/commit/f4be4e2dc3f141e90d5a87b87d7228cf49e985cf))
+
 ## [1.8.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.0...datasource-cosmos@1.8.1) (2026-03-16)
 
 
