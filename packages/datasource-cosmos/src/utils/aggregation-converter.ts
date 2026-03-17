@@ -92,9 +92,18 @@ export default class AggregationConverter {
 
   /**
    * Build a Cosmos DB expression that truncates a date field to the given granularity.
-   * Uses LEFT() on ISO 8601 string dates stored in Cosmos DB.
+   * Uses LEFT() on ISO 8601 string dates for Year/Month/Day.
+   * Week uses DateTimeAdd/DateTimePart to compute Monday of the week.
    */
   private static buildDateGroupExpression(field: string, operation: string): string {
+    if (operation === 'Week') {
+      // Compute the Monday of the week using Cosmos DB date functions.
+      // DateTimePart("dw", ...) returns 1=Sunday ... 7=Saturday.
+      // To get days-since-Monday: (dw + 5) % 7 → Mon=0, Tue=1, ..., Sun=6.
+      // Subtract that many days to get Monday's date.
+      return `LEFT(DateTimeAdd("day", -1 * ((DateTimePart("dw", ${field}) + 5) % 7), ${field}), 10)`;
+    }
+
     const length = this.DATE_OPERATION_TO_LENGTH[operation];
 
     if (!length) {

@@ -173,16 +173,20 @@ describe('AggregationConverter', () => {
         expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
       });
 
-      it('should throw for unsupported date operations', () => {
+      it('should build a grouped query with Week date operation', () => {
         const aggregation = new Aggregation({
           operation: 'Count',
           field: null,
           groups: [{ field: 'createdAt', operation: 'Week' as any }],
         });
 
-        expect(() => AggregationConverter.buildAggregationQuery(aggregation)).toThrow(
-          'Unsupported date operation: "Week"',
-        );
+        const result = AggregationConverter.buildAggregationQuery(aggregation);
+
+        // Week uses DateTimeAdd/DateTimePart to compute Monday of the week
+        expect(result.query).toContain('DateTimeAdd("day"');
+        expect(result.query).toContain('DateTimePart("dw"');
+        expect(result.query).toContain('c.createdAt');
+        expect(result.query).toContain('as groupKey');
       });
     });
   });
