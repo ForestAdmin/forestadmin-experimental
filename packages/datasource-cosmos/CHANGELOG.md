@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.2...datasource-cosmos@1.8.3) (2026-03-18)
+
+
+### Performance Improvements
+
+* rollup Week/Quarter from Day-level queries ([#210](https://github.com/ForestAdmin/forestadmin-experimental/issues/210)) ([9528843](https://github.com/ForestAdmin/forestadmin-experimental/commit/95288433aab8a53c4203b03ad54dc7a2f58b9a16))
+
 ## [1.8.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.1...datasource-cosmos@1.8.2) (2026-03-17)
 
 
