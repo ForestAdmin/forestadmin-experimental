@@ -90,31 +90,19 @@ export default class AggregationConverter {
     Day: 10,
   };
 
+  /** Date operations that require post-processing rollup from daily data */
+  private static ROLLUP_OPERATIONS = new Set(['Week', 'Quarter']);
+
   /**
    * Build a Cosmos DB expression that truncates a date field to the given granularity.
-   * Uses LEFT() on ISO 8601 string dates for Year/Month/Day.
-   * Week uses DateTimeAdd/DateTimePart to compute Monday of the week.
+   * Uses LEFT() on ISO 8601 string dates.
+   * Week and Quarter query at Day granularity for performance (avoids
+   * expensive computed expressions in GROUP BY) and roll up in post-processing.
    */
   private static buildDateGroupExpression(field: string, operation: string): string {
-    if (operation === 'Week') {
-      // Compute the Monday of the week using Cosmos DB date functions.
-      // DateTimePart("dw", ...) returns 1=Sunday ... 7=Saturday.
-      // To get days-since-Monday: (dw + 5) % 7 → Mon=0, Tue=1, ..., Sun=6.
-      // Subtract that many days to get Monday's date.
-      const dw = `(DateTimePart("dw", ${field}) + 5) % 7`;
-
-      return `LEFT(DateTimeAdd("day", -1 * (${dw}), ${field}), 10)`;
-    }
-
-    if (operation === 'Quarter') {
-      // Return first day of the quarter as "YYYY-MM-01" so Forest Admin can parse it.
-      // Compute quarter start month: FLOOR((month - 1) / 3) * 3 + 1
-      // e.g. Jan-Mar -> 01, Apr-Jun -> 04, Jul-Sep -> 07, Oct-Dec -> 10
-      const startMonth = `FLOOR((DateTimePart("mm", ${field}) - 1) / 3) * 3 + 1`;
-
-      const mm = `RIGHT(CONCAT("0", ToString(${startMonth})), 2)`;
-
-      return `CONCAT(LEFT(${field}, 4), "-", ${mm}, "-01")`;
+    // Week/Quarter: query at Day level, roll up in processAggregationResults
+    if (this.ROLLUP_OPERATIONS.has(operation)) {
+      return `LEFT(${field}, 10)`;
     }
 
     const length = this.DATE_OPERATION_TO_LENGTH[operation];
@@ -124,6 +112,55 @@ export default class AggregationConverter {
     }
 
     return `LEFT(${field}, ${length})`;
+  }
+
+  /**
+   * Compute the Monday of the week for a given "YYYY-MM-DD" date string.
+   */
+  private static getMonday(dateStr: string): string {
+    const date = new Date(dateStr + 'T00:00:00Z');
+    const day = date.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const diff = (day + 6) % 7; // days since Monday
+    date.setUTCDate(date.getUTCDate() - diff);
+
+    return date.toISOString().slice(0, 10);
+  }
+
+  /**
+   * Compute the first day of the quarter for a "YYYY-MM-DD" date string.
+   * Returns "YYYY-MM-01" where MM is 01, 04, 07, or 10.
+   */
+  private static getQuarterStart(dateStr: string): string {
+    const month = parseInt(dateStr.slice(5, 7), 10);
+    const quarterStartMonth = Math.floor((month - 1) / 3) * 3 + 1;
+
+    return `${dateStr.slice(0, 4)}-${String(quarterStartMonth).padStart(2, '0')}-01`;
+  }
+
+  /**
+   * Roll up daily aggregation results into coarser time buckets.
+   * Used for Week and Quarter to avoid expensive Cosmos DB computed expressions.
+   */
+  private static rollupResults(
+    results: AggregateResult[],
+    aggregation: Aggregation,
+  ): AggregateResult[] {
+    const group = aggregation.groups[0];
+    const bucketFn = group.operation === 'Week' ? this.getMonday : this.getQuarterStart;
+
+    const buckets = new Map<string, number>();
+
+    for (const result of results) {
+      const dayKey = String(result.group[group.field]);
+      const bucketKey = bucketFn(dayKey);
+      const value = Number(result.value) || 0;
+      buckets.set(bucketKey, (buckets.get(bucketKey) || 0) + value);
+    }
+
+    return Array.from(buckets.entries()).map(([key, value]) => ({
+      value,
+      group: { [group.field]: key },
+    }));
   }
 
   /**
@@ -192,7 +229,7 @@ export default class AggregationConverter {
       return [{ value: this.extractAggregateValue(rawResults[0]), group: {} }];
     }
 
-    return rawResults.map(result => {
+    const results = rawResults.map(result => {
       const group: Record<string, unknown> = {};
 
       aggregation.groups.forEach((groupDef, index) => {
@@ -203,5 +240,14 @@ export default class AggregationConverter {
 
       return { value: this.extractAggregateValue(result), group };
     });
+
+    // Roll up daily results into Week/Quarter buckets
+    const dateOp = aggregation.groups[0]?.operation;
+
+    if (dateOp && this.ROLLUP_OPERATIONS.has(dateOp)) {
+      return this.rollupResults(results, aggregation);
+    }
+
+    return results;
   }
 }
