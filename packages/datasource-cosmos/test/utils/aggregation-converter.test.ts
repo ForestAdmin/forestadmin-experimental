@@ -317,6 +317,84 @@ describe('AggregationConverter', () => {
         });
       });
 
+      describe('rollup with different aggregation operations', () => {
+        it('should use Max reduction for Week rollup with Max operation', () => {
+          const aggregation = new Aggregation({
+            operation: 'Max',
+            field: 'score',
+            groups: [{ field: 'createdAt', operation: 'Week' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-01-15', aggregateValue: 100 }, // Mon
+            { groupKey: '2024-01-16', aggregateValue: 50 }, // Tue (same week)
+            { groupKey: '2024-01-17', aggregateValue: 75 }, // Wed (same week)
+          ];
+
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([{ value: 100, group: { createdAt: '2024-01-15' } }]);
+        });
+
+        it('should use Min reduction for Week rollup with Min operation', () => {
+          const aggregation = new Aggregation({
+            operation: 'Min',
+            field: 'score',
+            groups: [{ field: 'createdAt', operation: 'Week' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-01-15', aggregateValue: 100 }, // Mon
+            { groupKey: '2024-01-16', aggregateValue: 50 }, // Tue (same week)
+            { groupKey: '2024-01-17', aggregateValue: 75 }, // Wed (same week)
+          ];
+
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([{ value: 50, group: { createdAt: '2024-01-15' } }]);
+        });
+
+        it('should use Avg reduction for Quarter rollup with Avg operation', () => {
+          const aggregation = new Aggregation({
+            operation: 'Avg',
+            field: 'score',
+            groups: [{ field: 'createdAt', operation: 'Quarter' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-01-10', aggregateValue: 10 }, // Q1
+            { groupKey: '2024-02-15', aggregateValue: 20 }, // Q1
+            { groupKey: '2024-03-20', aggregateValue: 30 }, // Q1
+            { groupKey: '2024-04-01', aggregateValue: 100 }, // Q2
+          ];
+
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([
+            { value: 20, group: { createdAt: '2024-01-01' } },
+            { value: 100, group: { createdAt: '2024-04-01' } },
+          ]);
+        });
+
+        it('should use Sum reduction for Week rollup with Sum operation', () => {
+          const aggregation = new Aggregation({
+            operation: 'Sum',
+            field: 'amount',
+            groups: [{ field: 'createdAt', operation: 'Week' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-01-15', aggregateValue: 10 },
+            { groupKey: '2024-01-16', aggregateValue: 20 },
+            { groupKey: '2024-01-17', aggregateValue: 30 },
+          ];
+
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([{ value: 60, group: { createdAt: '2024-01-15' } }]);
+        });
+      });
+
       describe('unsupported operations', () => {
         it('should throw for unknown date operations', () => {
           const aggregation = new Aggregation({

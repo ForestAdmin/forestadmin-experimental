@@ -138,23 +138,54 @@ export default class AggregationConverter {
   }
 
   /**
+   * Reduce two values according to the aggregation operation.
+   */
+  private static reduce(op: AggregationOperation, current: number, incoming: number): number {
+    switch (op) {
+      case 'Max':
+        return Math.max(current, incoming);
+      case 'Min':
+        return Math.min(current, incoming);
+      default: // Sum, Count, Avg
+        return current + incoming;
+    }
+  }
+
+  /**
    * Roll up daily aggregation results into coarser time buckets.
    * Used for Week and Quarter to avoid expensive Cosmos DB computed expressions.
+   * Applies the correct reduction per aggregation operation.
    */
   private static rollupResults(
     results: AggregateResult[],
     aggregation: Aggregation,
   ): AggregateResult[] {
     const group = aggregation.groups[0];
+    const op = aggregation.operation;
     const bucketFn = group.operation === 'Week' ? this.getMonday : this.getQuarterStart;
 
     const buckets = new Map<string, number>();
+    const counts = new Map<string, number>();
 
     for (const result of results) {
       const dayKey = String(result.group[group.field]);
       const bucketKey = bucketFn(dayKey);
       const value = Number(result.value) || 0;
-      buckets.set(bucketKey, (buckets.get(bucketKey) || 0) + value);
+
+      if (buckets.has(bucketKey)) {
+        buckets.set(bucketKey, this.reduce(op, buckets.get(bucketKey)!, value));
+      } else {
+        buckets.set(bucketKey, value);
+      }
+
+      counts.set(bucketKey, (counts.get(bucketKey) || 0) + 1);
+    }
+
+    // For Avg, divide the accumulated sum by the number of days
+    if (op === 'Avg') {
+      for (const [key, sum] of buckets) {
+        buckets.set(key, sum / counts.get(key)!);
+      }
     }
 
     return Array.from(buckets.entries()).map(([key, value]) => ({
