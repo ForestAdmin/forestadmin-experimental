@@ -178,8 +178,8 @@ describe('AggregationConverter', () => {
         });
       });
 
-      describe('Week operation (DateTimeAdd/DateTimePart)', () => {
-        it('should compute Monday of the week with exact expression', () => {
+      describe('Week operation (Day query + rollup)', () => {
+        it('should query at Day granularity for performance', () => {
           const aggregation = new Aggregation({
             operation: 'Count',
             field: null,
@@ -188,44 +188,56 @@ describe('AggregationConverter', () => {
 
           const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-          // Verify the exact expression structure
-          const weekExpr =
-            'LEFT(DateTimeAdd("day", -1 * ' +
-            '((DateTimePart("dw", c.createdAt) + 5) % 7), ' +
-            'c.createdAt), 10)';
-          expect(result.query).toContain(`SELECT ${weekExpr} as groupKey`);
-          expect(result.query).toContain(`GROUP BY ${weekExpr}`);
+          // Week queries at Day level - no expensive DateTimePart/DateTimeAdd
+          expect(result.query).toContain('LEFT(c.createdAt, 10) as groupKey');
+          expect(result.query).toContain('GROUP BY LEFT(c.createdAt, 10)');
+          expect(result.query).not.toContain('DateTimeAdd');
+          expect(result.query).not.toContain('DateTimePart');
         });
 
-        it('should work with nested date fields', () => {
+        it('should roll up daily results into weeks in post-processing', () => {
           const aggregation = new Aggregation({
             operation: 'Count',
             field: null,
-            groups: [{ field: 'metadata->timestamp', operation: 'Week' as any }],
-          });
-
-          const result = AggregationConverter.buildAggregationQuery(aggregation);
-
-          expect(result.query).toContain('DateTimePart("dw", c.metadata["timestamp"])');
-          expect(result.query).toContain('DateTimeAdd("day"');
-        });
-
-        it('should combine Week grouping with aggregation on a field', () => {
-          const aggregation = new Aggregation({
-            operation: 'Sum',
-            field: 'amount',
             groups: [{ field: 'createdAt', operation: 'Week' as any }],
           });
 
-          const result = AggregationConverter.buildAggregationQuery(aggregation);
+          // Daily results spanning two weeks
+          const rawResults = [
+            { groupKey: '2024-01-15', aggregateValue: 3 }, // Mon
+            { groupKey: '2024-01-16', aggregateValue: 5 }, // Tue (same week)
+            { groupKey: '2024-01-22', aggregateValue: 7 }, // Mon (next week)
+            { groupKey: '2024-01-24', aggregateValue: 2 }, // Wed (same week)
+          ];
 
-          expect(result.query).toContain('SUM(c.amount) as aggregateValue');
-          expect(result.query).toContain('DateTimeAdd("day"');
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([
+            { value: 8, group: { createdAt: '2024-01-15' } },
+            { value: 9, group: { createdAt: '2024-01-22' } },
+          ]);
+        });
+
+        it('should handle Sunday correctly (rolls to previous Monday)', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'date', operation: 'Week' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-01-21', aggregateValue: 1 }, // Sunday -> Mon Jan 15
+            { groupKey: '2024-01-15', aggregateValue: 2 }, // Monday Jan 15
+          ];
+
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([{ value: 3, group: { date: '2024-01-15' } }]);
         });
       });
 
-      describe('Quarter operation (CONCAT with FLOOR)', () => {
-        it('should compute first day of the quarter with exact expression', () => {
+      describe('Quarter operation (Day query + rollup)', () => {
+        it('should query at Day granularity for performance', () => {
           const aggregation = new Aggregation({
             operation: 'Count',
             field: null,
@@ -234,29 +246,61 @@ describe('AggregationConverter', () => {
 
           const result = AggregationConverter.buildAggregationQuery(aggregation);
 
-          // Verify the expression builds "YYYY-MM-01" where MM is the quarter start month
-          expect(result.query).toContain('CONCAT(LEFT(c.createdAt, 4)');
-          expect(result.query).toContain(
-            'FLOOR((DateTimePart("mm", c.createdAt) - 1) / 3) * 3 + 1',
-          );
-          expect(result.query).toContain('"-01")');
-          expect(result.query).toContain('as groupKey');
+          // Quarter queries at Day level - no expensive CONCAT/FLOOR/DateTimePart
+          expect(result.query).toContain('LEFT(c.createdAt, 10) as groupKey');
+          expect(result.query).toContain('GROUP BY LEFT(c.createdAt, 10)');
+          expect(result.query).not.toContain('CONCAT');
+          expect(result.query).not.toContain('FLOOR');
+          expect(result.query).not.toContain('DateTimePart');
         });
 
-        it('should work with nested date fields', () => {
+        it('should roll up daily results into quarters in post-processing', () => {
           const aggregation = new Aggregation({
             operation: 'Count',
             field: null,
-            groups: [{ field: 'metadata->timestamp', operation: 'Quarter' as any }],
+            groups: [{ field: 'createdAt', operation: 'Quarter' as any }],
           });
 
-          const result = AggregationConverter.buildAggregationQuery(aggregation);
+          const rawResults = [
+            { groupKey: '2024-01-10', aggregateValue: 5 }, // Q1
+            { groupKey: '2024-03-20', aggregateValue: 3 }, // Q1
+            { groupKey: '2024-04-01', aggregateValue: 7 }, // Q2
+            { groupKey: '2024-06-15', aggregateValue: 2 }, // Q2
+          ];
 
-          expect(result.query).toContain('LEFT(c.metadata["timestamp"], 4)');
-          expect(result.query).toContain('DateTimePart("mm", c.metadata["timestamp"])');
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([
+            { value: 8, group: { createdAt: '2024-01-01' } },
+            { value: 9, group: { createdAt: '2024-04-01' } },
+          ]);
         });
 
-        it('should combine Quarter grouping with WHERE and aggregation', () => {
+        it('should handle all four quarters', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'date', operation: 'Quarter' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-02-15', aggregateValue: 1 }, // Q1
+            { groupKey: '2024-05-10', aggregateValue: 1 }, // Q2
+            { groupKey: '2024-08-20', aggregateValue: 1 }, // Q3
+            { groupKey: '2024-11-01', aggregateValue: 1 }, // Q4
+          ];
+
+          const result = AggregationConverter.processAggregationResults(rawResults, aggregation);
+
+          expect(result).toEqual([
+            { value: 1, group: { date: '2024-01-01' } },
+            { value: 1, group: { date: '2024-04-01' } },
+            { value: 1, group: { date: '2024-07-01' } },
+            { value: 1, group: { date: '2024-10-01' } },
+          ]);
+        });
+
+        it('should combine Quarter with WHERE and aggregation', () => {
           const aggregation = new Aggregation({
             operation: 'Avg',
             field: 'score',
@@ -267,7 +311,7 @@ describe('AggregationConverter', () => {
           const result = AggregationConverter.buildAggregationQuery(aggregation, conditionTree);
 
           expect(result.query).toContain('AVG(c.score) as aggregateValue');
-          expect(result.query).toContain('CONCAT(LEFT(c.createdAt, 4)');
+          expect(result.query).toContain('LEFT(c.createdAt, 10) as groupKey');
           expect(result.query).toContain('WHERE');
           expect(result.parameters).toEqual([{ name: '@param0', value: true }]);
         });
