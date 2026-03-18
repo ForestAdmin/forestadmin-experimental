@@ -118,7 +118,7 @@ export default class AggregationConverter {
    * Compute the Monday of the week for a given "YYYY-MM-DD" date string.
    */
   private static getMonday(dateStr: string): string {
-    const date = new Date(dateStr + 'T00:00:00Z');
+    const date = new Date(`${dateStr}T00:00:00Z`);
     const day = date.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
     const diff = (day + 6) % 7; // days since Monday
     date.setUTCDate(date.getUTCDate() - diff);
