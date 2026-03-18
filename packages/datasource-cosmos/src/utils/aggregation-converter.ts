@@ -168,17 +168,21 @@ export default class AggregationConverter {
     const counts = new Map<string, number>();
 
     for (const result of results) {
-      const dayKey = String(result.group[group.field]);
-      const bucketKey = bucketFn(dayKey);
-      const value = Number(result.value) || 0;
+      const rawValue = result.group[group.field];
 
-      if (buckets.has(bucketKey)) {
-        buckets.set(bucketKey, this.reduce(op, buckets.get(bucketKey)!, value));
-      } else {
-        buckets.set(bucketKey, value);
+      if (rawValue != null) {
+        const bucketKey = bucketFn(String(rawValue));
+
+        const value = Number(result.value) || 0;
+
+        if (buckets.has(bucketKey)) {
+          buckets.set(bucketKey, this.reduce(op, buckets.get(bucketKey)!, value));
+        } else {
+          buckets.set(bucketKey, value);
+        }
+
+        counts.set(bucketKey, (counts.get(bucketKey) || 0) + 1);
       }
-
-      counts.set(bucketKey, (counts.get(bucketKey) || 0) + 1);
     }
 
     // For Avg, divide the accumulated sum by the number of days

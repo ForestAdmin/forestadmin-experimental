@@ -376,6 +376,27 @@ describe('AggregationConverter', () => {
           ]);
         });
 
+        it('should skip null/undefined group values in rollup', () => {
+          const aggregation = new Aggregation({
+            operation: 'Count',
+            field: null,
+            groups: [{ field: 'createdAt', operation: 'Week' as any }],
+          });
+
+          const rawResults = [
+            { groupKey: '2024-01-15', aggregateValue: 3 },
+            { groupKey: null, aggregateValue: 5 },
+            { groupKey: undefined, aggregateValue: 2 },
+          ];
+
+          const result = AggregationConverter.processAggregationResults(
+            rawResults as any,
+            aggregation,
+          );
+
+          expect(result).toEqual([{ value: 3, group: { createdAt: '2024-01-15' } }]);
+        });
+
         it('should use Sum reduction for Week rollup with Sum operation', () => {
           const aggregation = new Aggregation({
             operation: 'Sum',
