@@ -15,12 +15,12 @@
     "superagent": "^8.0.6"
   },
   "devDependencies": {
-    "@forestadmin/datasource-customizer": "^1.68.2",
-    "@forestadmin/datasource-toolkit": "^1.52.0"
+    "@forestadmin/datasource-customizer": "^1.69.0",
+    "@forestadmin/datasource-toolkit": "^1.53.0"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-customizer": "^1.68.2",
-    "@forestadmin/datasource-toolkit": "^1.52.0"
+    "@forestadmin/datasource-customizer": "^1.69.0",
+    "@forestadmin/datasource-toolkit": "^1.53.0"
   },
   "files": [
     "dist/**/*.js",

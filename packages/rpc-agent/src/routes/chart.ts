@@ -9,9 +9,14 @@ export default class RpcChartRoute extends CollectionRoute {
   }
 
   public async handleChart(context: any) {
-    const { chart, record_id: recordId } = context.request.body;
+    const { chart, record_id: recordId, parameters } = context.request.body;
 
-    const chartResult = await this.collection.renderChart(parseCaller(context), chart, recordId);
+    const chartResult = await this.collection.renderChart(
+      parseCaller(context),
+      chart,
+      recordId,
+      parameters,
+    );
 
     context.response.body = chartResult;
   }
