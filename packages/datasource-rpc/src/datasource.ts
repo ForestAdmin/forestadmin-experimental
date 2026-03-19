@@ -43,7 +43,7 @@ export default class RpcDataSource extends BaseDataSource {
     return { charts: this._charts };
   }
 
-  override async renderChart(caller: Caller, name: string) {
+  override async renderChart(caller: Caller, name: string, parameters?: Record<string, string>) {
     const url = `${this.options.uri}/forest/rpc-datasource-chart`;
 
     this.logger('Debug', `Forwarding datasource chart '${name}' call to the Rpc agent on ${url}.`);
@@ -51,7 +51,7 @@ export default class RpcDataSource extends BaseDataSource {
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
 
-    const response = await request.send({ chart: name });
+    const response = await request.send({ chart: name, parameters });
 
     return response.body;
   }
