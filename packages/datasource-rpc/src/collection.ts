@@ -151,7 +151,12 @@ export default class RpcCollection extends BaseCollection {
     return keysToCamel(response.body);
   }
 
-  override async renderChart(caller: Caller, name: string, recordId: CompositeId) {
+  override async renderChart(
+    caller: Caller,
+    name: string,
+    recordId: CompositeId,
+    parameters?: Record<string, string>,
+  ) {
     const url = `${this.rpcCollectionUri}/chart`;
 
     this.logger(
@@ -161,7 +166,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ chart: name, record_id: recordId });
+    const response = await request.send({ chart: name, record_id: recordId, parameters });
 
     return response.body;
   }
