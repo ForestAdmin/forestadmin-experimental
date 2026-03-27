@@ -1,3 +1,21 @@
+# [2.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.8.0...rpc-agent@2.9.0) (2026-03-27)
+
+
+### Bug Fixes
+
+* allow aggregation by date ([#208](https://github.com/ForestAdmin/forestadmin-experimental/issues/208)) ([4622350](https://github.com/ForestAdmin/forestadmin-experimental/commit/4622350c90e482fa493159b5e53ac9a36c3da074))
+* use Cosmos DB compatible functions for date aggregation ([#209](https://github.com/ForestAdmin/forestadmin-experimental/issues/209)) ([f4be4e2](https://github.com/ForestAdmin/forestadmin-experimental/commit/f4be4e2dc3f141e90d5a87b87d7228cf49e985cf))
+
+
+### Features
+
+* **api chart:** allow customizing api chart with query or body parameters ([#211](https://github.com/ForestAdmin/forestadmin-experimental/issues/211)) ([6d3eb65](https://github.com/ForestAdmin/forestadmin-experimental/commit/6d3eb65d1d232b94e03673951be6fc59b10258b3))
+
+
+### Performance Improvements
+
+* rollup Week/Quarter from Day-level queries ([#210](https://github.com/ForestAdmin/forestadmin-experimental/issues/210)) ([9528843](https://github.com/ForestAdmin/forestadmin-experimental/commit/95288433aab8a53c4203b03ad54dc7a2f58b9a16))
+
 # [2.8.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.7.0...rpc-agent@2.8.0) (2026-03-10)
 
 
