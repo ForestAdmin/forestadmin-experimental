@@ -1,4 +1,9 @@
-import { ConditionTreeBranch, ConditionTreeLeaf } from '@forestadmin/datasource-toolkit';
+import {
+  ConditionTreeBranch,
+  ConditionTreeLeaf,
+  ValidationError,
+  BusinessError,
+} from '@forestadmin/datasource-toolkit';
 import { CosmosClient } from '@azure/cosmos';
 
 import QueryValidator, { QueryValidationError } from '../src/utils/query-validator';
@@ -85,6 +90,26 @@ describe('maxConditions', () => {
 
       expect(thrownError).toBeInstanceOf(QueryValidationError);
       expect(thrownError?.message).toContain('maximum of 5');
+    });
+
+    it('should throw a ValidationError (maps to 400 Bad Request in the agent)', () => {
+      const validator = new QueryValidator(undefined, { maxConditions: 5 });
+
+      let thrownError: Error | null = null;
+
+      try {
+        validator.validateConditionTree(buildConditionTree(10));
+      } catch (error) {
+        thrownError = error as Error;
+      }
+
+      // QueryValidationError extends ValidationError from datasource-toolkit
+      expect(thrownError).toBeInstanceOf(ValidationError);
+      expect(thrownError).toBeInstanceOf(BusinessError);
+      // The agent uses BusinessError.isOfType as a fallback for cross-package version mismatches
+      expect(BusinessError.isOfType(thrownError!, ValidationError)).toBe(true);
+      // Preserves the custom name for debugging
+      expect(thrownError?.name).toBe('QueryValidationError');
     });
 
     it('should reset condition count between validations', () => {

@@ -1,3 +1,5 @@
+import { ValidationError } from '@forestadmin/datasource-toolkit';
+
 /**
  * Error codes for query validation failures
  */
@@ -12,15 +14,15 @@ export enum QueryValidationErrorCode {
 }
 
 /**
- * Security and validation errors for query operations
+ * Security and validation errors for query operations.
+ * Extends ValidationError so the agent returns 400 (Bad Request) instead of 500.
  */
-export default class QueryValidationError extends Error {
+export default class QueryValidationError extends ValidationError {
   constructor(
     message: string,
     public readonly code: QueryValidationErrorCode,
     public readonly field?: string,
   ) {
-    super(message);
-    this.name = 'QueryValidationError';
+    super(message, undefined, 'QueryValidationError');
   }
 }
