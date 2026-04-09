@@ -35,6 +35,7 @@ export default class CosmosCollection extends BaseCollection {
     model: ModelCosmos,
     logger: Logger,
     nativeDriver: CosmosClient,
+    options?: { maxConditions?: number },
   ) {
     if (!model) throw new Error('Invalid (null) model instance.');
 
@@ -53,6 +54,7 @@ export default class CosmosCollection extends BaseCollection {
       validationOptions: {
         // Allow unknown fields since schema might not include all nested paths
         allowUnknownFields: true,
+        maxConditions: options?.maxConditions,
       },
     });
 

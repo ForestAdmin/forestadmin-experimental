@@ -36,7 +36,7 @@ export interface QueryValidatorOptions {
 
   /**
    * Maximum number of conditions in a condition tree
-   * Default: 100
+   * Default: 1000
    */
   maxConditions?: number;
 }
@@ -78,7 +78,7 @@ export default class QueryValidator {
       validateAgainstSchema: options.validateAgainstSchema ?? schemaFields !== undefined,
       allowUnknownFields: options.allowUnknownFields ?? false,
       maxFieldNameLength: options.maxFieldNameLength ?? 256,
-      maxConditions: options.maxConditions ?? 100,
+      maxConditions: options.maxConditions ?? 1000,
     };
 
     if (schemaFields) {
