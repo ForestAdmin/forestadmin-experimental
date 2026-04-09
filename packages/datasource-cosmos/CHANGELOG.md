@@ -1,3 +1,15 @@
+# [1.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.3...datasource-cosmos@1.9.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* **datasource-cosmos:** increase maxConditions default to 1000 ([#212](https://github.com/ForestAdmin/forestadmin-experimental/issues/212)) ([96df1f5](https://github.com/ForestAdmin/forestadmin-experimental/commit/96df1f53f8f53e0630464647a91c2c080808b22f))
+
+
+### Features
+
+* **api chart:** allow customizing api chart with query or body parameters ([#211](https://github.com/ForestAdmin/forestadmin-experimental/issues/211)) ([6d3eb65](https://github.com/ForestAdmin/forestadmin-experimental/commit/6d3eb65d1d232b94e03673951be6fc59b10258b3))
+
 ## [1.8.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.2...datasource-cosmos@1.8.3) (2026-03-18)
 
 
