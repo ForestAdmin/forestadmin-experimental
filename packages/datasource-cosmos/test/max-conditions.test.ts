@@ -1,15 +1,15 @@
+import { CosmosClient } from '@azure/cosmos';
 import {
+  BusinessError,
   ConditionTreeBranch,
   ConditionTreeLeaf,
   ValidationError,
-  BusinessError,
 } from '@forestadmin/datasource-toolkit';
-import { CosmosClient } from '@azure/cosmos';
 
-import QueryValidator, { QueryValidationError } from '../src/utils/query-validator';
-import QueryConverter from '../src/utils/query-converter';
-import CosmosDataSource from '../src/datasource';
 import CosmosCollection from '../src/collection';
+import CosmosDataSource from '../src/datasource';
+import QueryConverter from '../src/utils/query-converter';
+import QueryValidator, { QueryValidationError } from '../src/utils/query-validator';
 
 /**
  * Helper: build a flat AND condition tree with N leaf conditions
@@ -107,6 +107,7 @@ describe('maxConditions', () => {
       expect(thrownError).toBeInstanceOf(ValidationError);
       expect(thrownError).toBeInstanceOf(BusinessError);
       // The agent uses BusinessError.isOfType as a fallback for cross-package version mismatches
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       expect(BusinessError.isOfType(thrownError!, ValidationError)).toBe(true);
       // Preserves the custom name for debugging
       expect(thrownError?.name).toBe('QueryValidationError');
@@ -184,9 +185,11 @@ describe('maxConditions', () => {
   // CosmosCollection — maxConditions passthrough via constructor
   // ───────────────────────────────────────────────────────────
   describe('CosmosCollection', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockDatasource: any;
     let mockLogger: jest.Mock;
     let mockClient: jest.Mocked<CosmosClient>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockModel: any;
 
     beforeEach(() => {
@@ -294,19 +297,16 @@ describe('maxConditions', () => {
     });
 
     it('should handle multiple filters combined with daily buckets (3 filters x 365 days)', () => {
-      const converter = new QueryConverter();
-
-      // 3 filters AND'd together, each with 365 OR'd date conditions
       // Total nodes: 1 (top AND) + 3 (OR branches) + 3*365 (leaves) = 1099
-      // This exceeds the default 1000, which is the scenario the client hit.
-      // With maxConditions=1000, this would fail, so use a higher limit.
+      // This exceeds the default 1000, so use a higher limit.
       const customConverter = new QueryConverter({
         validationOptions: { maxConditions: 1500 },
       });
 
       const dateBuckets = Array.from(
         { length: 365 },
-        (_, i) => new ConditionTreeLeaf('operationDate', 'Equal', new Date(2025, 0, 1 + i).toISOString()),
+        (_, i) =>
+          new ConditionTreeLeaf('operationDate', 'Equal', new Date(2025, 0, 1 + i).toISOString()),
       );
 
       const tree = new ConditionTreeBranch('And', [
