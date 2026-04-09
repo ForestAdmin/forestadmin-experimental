@@ -19,7 +19,7 @@ export default class CosmosDataSource extends BaseDataSource<CosmosCollection> {
     cosmosClient: CosmosClient,
     collectionModels: ModelCosmos[],
     logger: Logger,
-    options?: { liveQueryConnections?: string; liveQueryDatabase?: string },
+    options?: { liveQueryConnections?: string; liveQueryDatabase?: string; maxConditions?: number },
   ) {
     super();
 
@@ -27,7 +27,7 @@ export default class CosmosDataSource extends BaseDataSource<CosmosCollection> {
     this.cosmosClient = cosmosClient;
 
     // Creating collections
-    this.createCollections(collectionModels, logger);
+    this.createCollections(collectionModels, logger, options?.maxConditions);
 
     if (options?.liveQueryConnections && options?.liveQueryDatabase) {
       this.addNativeQueryConnection(options.liveQueryConnections, {
@@ -39,12 +39,18 @@ export default class CosmosDataSource extends BaseDataSource<CosmosCollection> {
     logger?.('Info', 'CosmosDataSource - Built');
   }
 
-  protected async createCollections(collectionModels: ModelCosmos[], logger: Logger) {
+  protected async createCollections(
+    collectionModels: ModelCosmos[],
+    logger: Logger,
+    maxConditions?: number,
+  ) {
     collectionModels
       // avoid schema reordering
       .sort((modelA, modelB) => (modelA.name > modelB.name ? 1 : -1))
       .forEach(model => {
-        const collection = new CosmosCollection(this, model, logger, this.cosmosClient);
+        const collection = new CosmosCollection(this, model, logger, this.cosmosClient, {
+          maxConditions,
+        });
         this.addCollection(collection);
       });
   }

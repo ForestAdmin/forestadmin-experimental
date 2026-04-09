@@ -184,6 +184,12 @@ export function createCosmosDataSource(
      * Default: false
      */
     logQueries?: boolean;
+    /**
+     * Maximum number of conditions allowed in a single query condition tree
+     * Increase this if you use charts with many time buckets or complex filters
+     * Default: 1000
+     */
+    maxConditions?: number;
   },
 ): DataSourceFactory {
   return async (logger: Logger) => {
@@ -203,6 +209,7 @@ export function createCosmosDataSource(
       schema,
       logRuConsumption,
       logQueries,
+      maxConditions,
     } = options || {};
 
     // Configure RU logging if enabled
@@ -263,6 +270,7 @@ export function createCosmosDataSource(
     const datasource = new CosmosDataSource(client, collectionModels, logger, {
       liveQueryConnections,
       liveQueryDatabase,
+      maxConditions,
     });
 
     // Add virtual array collections if specified
