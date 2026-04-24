@@ -27,7 +27,10 @@ function parseIntrospection(introSchema: IntrospectionSchema): RpcSchema {
 
     const parsedFields = Object.entries(fields).reduce((pFields, [name, schema]) => {
       pFields[name] = cameliseKeys(schema);
-      pFields[name].filterOperators = new Set(pFields[name].filterOperators.map(toPascalCase));
+
+      if (schema.type === 'Column') {
+        pFields[name].filterOperators = new Set(pFields[name].filterOperators.map(toPascalCase));
+      }
 
       return pFields;
     }, {});
