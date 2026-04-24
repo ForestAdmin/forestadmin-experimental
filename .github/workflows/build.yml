@@ -50,7 +50,18 @@ jobs:
           && (
             github.ref == 'refs/heads/main'
           )
-        run: npx nx affected --base=origin/main~1 --head=origin/main -t publish:package
+        run: |
+          set -e
+          PROJECTS=$(npx nx print-affected --base=origin/main~1 --head=origin/main --target=publish:package --select=projects)
+          PROJECTS=$(echo "$PROJECTS" | tr -d ' ' | tr ',' '\n')
+          if [ -z "$PROJECTS" ]; then
+            echo "No affected packages to publish"
+            exit 0
+          fi
+          for PROJECT in $PROJECTS; do
+            echo "=== Releasing $PROJECT ==="
+            npx nx run "$PROJECT:publish:package"
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GIT_AUTHOR_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
