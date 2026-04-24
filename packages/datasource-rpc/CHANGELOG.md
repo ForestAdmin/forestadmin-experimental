@@ -1,3 +1,25 @@
+# [1.12.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.11.0...datasource-rpc@1.12.0) (2026-04-24)
+
+
+### Bug Fixes
+
+* allow aggregation by date ([#208](https://github.com/ForestAdmin/forestadmin-experimental/issues/208)) ([4622350](https://github.com/ForestAdmin/forestadmin-experimental/commit/4622350c90e482fa493159b5e53ac9a36c3da074))
+* **datasource-cosmos:** increase maxConditions default to 1000 ([#212](https://github.com/ForestAdmin/forestadmin-experimental/issues/212)) ([96df1f5](https://github.com/ForestAdmin/forestadmin-experimental/commit/96df1f53f8f53e0630464647a91c2c080808b22f))
+* fix aggregation when using a reserved keyword ([#207](https://github.com/ForestAdmin/forestadmin-experimental/issues/207)) ([7200f0b](https://github.com/ForestAdmin/forestadmin-experimental/commit/7200f0beecacc1898e9d2c76339e1a2c27b183a5))
+* **rpc agent:** release ([8f532a0](https://github.com/ForestAdmin/forestadmin-experimental/commit/8f532a0f3f1f3775863967eba217cf3f7d373e6d))
+* **rpc datasource:** fix introspection parsing ([b3978a1](https://github.com/ForestAdmin/forestadmin-experimental/commit/b3978a173b26212a9b3da19be5592175172b57f5))
+* use Cosmos DB compatible functions for date aggregation ([#209](https://github.com/ForestAdmin/forestadmin-experimental/issues/209)) ([f4be4e2](https://github.com/ForestAdmin/forestadmin-experimental/commit/f4be4e2dc3f141e90d5a87b87d7228cf49e985cf))
+
+
+### Features
+
+* **api chart:** allow customizing api chart with query or body parameters ([#211](https://github.com/ForestAdmin/forestadmin-experimental/issues/211)) ([6d3eb65](https://github.com/ForestAdmin/forestadmin-experimental/commit/6d3eb65d1d232b94e03673951be6fc59b10258b3))
+
+
+### Performance Improvements
+
+* rollup Week/Quarter from Day-level queries ([#210](https://github.com/ForestAdmin/forestadmin-experimental/issues/210)) ([9528843](https://github.com/ForestAdmin/forestadmin-experimental/commit/95288433aab8a53c4203b03ad54dc7a2f58b9a16))
+
 # [1.11.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.10.0...datasource-rpc@1.11.0) (2026-03-06)
 
 
