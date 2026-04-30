@@ -64,7 +64,7 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
     this.options.logger('Debug', `RPC agent schema hash computed: ${this._buildedSchema.etag}`);
 
     await fs.writeFile(
-      '.forestadmin-rpc-schema.json',
+      this.options.schemaPath || '.forestadmin-rpc-schema.json',
       JSON.stringify(this._buildedSchema, null, 2),
     );
 
