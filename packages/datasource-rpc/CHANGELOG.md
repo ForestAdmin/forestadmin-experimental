@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.0...datasource-rpc@1.12.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **rpc agent:** use schema path option ([#215](https://github.com/ForestAdmin/forestadmin-experimental/issues/215)) ([4c700ec](https://github.com/ForestAdmin/forestadmin-experimental/commit/4c700ecda1a7b6d3a66ef66add042e57e45f4095))
+
 # [1.12.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.11.0...datasource-rpc@1.12.0) (2026-04-24)
 
 
