@@ -61,7 +61,12 @@ export interface ElasticsearchDatasourceOptionsBuilder {
   /**
    * Add a collection from an index
    */
-  addCollectionFromIndex({ name, indexName }: ElasticsearchCollectionFromIndexOptions): this;
+  addCollectionFromIndex({
+    name,
+    indexName,
+    overrideTypeConverter,
+    enableCount,
+  }: ElasticsearchCollectionFromIndexOptions): this;
 
   /**
    * Add a collection from a template
@@ -71,6 +76,7 @@ export interface ElasticsearchDatasourceOptionsBuilder {
     templateName,
     generateIndexName,
     overrideTypeConverter,
+    enableCount,
   }: ElasticsearchCollectionFromTemplateOptions): this;
 }
 
@@ -90,6 +96,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
     name,
     indexName,
     overrideTypeConverter,
+    enableCount,
   }: ElasticsearchCollectionFromIndexOptions): this {
     this.collectionsPromises.push(
       (async () => {
@@ -108,6 +115,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           mapping[indexName].mappings,
           () => indexName,
           overrideTypeConverter,
+          enableCount,
         );
       })(),
     );
@@ -120,6 +128,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
     templateName,
     generateIndexName,
     overrideTypeConverter,
+    enableCount,
   }: ElasticsearchCollectionFromTemplateOptions): this {
     this.collectionsPromises.push(
       (async () => {
@@ -129,6 +138,7 @@ export class ElasticsearchDatasourceBuilder implements ElasticsearchDatasourceOp
           name,
           typeof generateIndexName === 'string' ? () => generateIndexName : generateIndexName,
           overrideTypeConverter,
+          enableCount,
         );
 
         return modelFromTemplate;

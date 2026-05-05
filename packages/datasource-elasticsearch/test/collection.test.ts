@@ -51,6 +51,42 @@ describe('ElasticsearchDataSource > Collection', () => {
     expect(elasticsearchCollection.nativeDriver).toBeDefined();
   });
 
+  describe('count capability', () => {
+    const buildCollection = (enableCount?: boolean) => {
+      const dataSource = Symbol('datasource') as unknown as DataSource;
+      const mockClient = new MockClient();
+      const client = new Client({
+        node: 'http://localhost:9200',
+        Connection: mockClient.getConnection(),
+      });
+
+      const model = new ModelElasticsearch(
+        client,
+        '__collection__',
+        ['indexPattern'],
+        ['alias'],
+        { properties: { name: { type: 'integer' } } },
+        undefined,
+        undefined,
+        enableCount,
+      );
+
+      return new ElasticsearchCollection(dataSource, model, jest.fn(), client);
+    };
+
+    it('exposes a countable schema when the model has enableCount = true', () => {
+      const collection = buildCollection(true);
+
+      expect(collection.schema.countable).toBe(true);
+    });
+
+    it('exposes a non-countable schema by default', () => {
+      const collection = buildCollection();
+
+      expect(collection.schema.countable).toBe(false);
+    });
+  });
+
   // describe('create', () => {
   // });
 

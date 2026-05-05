@@ -12,6 +12,7 @@ export default async function introspectTemplate(
   overrideName?: string,
   generateIndexName?: (record?: unknown) => string,
   overrideTypeConverter?: OverrideTypeConverter,
+  enableCount?: boolean,
 ) {
   const isIndexTemplate = await elasticsearchClient.indices.existsIndexTemplate({
     name: templateName,
@@ -40,6 +41,7 @@ export default async function introspectTemplate(
       mappings,
       generateIndexName,
       overrideTypeConverter,
+      enableCount,
     );
   }
 
@@ -59,5 +61,6 @@ export default async function introspectTemplate(
     mappings,
     generateIndexName,
     overrideTypeConverter,
+    enableCount,
   );
 }

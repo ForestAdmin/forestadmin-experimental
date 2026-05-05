@@ -161,5 +161,34 @@ describe('introspection > builder', () => {
 
       await deleteElasticsearchTemplate('test-template', 'test-template-*');
     });
+
+    it('should propagate enableCount to the produced model', async () => {
+      const { client } = await createElasticsearchTemplate(
+        'test-template-count',
+        {
+          indexPattern: 'test-template-count-*',
+          alias: 'test-template-count-alias',
+          mapping: {
+            dynamic: 'strict',
+            properties: { id: { type: 'integer' } },
+          },
+        },
+        [{ id: 1, index: 'test-template-count-index' }],
+      );
+
+      const elasticsearchDatasourceBuilder = new ElasticsearchDatasourceBuilder(client);
+
+      elasticsearchDatasourceBuilder.addCollectionFromTemplate({
+        name: 'countable',
+        templateName: 'test-template-count',
+        enableCount: true,
+      });
+
+      const [model] = await elasticsearchDatasourceBuilder.createCollectionsFromConfiguration();
+
+      expect(model.enableCount).toBe(true);
+
+      await deleteElasticsearchTemplate('test-template-count', 'test-template-count-*');
+    });
   });
 });
