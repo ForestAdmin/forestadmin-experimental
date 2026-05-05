@@ -123,11 +123,12 @@ export default class RpcCollection extends BaseCollection {
     appendHeaders(request, this.options.authSecret, caller);
     const response = await request.send({ action: name, filter, data: formValues });
 
-    response.body.invalidated = new Set(response.body.invalidated);
+    const body = keysToCamel(response.body);
+    body.invalidated = new Set(body.invalidated);
 
     // TODO action with file
 
-    return keysToCamel(response.body);
+    return body;
   }
 
   override async getForm(
