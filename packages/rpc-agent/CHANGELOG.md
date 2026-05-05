@@ -1,3 +1,12 @@
+## [2.9.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.9.0...rpc-agent@2.9.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **datasource-cosmos:** increase maxConditions default to 1000 ([#212](https://github.com/ForestAdmin/forestadmin-experimental/issues/212)) ([96df1f5](https://github.com/ForestAdmin/forestadmin-experimental/commit/96df1f53f8f53e0630464647a91c2c080808b22f))
+* **rpc agent:** use schema path option ([#215](https://github.com/ForestAdmin/forestadmin-experimental/issues/215)) ([4c700ec](https://github.com/ForestAdmin/forestadmin-experimental/commit/4c700ecda1a7b6d3a66ef66add042e57e45f4095))
+* **rpc datasource:** fix introspection parsing ([b3978a1](https://github.com/ForestAdmin/forestadmin-experimental/commit/b3978a173b26212a9b3da19be5592175172b57f5))
+
 # [2.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.8.0...rpc-agent@2.9.0) (2026-03-27)
 
 
