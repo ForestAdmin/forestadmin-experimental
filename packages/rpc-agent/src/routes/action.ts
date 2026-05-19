@@ -19,7 +19,25 @@ export default class RpcActionRoute extends CollectionRoute {
       parseFilter(this.collection, filter),
     );
 
-    // TODO action with file
+    if (actionResult.type === 'File') {
+      const encodedName = encodeURIComponent(actionResult.name);
+
+      context.set('Content-Type', actionResult.mimeType);
+      context.set('Content-Disposition', `attachment; filename="${encodedName}"`);
+      context.set('X-Forest-Action-Type', 'File');
+      context.set('X-Forest-Action-File-Name', encodedName);
+
+      if (actionResult.responseHeaders) {
+        context.set(
+          'X-Forest-Action-Response-Headers',
+          JSON.stringify(actionResult.responseHeaders),
+        );
+      }
+
+      context.body = actionResult.stream;
+
+      return;
+    }
 
     context.response.body = {
       ...keysToSnake(actionResult),
