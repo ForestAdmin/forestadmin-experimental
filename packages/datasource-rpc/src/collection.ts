@@ -15,7 +15,7 @@ import {
 import superagent from 'superagent';
 
 import { RpcDataSourceOptions } from './types';
-import { appendHeaders, keysToCamel } from './utils';
+import { appendHeaders, keysToCamel, keysToSnake } from './utils';
 
 export default class RpcCollection extends BaseCollection {
   private readonly logger: Logger;
@@ -74,7 +74,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ projection, filter });
+    const response = await request.send({ projection, filter: keysToSnake(filter) });
 
     return response.body;
   }
@@ -86,7 +86,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    await request.send({ patch, filter });
+    await request.send({ patch, filter: keysToSnake(filter) });
   }
 
   async delete(caller: Caller, filter: Filter) {
@@ -96,7 +96,7 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    await request.send({ filter });
+    await request.send({ filter: keysToSnake(filter) });
   }
 
   async aggregate(caller: Caller, filter: Filter, aggregation: Aggregation, limit?: number) {
@@ -106,7 +106,11 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ filter, aggregation, limit });
+    const response = await request.send({
+      filter: keysToSnake(filter),
+      aggregation: keysToSnake(aggregation),
+      limit,
+    });
 
     return response.body;
   }
@@ -121,7 +125,11 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ action: name, filter, data: formValues });
+    const response = await request.send({
+      action: name,
+      filter: keysToSnake(filter),
+      data: formValues,
+    });
 
     const body = keysToCamel(response.body);
     body.invalidated = new Set(body.invalidated);
@@ -147,7 +155,12 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
-    const response = await request.send({ action: name, filter, metas, data: formValues });
+    const response = await request.send({
+      action: name,
+      filter: keysToSnake(filter),
+      metas: keysToSnake(metas),
+      data: formValues,
+    });
 
     return keysToCamel(response.body);
   }
