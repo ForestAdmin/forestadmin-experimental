@@ -12,7 +12,9 @@ export function parseIntrospection(introSchema: IntrospectionSchema): RpcSchema 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const { actions, fields, aggregation_capabilities, ...rest } = collection;
     const parsedActions = Object.entries(actions).reduce((pActions: any, [name, schema]) => {
-      pActions[name] = cameliseKeys(schema);
+      const camelSchema = cameliseKeys(schema) as Record<string, unknown>;
+      camelSchema.generateFile = camelSchema.isGenerateFile;
+      pActions[name] = camelSchema;
 
       return pActions;
     }, {});

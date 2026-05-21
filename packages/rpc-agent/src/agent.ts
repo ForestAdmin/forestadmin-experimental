@@ -97,7 +97,11 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
     }, {});
 
     const buildedActions = Object.entries(actions).reduce((bActions, [name, schema]) => {
-      bActions[name] = keysToSnake(schema);
+      const snakeSchema = keysToSnake(schema) as Record<string, unknown>;
+      // Ruby toolkit reads the flag as `is_generate_file`; align the wire format with that
+      // convention so Ruby main agents pick it up without an ad-hoc mapping on their side.
+      snakeSchema.is_generate_file = snakeSchema.generate_file;
+      bActions[name] = snakeSchema;
 
       return bActions;
     }, {});
