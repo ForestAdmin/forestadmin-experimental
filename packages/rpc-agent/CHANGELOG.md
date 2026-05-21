@@ -1,3 +1,10 @@
+## [2.9.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.9.1...rpc-agent@2.9.2) (2026-05-21)
+
+
+### Bug Fixes
+
+* **rpc:** handle sa schema properly with multi stack ([#218](https://github.com/ForestAdmin/forestadmin-experimental/issues/218)) ([c8016dc](https://github.com/ForestAdmin/forestadmin-experimental/commit/c8016dcba128ed1ef2b84d4b22ed712c26f7b02d))
+
 ## [2.9.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.9.0...rpc-agent@2.9.1) (2026-05-05)
 
 
