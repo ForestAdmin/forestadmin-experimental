@@ -101,6 +101,7 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
       // Ruby toolkit reads the flag as `is_generate_file`; align the wire format with that
       // convention so Ruby main agents pick it up without an ad-hoc mapping on their side.
       snakeSchema.is_generate_file = snakeSchema.generate_file;
+      delete snakeSchema.generate_file;
       bActions[name] = snakeSchema;
 
       return bActions;

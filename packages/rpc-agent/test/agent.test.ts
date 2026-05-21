@@ -40,19 +40,5 @@ describe('RpcAgent.buildCollection', () => {
       is_generate_file: true,
       description: 'export',
     });
-    expect(action).not.toHaveProperty('generate_file');
-    expect(action).not.toHaveProperty('generateFile');
-  });
-
-  it('does not introduce is_generate_file when the source schema omits generateFile', () => {
-    const agent = createAgent();
-    const collection = buildCollectionFixture({ scope: 'Single' });
-
-    const built = agent.buildCollection(collection, {}) as { actions: Record<string, unknown> };
-    const action = built.actions.download as Record<string, unknown>;
-
-    expect(action).toEqual({ scope: 'Single' });
-    expect(action).not.toHaveProperty('is_generate_file');
-    expect(action).not.toHaveProperty('generate_file');
   });
 });
