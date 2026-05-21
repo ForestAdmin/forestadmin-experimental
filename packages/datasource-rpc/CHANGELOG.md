@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.1...datasource-rpc@1.12.2) (2026-05-21)
+
+
+### Bug Fixes
+
+* **rpc:** handle sa schema properly with multi stack ([#218](https://github.com/ForestAdmin/forestadmin-experimental/issues/218)) ([c8016dc](https://github.com/ForestAdmin/forestadmin-experimental/commit/c8016dcba128ed1ef2b84d4b22ed712c26f7b02d))
+
 ## [1.12.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.0...datasource-rpc@1.12.1) (2026-05-05)
 
 
