@@ -1,3 +1,10 @@
+## [1.12.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.2...datasource-rpc@1.12.3) (2026-05-22)
+
+
+### Bug Fixes
+
+* **rpc datatource:** allow connect ruby as rpc ([#219](https://github.com/ForestAdmin/forestadmin-experimental/issues/219)) ([5034d74](https://github.com/ForestAdmin/forestadmin-experimental/commit/5034d7453644c8c6690195a2c093ce29de0d86f2))
+
 ## [1.12.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.1...datasource-rpc@1.12.2) (2026-05-21)
 
 
