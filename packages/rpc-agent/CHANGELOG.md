@@ -1,3 +1,15 @@
+# [2.10.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.9.2...rpc-agent@2.10.0) (2026-05-27)
+
+
+### Bug Fixes
+
+* **rpc datatource:** allow connect ruby as rpc ([#219](https://github.com/ForestAdmin/forestadmin-experimental/issues/219)) ([5034d74](https://github.com/ForestAdmin/forestadmin-experimental/commit/5034d7453644c8c6690195a2c093ce29de0d86f2))
+
+
+### Features
+
+* **rpc:** handle SA returning file ([#217](https://github.com/ForestAdmin/forestadmin-experimental/issues/217)) ([08cc659](https://github.com/ForestAdmin/forestadmin-experimental/commit/08cc659fdd46360c96b2e638438bd13442067257))
+
 ## [2.9.2](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.9.1...rpc-agent@2.9.2) (2026-05-21)
 
 
