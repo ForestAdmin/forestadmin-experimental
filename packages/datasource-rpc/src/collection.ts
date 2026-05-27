@@ -156,9 +156,7 @@ export default class RpcCollection extends BaseCollection {
     };
 
     if (headers['x-forest-action-type'] === 'File') {
-      const responseHeadersHeader = headers['x-forest-action-response-headers'] as
-        | string
-        | undefined;
+      const responseHeaders = headers['x-forest-action-response-headers'] as string | undefined;
       const fileNameHeader = (headers['x-forest-action-file-name'] as string) || '';
 
       return {
@@ -166,7 +164,7 @@ export default class RpcCollection extends BaseCollection {
         mimeType: headers['content-type'] as string,
         name: decodeURIComponent(fileNameHeader),
         stream: Readable.from(buffer),
-        ...(responseHeadersHeader ? { responseHeaders: JSON.parse(responseHeadersHeader) } : {}),
+        ...(responseHeaders ? { responseHeaders: JSON.parse(responseHeaders) } : {}),
       };
     }
 
