@@ -1,4 +1,5 @@
 import {
+  ActionResult,
   Aggregation,
   BaseCollection,
   Caller,
@@ -12,6 +13,8 @@ import {
   Projection,
   RecordData,
 } from '@forestadmin/datasource-toolkit';
+import { IncomingHttpHeaders } from 'http';
+import { Readable } from 'stream';
 import superagent from 'superagent';
 
 import { RpcDataSourceOptions } from './types';
@@ -115,7 +118,12 @@ export default class RpcCollection extends BaseCollection {
     return response.body;
   }
 
-  override async execute(caller: Caller, name: string, formValues: RecordData, filter?: Filter) {
+  override async execute(
+    caller: Caller,
+    name: string,
+    formValues: RecordData,
+    filter?: Filter,
+  ): Promise<ActionResult> {
     const url = `${this.rpcCollectionUri}/action-execute`;
 
     this.logger(
@@ -125,16 +133,44 @@ export default class RpcCollection extends BaseCollection {
 
     const request = superagent.post(url);
     appendHeaders(request, this.options.authSecret, caller);
+    // Buffer the response ourselves to branch between binary (File) and JSON paths on the
+    // response headers — superagent's default JSON parser would error on binary bodies.
+    request.buffer(true);
+    request.parse((res, callback) => {
+      const chunks: Uint8Array[] = [];
+      res.on('data', (chunk: Uint8Array) => chunks.push(chunk));
+      res.once('end', () =>
+        callback(null, { headers: res.headers, buffer: Buffer.concat(chunks) }),
+      );
+      res.once('error', err => callback(err, null));
+    });
+
     const response = await request.send({
       action: name,
       filter: keysToSnake(filter),
       data: formValues,
     });
+    const { headers, buffer } = response.body as {
+      headers: IncomingHttpHeaders;
+      buffer: Buffer;
+    };
 
-    const body = keysToCamel(response.body);
+    if (headers['x-forest-action-type'] === 'File') {
+      const responseHeaders = headers['x-forest-action-response-headers'] as string | undefined;
+      const fileNameHeader = (headers['x-forest-action-file-name'] as string) || '';
+
+      return {
+        type: 'File',
+        mimeType: headers['content-type'] as string,
+        name: decodeURIComponent(fileNameHeader),
+        stream: Readable.from(buffer),
+        ...(responseHeaders ? { responseHeaders: JSON.parse(responseHeaders) } : {}),
+      };
+    }
+
+    const raw = buffer.toString('utf-8');
+    const body = keysToCamel(raw ? JSON.parse(raw) : {});
     body.invalidated = new Set(body.invalidated);
-
-    // TODO action with file
 
     return body;
   }
