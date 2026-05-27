@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.3...datasource-rpc@1.13.0) (2026-05-27)
+
+
+### Features
+
+* **rpc:** handle SA returning file ([#217](https://github.com/ForestAdmin/forestadmin-experimental/issues/217)) ([08cc659](https://github.com/ForestAdmin/forestadmin-experimental/commit/08cc659fdd46360c96b2e638438bd13442067257))
+
 ## [1.12.3](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.2...datasource-rpc@1.12.3) (2026-05-22)
 
 
