@@ -3,7 +3,12 @@ import type { RpcSchema } from './types';
 import { Agent, AgentOptions } from '@forestadmin/agent';
 import { ForestAdminHttpDriverServices } from '@forestadmin/agent/dist/services';
 import { DataSourceOptions, TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
-import { Collection, DataSource, DataSourceFactory } from '@forestadmin/datasource-toolkit';
+import {
+  Collection,
+  DataSource,
+  DataSourceFactory,
+  RelationSchema,
+} from '@forestadmin/datasource-toolkit';
 import { createHash } from 'crypto';
 import fs from 'fs/promises';
 
@@ -122,11 +127,11 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
   }
 
   buildSchema(dataSource: DataSource): RpcSchema {
-    const rpcRelations = {};
-    const collections = [];
+    const rpcRelations: RpcSchema['rpc_relations'] = {};
+    const collections: RpcSchema['collections'] = [];
 
     dataSource.collections.forEach(collection => {
-      const relations = {};
+      const relations: Record<string, RelationSchema> = {};
 
       if (this.rpcCollections.includes(collection.name)) {
         Object.entries(collection.schema.fields).forEach(([name, field]) => {
@@ -134,11 +139,11 @@ export default class RpcAgent<S extends TSchema = TSchema> extends Agent<S> {
             relations[name] = keysToSnake(field);
           }
         });
-
-        if (Object.keys(relations).length > 0) rpcRelations[collection.name] = relations;
       } else {
         collections.push(this.buildCollection(collection, relations));
       }
+
+      if (Object.keys(relations).length > 0) rpcRelations[collection.name] = relations;
     });
 
     return {
