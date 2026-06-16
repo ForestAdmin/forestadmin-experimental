@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.10.0...rpc-agent@2.10.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **rpc agent:** handle properly cross rpc relations ([#220](https://github.com/ForestAdmin/forestadmin-experimental/issues/220)) ([e222f02](https://github.com/ForestAdmin/forestadmin-experimental/commit/e222f0244f3cf6fc14831238b833f80f56695acc))
+
 # [2.10.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.9.2...rpc-agent@2.10.0) (2026-05-27)
 
 
