@@ -9,6 +9,8 @@ import {
   Caller,
   Filter,
   Logger,
+  ManyToOneSchema,
+  OneToManySchema,
   PaginatedFilter,
   Projection,
   RecordData,
@@ -128,7 +130,8 @@ export default class StripeCollection extends BaseCollection {
     // Convert amount fields from decimal string back to cents
     for (const field of AMOUNT_FIELDS) {
       if (data[field] != null) {
-        const value = typeof data[field] === 'string' ? parseFloat(data[field]) : data[field];
+        const fieldValue = data[field];
+        const value = typeof fieldValue === 'string' ? parseFloat(fieldValue) : fieldValue;
 
         if (typeof value === 'number' && !isNaN(value)) {
           data[field] = Math.round(value * 100);
@@ -246,8 +249,50 @@ export default class StripeCollection extends BaseCollection {
         }
         break;
 
+      case 'payment_intent':
+        if (operator === 'Equal') {
+          params.payment_intent = value;
+        }
+        break;
+
+      case 'charge':
+        // Supported by: refunds
+        if (operator === 'Equal') {
+          params.charge = value;
+        }
+        break;
+
+      case 'subscription':
+        // Supported by: invoices
+        if (operator === 'Equal') {
+          params.subscription = value;
+        }
+        break;
+
+      case 'product':
+        // Supported by: prices
+        if (operator === 'Equal') {
+          params.product = value;
+        }
+        break;
+
+      case 'price':
+        // Supported by: subscriptions
+        if (operator === 'Equal') {
+          params.price = value;
+        }
+        break;
+
+      case 'invoice':
+        // Supported by: charges (as invoice filter)
+        if (operator === 'Equal') {
+          params.invoice = value;
+        }
+        break;
+
       case 'active':
-        if (operator === 'Equal' && this.resourceName === 'products') {
+        // Supported by: products, prices
+        if (operator === 'Equal') {
           params.active = value;
         }
         break;
@@ -508,5 +553,41 @@ export default class StripeCollection extends BaseCollection {
       const logFn = level === 'Error' ? console.error : level === 'Warn' ? console.warn : console.info;
       logFn(`[StripeDataSource] ${message}`);
     }
+  }
+
+  /**
+   * Add a ManyToOne relation to another collection
+   * Public method to allow datasource to register relations after construction
+   */
+  addManyToOneRelation(
+    name: string,
+    foreignCollection: string,
+    foreignKey: string,
+    foreignKeyTarget = 'id',
+  ): void {
+    this.addField(name, {
+      type: 'ManyToOne',
+      foreignCollection,
+      foreignKey,
+      foreignKeyTarget,
+    } as ManyToOneSchema);
+  }
+
+  /**
+   * Add a OneToMany relation to another collection
+   * Public method to allow datasource to register relations after construction
+   */
+  addOneToManyRelation(
+    name: string,
+    foreignCollection: string,
+    originKey: string,
+    originKeyTarget = 'id',
+  ): void {
+    this.addField(name, {
+      type: 'OneToMany',
+      foreignCollection,
+      originKey,
+      originKeyTarget,
+    } as OneToManySchema);
   }
 }
