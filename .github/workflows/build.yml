@@ -6,7 +6,6 @@ on:
       - main
   pull_request:
 
-
 jobs:
   build:
     name: Installing & Building
@@ -24,7 +23,7 @@ jobs:
           # https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/ci-configurations/github-actions.md#pushing-packagejson-changes-to-your-repository
       - uses: actions/setup-node@v6
         with:
-          node-version: 22.21.0
+          node-version: 22.23.1
 
       - name: Upgrade npm
         run: npm install -g npm@latest
