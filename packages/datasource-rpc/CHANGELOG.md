@@ -1,3 +1,11 @@
+## [1.13.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.13.0...datasource-rpc@1.13.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **datasource-rpc:** prevent infinite loop in reconciliateRpc when using rename ([#221](https://github.com/ForestAdmin/forestadmin-experimental/issues/221)) ([febb11b](https://github.com/ForestAdmin/forestadmin-experimental/commit/febb11bab9fc06a55a3fb07302ae303fabdbf32e))
+* **rpc agent:** handle properly cross rpc relations ([#220](https://github.com/ForestAdmin/forestadmin-experimental/issues/220)) ([e222f02](https://github.com/ForestAdmin/forestadmin-experimental/commit/e222f0244f3cf6fc14831238b833f80f56695acc))
+
 # [1.13.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-rpc@1.12.3...datasource-rpc@1.13.0) (2026-05-27)
 
 
