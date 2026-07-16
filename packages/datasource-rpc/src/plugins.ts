@@ -20,7 +20,9 @@ function getRealDatasource(datasource) {
 function getCollectionName(collectionName: string, rename?: PluginOptions['rename']) {
   if (!rename) return collectionName;
 
-  return typeof rename === 'function' ? rename(collectionName) : rename[collectionName];
+  const renamed = typeof rename === 'function' ? rename(collectionName) : rename[collectionName];
+
+  return renamed ?? collectionName;
 }
 
 // eslint-disable-next-line import/prefer-default-export

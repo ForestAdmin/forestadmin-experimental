@@ -77,4 +77,37 @@ describe('reconciliateRpc', () => {
       expect.objectContaining({ foreignCollection: 'authors' }),
     );
   });
+
+  // A partial object-map must leave unlisted collections under their original name,
+  // not resolve them to `undefined`.
+  it('falls back to the original name for collections absent from an object rename map', () => {
+    const rpc = buildRpcDataSource({
+      books: {
+        author: {
+          type: 'ManyToOne',
+          foreignCollection: 'authors',
+          foreignKey: 'author_id',
+          foreignKeyTarget: 'id',
+        },
+      },
+    });
+    const { dz, cz } = buildCustomizer();
+    dz.compositeDataSource.dataSources = [rpc];
+
+    reconciliateRpc(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dz as any,
+      undefined,
+      { rename: { authors: 'writers' } },
+    );
+
+    // `books` is not in the map -> keeps its own name; `authors` is remapped.
+    expect(dz.getCollection).toHaveBeenCalledWith('books');
+    expect(dz.getCollection).not.toHaveBeenCalledWith(undefined);
+    expect(cz.addManyToOneRelation).toHaveBeenCalledWith(
+      'author',
+      'writers',
+      expect.objectContaining({ foreignCollection: 'authors' }),
+    );
+  });
 });
