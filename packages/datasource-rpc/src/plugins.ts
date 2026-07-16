@@ -8,10 +8,10 @@ import RpcDataSource from './datasource';
 function getRealDatasource(datasource) {
   let d = datasource;
 
-  while (datasource instanceof DataSourceDecorator) {
+  while (d instanceof DataSourceDecorator) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    d = datasource.childDataSource;
+    d = d.childDataSource;
   }
 
   return d;
@@ -20,7 +20,9 @@ function getRealDatasource(datasource) {
 function getCollectionName(collectionName: string, rename?: PluginOptions['rename']) {
   if (!rename) return collectionName;
 
-  return typeof rename === 'function' ? rename(collectionName) : rename[collectionName];
+  const renamed = typeof rename === 'function' ? rename(collectionName) : rename[collectionName];
+
+  return renamed ?? collectionName;
 }
 
 // eslint-disable-next-line import/prefer-default-export
@@ -39,7 +41,7 @@ export function reconciliateRpc(dz, _, options?: PluginOptions) {
       });
 
       Object.entries(d.rpcRelations).forEach(([name, relations]) => {
-        const cz: CollectionCustomizer = dz.getCollection(name);
+        const cz: CollectionCustomizer = dz.getCollection(getCollectionName(name, options?.rename));
 
         Object.entries(relations).forEach(([relationName, relationDefinition]) => {
           const foreignCollection = getCollectionName(
