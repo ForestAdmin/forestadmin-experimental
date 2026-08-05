@@ -19,7 +19,7 @@ export default function filteredOneToMany<
   if (!options) throw new Error('Options must be provided.');
 
   const { relationName, foreignCollection, handler } = options;
-  const newFieldName = `${relationName}Id`;
+  const newFieldName = `${collection.name}_${relationName}_Id`;
   const foreignForestCollection = dataSource.getCollection(foreignCollection);
   const fpks = SchemaUtils.getPrimaryKeys(foreignForestCollection.schema);
   const pks = SchemaUtils.getPrimaryKeys(collection.schema);
