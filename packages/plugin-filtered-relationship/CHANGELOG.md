@@ -1,3 +1,10 @@
+## [2.9.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.9.0...plugin-filtered-relationship@2.9.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **filtered relationship:** improve logging and replace name only if necessary ([bc595b3](https://github.com/ForestAdmin/forestadmin-experimental/commit/bc595b345ec32b339cabafad93217b7625c8ecbf))
+
 # [2.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/plugin-filtered-relationship@2.8.0...plugin-filtered-relationship@2.9.0) (2026-08-05)
 
 
