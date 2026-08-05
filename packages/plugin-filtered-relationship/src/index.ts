@@ -5,22 +5,61 @@ import type {
   TSchema,
 } from '@forestadmin/datasource-customizer';
 
-import { CollectionUtils, ColumnSchema, SchemaUtils } from '@forestadmin/datasource-toolkit';
+import {
+  CollectionUtils,
+  ColumnSchema,
+  Logger,
+  SchemaUtils,
+} from '@forestadmin/datasource-toolkit';
 
 import { Options } from './types';
 
 export { Options as FilteredOneToManyOptions };
 
+function getOriginKeyName(
+  foreignForestCollection: CollectionCustomizer,
+  collectionName: string,
+  relationName: string,
+  logger?: Logger,
+): string {
+  const { fields } = foreignForestCollection.schema;
+  const defaultName = `${relationName}Id`;
+
+  if (!fields[defaultName]) return defaultName;
+
+  const scopedName = `${collectionName}_${relationName}_Id`;
+
+  if (fields[scopedName]) {
+    throw new Error(
+      `filteredOneToMany: '${foreignForestCollection.name}' already has both ` +
+        `'${defaultName}' and '${scopedName}' fields. Use another relationName.`,
+    );
+  }
+
+  logger?.(
+    'Warn',
+    `filteredOneToMany: '${defaultName}' already exists on '${foreignForestCollection.name}', ` +
+      `using '${scopedName}' instead.`,
+  );
+
+  return scopedName;
+}
+
 export default function filteredOneToMany<
   S extends TSchema = TSchema,
   N extends TCollectionName<S> = TCollectionName<S>,
->(dataSource, collection: CollectionCustomizer, options?: Options<S, N>) {
+>(dataSource, collection: CollectionCustomizer, options?: Options<S, N>, logger?: Logger) {
   if (!collection) throw new Error('filteredOneToMany may only be use() on a collection.');
   if (!options) throw new Error('Options must be provided.');
 
   const { relationName, foreignCollection, handler } = options;
-  const newFieldName = `${collection.name}_${relationName}_Id`;
   const foreignForestCollection = dataSource.getCollection(foreignCollection);
+  const newFieldName = getOriginKeyName(
+    foreignForestCollection,
+    collection.name,
+    relationName,
+    logger,
+  );
   const fpks = SchemaUtils.getPrimaryKeys(foreignForestCollection.schema);
   const pks = SchemaUtils.getPrimaryKeys(collection.schema);
 
