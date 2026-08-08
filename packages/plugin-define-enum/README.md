@@ -17,9 +17,9 @@ const BandStatus = {
 await createAgent<Schema>(Options)
   .addDataSource(DataSourceOptions)
   .customizeCollection('users', usersCollection => {
-    .use<DefineEnumOption<Schema, 'users'>>(defineEnum, {
+    .use(defineEnum<Schema, 'users'>({ // <Schema, 'users'> should disappear next
       fieldName: 'bandStatus',
       enumObject: BandStatus,
-    })
+    }))
   })
 ```
