@@ -159,7 +159,95 @@ export default class StripeDataSource extends BaseDataSource {
       }
     }
 
+    // Register relationships between collections
+    this.registerRelationships();
+
     this.log('Info', `Initialized with ${this.collections.length} collection(s)`);
+  }
+
+  /**
+   * Register relationships between Stripe collections
+   * Only OneToMany relationships as requested:
+   *
+   * Customer (1) → (N) Invoices, Subscriptions, Charges, PaymentIntents
+   * Invoice (1) → (N) Charges, PaymentIntents
+   * PaymentIntent (1) → (N) Refunds, Charges
+   * Charge (1) → (N) Refunds
+   * Product (1) → (N) Prices
+   */
+  private registerRelationships(): void {
+    // Get collections as StripeCollection (may not exist if excluded)
+    const customers = this.collections.find(c => c.name === 'Stripe Customers') as
+      | StripeCollection
+      | undefined;
+    const invoices = this.collections.find(c => c.name === 'Stripe Invoices') as
+      | StripeCollection
+      | undefined;
+    const paymentIntents = this.collections.find(c => c.name === 'Stripe Payment Intents') as
+      | StripeCollection
+      | undefined;
+    const refunds = this.collections.find(c => c.name === 'Stripe Refunds') as
+      | StripeCollection
+      | undefined;
+    const subscriptions = this.collections.find(c => c.name === 'Stripe Subscriptions') as
+      | StripeCollection
+      | undefined;
+    const charges = this.collections.find(c => c.name === 'Stripe Charges') as
+      | StripeCollection
+      | undefined;
+    const products = this.collections.find(c => c.name === 'Stripe Products') as
+      | StripeCollection
+      | undefined;
+    const prices = this.collections.find(c => c.name === 'Stripe Prices') as
+      | StripeCollection
+      | undefined;
+
+    // Customer (1) → (N) Invoices, Subscriptions, Charges, PaymentIntents
+    if (customers && invoices) {
+      customers.addOneToManyRelation('invoices', 'Stripe Invoices', 'customer');
+    }
+
+    if (customers && subscriptions) {
+      customers.addOneToManyRelation('subscriptions', 'Stripe Subscriptions', 'customer');
+    }
+
+    if (customers && charges) {
+      customers.addOneToManyRelation('charges', 'Stripe Charges', 'customer');
+    }
+
+    if (customers && paymentIntents) {
+      customers.addOneToManyRelation('paymentIntents', 'Stripe Payment Intents', 'customer');
+    }
+
+    // Invoice (1) → (N) Charges, PaymentIntents
+    if (invoices && charges) {
+      invoices.addOneToManyRelation('charges', 'Stripe Charges', 'invoice');
+    }
+
+    if (invoices && paymentIntents) {
+      invoices.addOneToManyRelation('paymentIntents', 'Stripe Payment Intents', 'invoice');
+    }
+
+    // PaymentIntent (1) → (N) Refunds, Charges
+    if (paymentIntents && refunds) {
+      paymentIntents.addOneToManyRelation('refunds', 'Stripe Refunds', 'payment_intent');
+    }
+
+    if (paymentIntents && charges) {
+      paymentIntents.addOneToManyRelation('charges', 'Stripe Charges', 'payment_intent');
+    }
+
+    // Charge (1) → (N) Refunds
+    if (charges && refunds) {
+      charges.addOneToManyRelation('refunds', 'Stripe Refunds', 'charge');
+    }
+
+    // Product (1) → (N) Prices
+    if (products && prices) {
+      products.addOneToManyRelation('prices', 'Stripe Prices', 'product');
+    }
+
+    this.log('Info', 'Registered native relationships between collections');
   }
 
   /**
