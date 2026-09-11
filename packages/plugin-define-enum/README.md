@@ -23,3 +23,7 @@ await createAgent<Schema>(Options)
     })
   })
 ```
+
+The generated field is filterable: every operator supported by the original field and valid on an
+`Enum` column is forwarded to the original field, with the enum keys translated back to their
+technical values.
