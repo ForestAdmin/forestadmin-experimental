@@ -19,14 +19,15 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf coverage dist",
-    "publish:package": "semantic-release"
+    "publish:package": "semantic-release",
+    "test": "jest"
   },
   "devDependencies": {
-    "@forestadmin/datasource-customizer": "^1.44.3",
-    "@forestadmin/datasource-toolkit": "^1.33.0"
+    "@forestadmin/datasource-customizer": "^1.71.3",
+    "@forestadmin/datasource-toolkit": "^1.55.1"
   },
   "peerDependencies": {
-    "@forestadmin/datasource-customizer": "^1.44.3",
-    "@forestadmin/datasource-toolkit": "^1.33.0"
+    "@forestadmin/datasource-customizer": "^1.71.3",
+    "@forestadmin/datasource-toolkit": "^1.55.1"
   }
 }

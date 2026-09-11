@@ -1,5 +1,7 @@
 import type { Plugin, TCollectionName, TSchema } from '@forestadmin/datasource-customizer';
 
+import { ColumnSchema, allowedOperatorsForColumnType } from '@forestadmin/datasource-toolkit';
+
 import { Options } from './types';
 
 export { Options as DefineEnumOption };
@@ -13,6 +15,7 @@ export default function defineEnum<
 
   const { fieldName, enumFieldName, enumObject } = options;
   const newFieldName = enumFieldName ?? `${fieldName}Enum`;
+  const toRawValue = key => Object.entries(enumObject).find(([k]) => k === key)?.[1];
 
   collection
     .addField(newFieldName, {
@@ -25,9 +28,27 @@ export default function defineEnum<
         return records.map(r => enumEntries.find(([, v]) => v === r[fieldName])?.[0]);
       },
     })
-    .replaceFieldWriting(newFieldName, v => ({
-      [fieldName]: Object.entries(enumObject).find(([k]) => v === k)?.[1],
-    }));
+    .replaceFieldWriting(newFieldName, v => ({ [fieldName]: toRawValue(v) }));
+
+  const { filterOperators } = (collection.schema.fields[fieldName] ?? {}) as ColumnSchema;
+
+  const supportedOperators = allowedOperatorsForColumnType.Enum.filter(operator =>
+    filterOperators?.has(operator),
+  );
+
+  supportedOperators.forEach(operator => {
+    collection.replaceFieldOperator(newFieldName, operator, value => {
+      if (value === null || value === undefined) return { field: fieldName, operator };
+
+      return {
+        field: fieldName,
+        operator,
+        value: Array.isArray(value)
+          ? value.map(toRawValue).filter(v => v !== undefined)
+          : toRawValue(value),
+      };
+    });
+  });
 }
 
 export type DefineEnumType = Plugin<Options>;
