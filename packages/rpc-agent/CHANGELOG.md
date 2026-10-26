@@ -1,3 +1,18 @@
+# [2.11.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.10.1...rpc-agent@2.11.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **datasource-rpc:** prevent infinite loop in reconciliateRpc when using rename ([#221](https://github.com/ForestAdmin/forestadmin-experimental/issues/221)) ([febb11b](https://github.com/ForestAdmin/forestadmin-experimental/commit/febb11bab9fc06a55a3fb07302ae303fabdbf32e))
+* **filtered relationship:** enhance bahavior to handle more case ([#138](https://github.com/ForestAdmin/forestadmin-experimental/issues/138)) ([995cf9f](https://github.com/ForestAdmin/forestadmin-experimental/commit/995cf9fa1627fc3f3ec3e6f0c636d1f1f8896d46))
+* **filtered relationship:** improve logging and replace name only if necessary ([bc595b3](https://github.com/ForestAdmin/forestadmin-experimental/commit/bc595b345ec32b339cabafad93217b7625c8ecbf))
+* **rpc agent:** issue on list with renamed field ([#224](https://github.com/ForestAdmin/forestadmin-experimental/issues/224)) ([35f4111](https://github.com/ForestAdmin/forestadmin-experimental/commit/35f411144dcf1fc2547499ab2f77d3ae962cf733))
+
+
+### Features
+
+* **define enum plugin:** allow filtering on the main field ([#222](https://github.com/ForestAdmin/forestadmin-experimental/issues/222)) ([905afca](https://github.com/ForestAdmin/forestadmin-experimental/commit/905afca9f98027d6d9801b697870edb88c8b28e4))
+
 ## [2.10.1](https://github.com/ForestAdmin/forestadmin-experimental/compare/rpc-agent@2.10.0...rpc-agent@2.10.1) (2026-06-16)
 
 
