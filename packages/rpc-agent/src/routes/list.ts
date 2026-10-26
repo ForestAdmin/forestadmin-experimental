@@ -15,7 +15,7 @@ export default class RpcListRoute extends CollectionRoute {
     const records = await this.collection.list(
       parseCaller(context),
       parsePaginatedFilter(this.collection, filter),
-      new Projection(projection),
+      new Projection(...projection),
     );
 
     context.response.body = records;
