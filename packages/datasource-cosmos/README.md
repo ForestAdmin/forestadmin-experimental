@@ -497,7 +497,7 @@ GPL-3.0 - See LICENSE file for details
 ## Support
 
 - 📚 [Forest Admin Documentation](https://docs.forestadmin.com)
-- 💬 [Community Forum](https://community.forestadmin.com)
+- 💬 [Support](https://forest.app/forms/support)
 - 🐛 [Issue Tracker](https://github.com/ForestAdmin/forestadmin-experimental/issues)
 - 📧 [Email Support](mailto:support@forestadmin.com)
 
