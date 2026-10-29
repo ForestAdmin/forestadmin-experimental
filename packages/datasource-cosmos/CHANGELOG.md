@@ -1,3 +1,24 @@
+# [1.10.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.9.0...datasource-cosmos@1.10.0) (2026-10-29)
+
+
+### Bug Fixes
+
+* **datasource-rpc:** prevent infinite loop in reconciliateRpc when using rename ([#221](https://github.com/ForestAdmin/forestadmin-experimental/issues/221)) ([febb11b](https://github.com/ForestAdmin/forestadmin-experimental/commit/febb11bab9fc06a55a3fb07302ae303fabdbf32e))
+* **filtered relationship:** enhance bahavior to handle more case ([#138](https://github.com/ForestAdmin/forestadmin-experimental/issues/138)) ([995cf9f](https://github.com/ForestAdmin/forestadmin-experimental/commit/995cf9fa1627fc3f3ec3e6f0c636d1f1f8896d46))
+* **filtered relationship:** improve logging and replace name only if necessary ([bc595b3](https://github.com/ForestAdmin/forestadmin-experimental/commit/bc595b345ec32b339cabafad93217b7625c8ecbf))
+* **rpc agent:** handle properly cross rpc relations ([#220](https://github.com/ForestAdmin/forestadmin-experimental/issues/220)) ([e222f02](https://github.com/ForestAdmin/forestadmin-experimental/commit/e222f0244f3cf6fc14831238b833f80f56695acc))
+* **rpc agent:** issue on list with renamed field ([#224](https://github.com/ForestAdmin/forestadmin-experimental/issues/224)) ([35f4111](https://github.com/ForestAdmin/forestadmin-experimental/commit/35f411144dcf1fc2547499ab2f77d3ae962cf733))
+* **rpc agent:** use schema path option ([#215](https://github.com/ForestAdmin/forestadmin-experimental/issues/215)) ([4c700ec](https://github.com/ForestAdmin/forestadmin-experimental/commit/4c700ecda1a7b6d3a66ef66add042e57e45f4095))
+* **rpc datasource:** fix introspection parsing ([b3978a1](https://github.com/ForestAdmin/forestadmin-experimental/commit/b3978a173b26212a9b3da19be5592175172b57f5))
+* **rpc datatource:** allow connect ruby as rpc ([#219](https://github.com/ForestAdmin/forestadmin-experimental/issues/219)) ([5034d74](https://github.com/ForestAdmin/forestadmin-experimental/commit/5034d7453644c8c6690195a2c093ce29de0d86f2))
+* **rpc:** handle sa schema properly with multi stack ([#218](https://github.com/ForestAdmin/forestadmin-experimental/issues/218)) ([c8016dc](https://github.com/ForestAdmin/forestadmin-experimental/commit/c8016dcba128ed1ef2b84d4b22ed712c26f7b02d))
+
+
+### Features
+
+* **define enum plugin:** allow filtering on the main field ([#222](https://github.com/ForestAdmin/forestadmin-experimental/issues/222)) ([905afca](https://github.com/ForestAdmin/forestadmin-experimental/commit/905afca9f98027d6d9801b697870edb88c8b28e4))
+* **rpc:** handle SA returning file ([#217](https://github.com/ForestAdmin/forestadmin-experimental/issues/217)) ([08cc659](https://github.com/ForestAdmin/forestadmin-experimental/commit/08cc659fdd46360c96b2e638438bd13442067257))
+
 # [1.9.0](https://github.com/ForestAdmin/forestadmin-experimental/compare/datasource-cosmos@1.8.3...datasource-cosmos@1.9.0) (2026-04-09)
 
 
